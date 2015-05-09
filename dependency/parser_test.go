@@ -119,6 +119,9 @@ func TestSingleNotArch(t *testing.T) {
 func TestDoubleInvalidNotArch(t *testing.T) {
 	_, err := dependency.Parse("foo [arch !foo]")
 	notok(t, err)
+
+	_, err = dependency.Parse("foo [arch!foo]")
+	notok(t, err)
 }
 
 func TestDoubleArch(t *testing.T) {
