@@ -25,8 +25,8 @@ import (
 	"fmt"
 )
 
-/*
- */
+// Parse a string into a Depedency object. The input should look something
+// like "foo, bar | baz".
 func Parse(in string) (*Depedency, error) {
 	ibuf := Input{Index: 0, Data: in}
 	dep := &Depedency{Relations: []*Relation{}}
