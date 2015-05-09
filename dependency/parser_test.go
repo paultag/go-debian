@@ -149,6 +149,11 @@ func TestVersioningOperators(t *testing.T) {
 	}
 }
 
+func TestNoComma(t *testing.T) {
+	_, err := dependency.Parse("foo bar")
+	notok(t, err)
+}
+
 func TestTwoVersions(t *testing.T) {
 	_, err := dependency.Parse("foo (>= 1.0) (<= 2.0)")
 	notok(t, err)

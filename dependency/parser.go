@@ -179,6 +179,7 @@ func parsePossibilityControllers(input *Input, possi *Possibility) error {
 				return err
 			}
 		}
+		return errors.New("Trailing garbage in a Possibility.")
 	}
 	return nil
 }
