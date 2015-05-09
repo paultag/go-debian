@@ -1,25 +1,58 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"pault.ag/x/go-debian/dependency"
 )
 
 func main() {
-	dep, err := dependency.Parse("foo, bar [amd64 i386] | baz (>= 1.0)")
+	if len(os.Args) <= 1 {
+		helpTool()
+		return
+	}
+
+	switch os.Args[1] {
+	case "help":
+		helpTool()
+		return
+	case "dependency":
+		dependencyTool()
+		return
+	}
+
+	helpTool()
+
+}
+
+func helpTool() {
+	fmt.Printf(
+		"%s\n",
+		`
+go-debian
+=========
+
+Commands:
+
+	help          | show this help
+	dependency    | parse dependency relations to json
+		`,
+	)
+}
+
+func dependencyTool() {
+	if len(os.Args) <= 2 {
+		fmt.Printf("Error! Give me a version to parse!\n")
+		return
+	}
+
+	dep, err := dependency.Parse(os.Args[2])
 	if err != nil {
 		log.Fatalf("Oh no! %s", err)
 	}
-	for _, relation := range dep.Relations {
-		for _, possi := range relation.Possibilities {
-			fmt.Printf("   -> %s\n", possi.Name)
-			for _, arch := range possi.Arches {
-				fmt.Printf("      %s\n", arch.Name)
-			}
-		}
-		fmt.Printf(".\n")
-	}
-	fmt.Printf("\n")
+	data, err := json.MarshalIndent(&dep, "", "  ")
+	fmt.Printf("%s\n", data)
 }
