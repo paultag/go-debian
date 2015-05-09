@@ -23,9 +23,9 @@ package dependency
 // Arch models an architecture dependency restriction, commonly used to
 // restrict the relation to one some architectures. This is also usually
 // used in a string of many possibilities.
-type Arch struct {
-	Not  bool
-	Name string
+type ArchSet struct {
+	Not    bool
+	Arches []*Arch
 }
 
 // VersionRelation models a version restriction on a possibility, such as
@@ -61,7 +61,7 @@ type StageSet struct {
 //
 type Possibility struct {
 	Name    string
-	Arches  []Arch
+	Arches  *ArchSet
 	Stages  *StageSet
 	Version *VersionRelation
 }

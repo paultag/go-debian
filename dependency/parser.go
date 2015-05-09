@@ -125,7 +125,7 @@ func parsePossibility(input *Input, relation *Relation) error {
 	ret := &Possibility{
 		Name:    "",
 		Version: nil,
-		Arches:  []Arch{},
+		Arches:  &ArchSet{Arches: []*Arch{}},
 		Stages:  &StageSet{Stages: []*Stage{}},
 	}
 
@@ -170,7 +170,7 @@ func parsePossibilityControllers(input *Input, possi *Possibility) error {
 			}
 			continue
 		case '[':
-			if len(possi.Arches) != 0 {
+			if len(possi.Arches.Arches) != 0 {
 				return errors.New(
 					"Only one Arch relation per Possibility, please!",
 				)
@@ -262,6 +262,15 @@ func parsePossibilityNumber(input *Input, version *VersionRelation) error {
 func parsePossibilityArchs(input *Input, possi *Possibility) error {
 	eatWhitespace(input)
 	input.Next() /* Assert ch == '[' */
+
+	/* So the first line of each guy can be a not (!), so let's check for
+	 * that with a Peek :) */
+	peek := input.Peek()
+	if peek == '!' {
+		input.Next() /* Omnom */
+		possi.Arches.Not = true
+	}
+
 	for {
 		peek := input.Peek()
 		switch peek {
@@ -282,24 +291,18 @@ func parsePossibilityArchs(input *Input, possi *Possibility) error {
 /* */
 func parsePossibilityArch(input *Input, possi *Possibility) error {
 	eatWhitespace(input)
-	arch := Arch{Name: "", Not: false}
-
-	/* So the first line of each guy can be a not (!), so let's check for
-	 * that with a Peek :) */
-	peek := input.Peek()
-	if peek == '!' {
-		input.Next() /* Omnom */
-		arch.Not = true
-	}
+	arch := &Arch{Name: ""}
 
 	for {
 		peek := input.Peek()
 		switch peek {
 		case 0:
 			return errors.New("Oh no. Reached EOF before Arch list finished")
+		case '!':
+			return errors.New("You can only negate whole blocks :(")
 		case ']', ' ': /* Let our parent deal with both of these */
 			/* Validate name */
-			possi.Arches = append(possi.Arches, arch)
+			possi.Arches.Arches = append(possi.Arches.Arches, arch)
 			return nil
 		}
 		arch.Name += string(input.Next())

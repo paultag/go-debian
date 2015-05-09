@@ -97,7 +97,7 @@ func TestSingleArch(t *testing.T) {
 	assert(t, len(dep.Relations) == 1)
 
 	possi := dep.Relations[0].Possibilities[0]
-	arches := possi.Arches
+	arches := possi.Arches.Arches
 
 	assert(t, len(arches) == 1)
 	assert(t, arches[0].Name == "arch")
@@ -109,11 +109,16 @@ func TestSingleNotArch(t *testing.T) {
 	assert(t, len(dep.Relations) == 1)
 
 	possi := dep.Relations[0].Possibilities[0]
-	arches := possi.Arches
+	arches := possi.Arches.Arches
 
 	assert(t, len(arches) == 1)
 	assert(t, arches[0].Name == "arch")
-	assert(t, arches[0].Not)
+	assert(t, possi.Arches.Not)
+}
+
+func TestDoubleInvalidNotArch(t *testing.T) {
+	_, err := dependency.Parse("foo [arch !foo]")
+	notok(t, err)
 }
 
 func TestDoubleArch(t *testing.T) {
@@ -122,7 +127,7 @@ func TestDoubleArch(t *testing.T) {
 	assert(t, len(dep.Relations) == 1)
 
 	possi := dep.Relations[0].Possibilities[0]
-	arches := possi.Arches
+	arches := possi.Arches.Arches
 
 	assert(t, len(arches) == 2)
 	assert(t, arches[0].Name == "arch")
