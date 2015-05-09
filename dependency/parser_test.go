@@ -21,8 +21,9 @@
 package dependency_test
 
 import (
-	"../dependency"
 	"testing"
+
+	"pault.ag/x/go-debian/dependency"
 )
 
 /*

@@ -1,9 +1,10 @@
 package main
 
 import (
-	"./dependency"
 	"fmt"
 	"log"
+
+	"pault.ag/x/go-debian/dependency"
 )
 
 func main() {
