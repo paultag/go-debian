@@ -18,22 +18,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE. */
 
-package dependency
+package dependency_test
+
+import (
+	"testing"
+
+	"pault.ag/x/go-debian/dependency"
+)
 
 /*
+ *
  */
-type Arch struct {
-	Name string
-}
 
-func (arch *Arch) Is(other *Arch) bool {
-	switch arch.Name {
-	case other.Name:
-		return true
-	case "any":
-		return true
-	case "all":
-		return false
-	}
-	return false
+func TestArchBasics(t *testing.T) {
+	arch := dependency.Arch{Name: "amd64"}
+	archOther := dependency.Arch{Name: "amd64"}
+	assert(t, arch.Is(&archOther))
 }
