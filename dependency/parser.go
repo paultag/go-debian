@@ -61,21 +61,6 @@ func (i *Input) Next() byte {
 	return chr
 }
 
-/* Depedency (foo, bar | baz)
- *     | Relation (bar | baz)
- * 	    | Possibility (baz (>= 1.0))
- * 			| Archs
- * 			| Stages
- * 				| Stage
- * 			| Version
- *
- * Dependency State -> {Relation}
- * Relation State   -> {Possi}
- * Possi State      -> {Arch,Version,Stage}
- * Arch State       -> {Possi}
- * Version State    -> {Possi}
- * Stage State      -> {Possi} */
-
 /* */
 func eatWhitespace(input *Input) {
 	for {
