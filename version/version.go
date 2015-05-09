@@ -28,9 +28,10 @@ import (
 
 //
 type Version struct {
+	Native   bool
 	Epoch    int
 	Version  string
-	Revision *string
+	Revision string
 }
 
 //
@@ -52,7 +53,8 @@ func Parse(in string) (*Version, error) {
 	version := &Version{
 		Epoch:    0,
 		Version:  "",
-		Revision: nil,
+		Revision: "",
+		Native:   false,
 	}
 
 	in = strings.Trim(in, " \n\t\r")
@@ -76,8 +78,14 @@ func Parse(in string) (*Version, error) {
 	}
 
 	ver, debversion := rSplit(in, "-")
+
+	version.Native = debversion == nil
+
 	version.Version = *ver
-	version.Revision = debversion
+
+	if !version.Native {
+		version.Revision = *debversion
+	}
 
 	return version, nil
 }
