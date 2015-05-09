@@ -168,6 +168,7 @@ func parsePossibilityControllers(input *Input, possi *Possibility) error {
 			if err != nil {
 				return err
 			}
+			continue
 		case '[':
 			if len(possi.Arches) != 0 {
 				return errors.New(
@@ -178,8 +179,9 @@ func parsePossibilityControllers(input *Input, possi *Possibility) error {
 			if err != nil {
 				return err
 			}
+			continue
 		}
-		return errors.New("Trailing garbage in a Possibility.")
+		return fmt.Errorf("Trailing garbage in a Possibility: %c", peek)
 	}
 	return nil
 }
