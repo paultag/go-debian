@@ -59,7 +59,6 @@ func TestSingleParse(t *testing.T) {
 	assert(t, ver.Epoch == 1)
 	assert(t, ver.Version == "1.0")
 	assert(t, *ver.Revision == "1")
-
 }
 
 func TestNativeParse(t *testing.T) {
@@ -69,5 +68,18 @@ func TestNativeParse(t *testing.T) {
 	assert(t, ver.Epoch == 1)
 	assert(t, ver.Version == "1.0")
 	assert(t, ver.Revision == nil)
+}
 
+func TestNoEpoch(t *testing.T) {
+	ver, err := version.Parse("1.0-1")
+	isok(t, err)
+	assert(t, ver.Epoch == 0)
+	assert(t, ver.Version == "1.0")
+	assert(t, *ver.Revision == "1")
+
+	ver, err = version.Parse("1.0")
+	isok(t, err)
+	assert(t, ver.Epoch == 0)
+	assert(t, ver.Version == "1.0")
+	assert(t, ver.Revision == nil)
 }
