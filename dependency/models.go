@@ -20,35 +20,45 @@
 
 package dependency
 
-/*
- */
+// Arch models an architecture dependency restriction, commonly used to
+// restrict the relation to one some architectures. This is also usually
+// used in a string of many possibilities.
 type Arch struct {
 	Not  bool
 	Name string
 }
 
-/*
- */
+// VersionRelation models a version restriction on a possibility, such as
+// greater than version 1.0, or less than 2.0. The values that are valid
+// in the Operator field are defined by section 7.1 of Debian policy.
+//
+//   The relations allowed are <<, <=, =, >= and >> for strictly earlier,
+//   earlier or equal, exactly equal, later or equal and strictly later,
+//   respectively.
+//
 type VersionRelation struct {
 	Number   string
 	Operator string
 }
 
-/*
- */
 type Stage struct {
 	Not  bool
 	Name string
 }
 
-/*
- */
 type StageSet struct {
 	Stages []*Stage
 }
 
-/*
- */
+// Possibility models a concrete Possibility that may be satisfied in order
+// to satisfy the Dependency Relation. Given the Dependency line:
+//
+//   Depends: foo, bar | baz
+//
+// All of foo, bar and baz are Possibilities. Possibilities may come with
+// further restrictions, such as restrictions on Version, Architecture, or
+// Build Stage.
+//
 type Possibility struct {
 	Name    string
 	Arches  []Arch
@@ -56,14 +66,18 @@ type Possibility struct {
 	Version *VersionRelation
 }
 
-/*
- */
+// A Relation is a set of Possibilities that must be satisfied. Given the
+// Dependency line:
+//
+//   Depends: foo, bar | baz
+//
+// There are two Relations, one composed of foo, and another composed of
+// bar and baz.
 type Relation struct {
 	Possibilities []*Possibility
 }
 
-/*
- */
+// A Dependency is the top level type that models a full Depedency relation.
 type Depedency struct {
 	Relations []*Relation
 }
