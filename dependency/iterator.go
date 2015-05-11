@@ -39,11 +39,8 @@ func (iter *DepedencyIterator) Next() *Possibility {
 			return possi
 		}
 		/* OK, we need to do an arch constraint check */
-		for _, arch := range possi.Arches.Arches {
-			if iter.arch.Is(arch) {
-				/* If we can satisfy any of them; return it */
-				return possi
-			}
+		if possi.Arches.Is(&iter.arch) {
+			return possi
 		}
 	}
 

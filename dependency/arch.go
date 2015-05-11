@@ -83,6 +83,21 @@ func ParseArch(arch string) (*Arch, error) {
 
 /*
  */
+func (set *ArchSet) Is(other *Arch) bool {
+	not := set.Not
+	for _, el := range set.Arches {
+		if el.Is(other) {
+			/* For each arch; check if it matches. If it does, then
+			 * return true (unless we're negated) */
+			return !not
+		}
+	}
+	/* Otherwise, let's return false (unless we're negated) */
+	return not
+}
+
+/*
+ */
 func (arch *Arch) IsWildcard() bool {
 	if arch.CPU == "all" {
 		return false
