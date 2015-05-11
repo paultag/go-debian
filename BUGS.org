@@ -12,3 +12,4 @@
 
 * Parser
 ** Add in code to parse foo:amd64
+** Try and crash it with fuzzing (or more likely tightloop it)
