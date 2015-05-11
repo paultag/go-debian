@@ -116,6 +116,8 @@ func (arch *Arch) IsWildcard() bool {
 func (arch *Arch) Is(other *Arch) bool {
 
 	if arch.IsWildcard() && other.IsWildcard() {
+		/* We can't compare wildcards to other wildcards. That's just
+		 * insanity. We always need a concrete arch. Not even going to try. */
 		return false
 	} else if arch.IsWildcard() {
 		/* OK, so we're a wildcard. Let's defer to the other
