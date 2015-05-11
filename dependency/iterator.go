@@ -66,7 +66,7 @@ func (iter *DepedencyIterator) Next() *Possibility {
 /*
  *
  */
-func (dep *Depedency) IterPossibility(arch Arch) *DepedencyIterator {
+func (dep *Depedency) IterPossibilities(arch Arch) *DepedencyIterator {
 	return &DepedencyIterator{
 		dependency:    *dep,
 		relationIndex: 0,

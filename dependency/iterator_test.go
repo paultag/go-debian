@@ -37,7 +37,7 @@ func TestIteratorBasics(t *testing.T) {
 	arch, err := dependency.ParseArch("amd64")
 	isok(t, err)
 
-	iter := deps.IterPossibility(*arch)
+	iter := deps.IterPossibilities(*arch)
 	foo := iter.Next()
 	assert(t, foo.Name == "foo")
 
@@ -54,7 +54,7 @@ func TestIteratorBasics(t *testing.T) {
 	arch, err = dependency.ParseArch("sparc")
 	isok(t, err)
 
-	iter = deps.IterPossibility(*arch)
+	iter = deps.IterPossibilities(*arch)
 	foo = iter.Next()
 	assert(t, foo.Name == "foo")
 
@@ -66,7 +66,7 @@ func TestIteratorBasics(t *testing.T) {
 	deps, err = dependency.Parse("foo, bar [amd64] | baz")
 	isok(t, err)
 
-	iter = deps.IterPossibility(*arch)
+	iter = deps.IterPossibilities(*arch)
 	assert(t, iter.HasNext())
 	iter.Next()
 	assert(t, iter.HasNext())
