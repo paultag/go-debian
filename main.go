@@ -75,9 +75,9 @@ func versionTool() {
 		return
 	}
 
-	if ver.Revision == nil {
+	if ver.Native {
 		fmt.Printf("[native] %d:%s\n", ver.Epoch, ver.Version)
 	} else {
-		fmt.Printf("         %d:%s-%s\n", ver.Epoch, ver.Version, *ver.Revision)
+		fmt.Printf("         %d:%s-%s\n", ver.Epoch, ver.Version, ver.Revision)
 	}
 }
