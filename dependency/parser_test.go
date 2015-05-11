@@ -100,7 +100,7 @@ func TestSingleArch(t *testing.T) {
 	arches := possi.Arches.Arches
 
 	assert(t, len(arches) == 1)
-	assert(t, arches[0].Name == "arch")
+	assert(t, arches[0].CPU == "arch")
 }
 
 func TestSingleNotArch(t *testing.T) {
@@ -112,7 +112,7 @@ func TestSingleNotArch(t *testing.T) {
 	arches := possi.Arches.Arches
 
 	assert(t, len(arches) == 1)
-	assert(t, arches[0].Name == "arch")
+	assert(t, arches[0].CPU == "arch")
 	assert(t, possi.Arches.Not)
 }
 
@@ -133,8 +133,8 @@ func TestDoubleArch(t *testing.T) {
 	arches := possi.Arches.Arches
 
 	assert(t, len(arches) == 2)
-	assert(t, arches[0].Name == "arch")
-	assert(t, arches[1].Name == "arch2")
+	assert(t, arches[0].CPU == "arch")
+	assert(t, arches[1].CPU == "arch2")
 }
 
 func TestVersioningOperators(t *testing.T) {

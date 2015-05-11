@@ -291,7 +291,7 @@ func parsePossibilityArchs(input *Input, possi *Possibility) error {
 /* */
 func parsePossibilityArch(input *Input, possi *Possibility) error {
 	eatWhitespace(input)
-	arch := &Arch{Name: ""}
+	arch := ""
 
 	for {
 		peek := input.Peek()
@@ -301,10 +301,13 @@ func parsePossibilityArch(input *Input, possi *Possibility) error {
 		case '!':
 			return errors.New("You can only negate whole blocks :(")
 		case ']', ' ': /* Let our parent deal with both of these */
-			/* Validate name */
-			possi.Arches.Arches = append(possi.Arches.Arches, arch)
+			archObj, err := ParseArch(arch)
+			if err != nil {
+				return err
+			}
+			possi.Arches.Arches = append(possi.Arches.Arches, archObj)
 			return nil
 		}
-		arch.Name += string(input.Next())
+		arch += string(input.Next())
 	}
 }

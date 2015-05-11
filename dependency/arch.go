@@ -20,20 +20,72 @@
 
 package dependency
 
+import (
+	"errors"
+	"strings"
+)
+
 /*
  */
 type Arch struct {
-	Name string
+	ABI string
+	OS  string
+	CPU string
 }
 
-func (arch *Arch) Is(other *Arch) bool {
-	switch arch.Name {
-	case other.Name:
+/*
+ */
+func ParseArch(arch string) (*Arch, error) {
+	ret := &Arch{
+		ABI: "any",
+		OS:  "any",
+		CPU: "any",
+	}
+
+	/* May be in the following form:
+	 * `any` (implicitly any-any-any)
+	 * kfreebsd-any (implicitly any-kfreebsd-any)
+	 * kfreebsd-amd64 (implicitly any-kfreebsd-any)
+	 * bsd-openbsd-i386 */
+	flavors := strings.SplitN(arch, "-", 3)
+	switch len(flavors) {
+	case 1:
+		flavor := flavors[0]
+		/* OK, we've got a single guy like `any` or `amd64` */
+		switch flavor {
+		case "all", "any":
+			ret.ABI = flavor
+			ret.OS = flavor
+			ret.CPU = flavor
+		default:
+			/* right, so we've got something like `amd64`, which is implicitly
+			 * gnu-linux-amd64. Confusing, I know. */
+			ret.ABI = "gnu"
+			ret.OS = "linux"
+			ret.CPU = flavor
+		}
+	case 2:
+		/* Right, this is something like kfreebsd-amd64, which is implicitly
+		 * gnu-kfreebsd-amd64 */
+		ret.OS = flavors[0]
+		ret.CPU = flavors[1]
+	case 3:
+		/* This is something like bsd-openbsd-amd64 */
+		ret.ABI = flavors[0]
+		ret.OS = flavors[1]
+		ret.CPU = flavors[2]
+	default:
+		return nil, errors.New("Hurm, no idea what happened here")
+	}
+
+	return ret, nil
+}
+
+/*
+ */
+func (arch *Arch) IsWildcard(other *Arch) bool {
+	if arch.ABI == "any" || arch.OS == "any" || arch.CPU == "any" {
 		return true
-	case "any":
-		return true
-	case "all":
-		return false
 	}
 	return false
 }

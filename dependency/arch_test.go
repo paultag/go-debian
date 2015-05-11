@@ -31,7 +31,9 @@ import (
  */
 
 func TestArchBasics(t *testing.T) {
-	arch := dependency.Arch{Name: "amd64"}
-	archOther := dependency.Arch{Name: "amd64"}
-	assert(t, arch.Is(&archOther))
+	arch, err := dependency.ParseArch("amd64")
+	isok(t, err)
+	assert(t, arch.CPU == "amd64")
+	assert(t, arch.ABI == "gnu")
+	assert(t, arch.OS == "linux")
 }
