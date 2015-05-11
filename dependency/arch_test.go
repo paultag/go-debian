@@ -37,3 +37,42 @@ func TestArchBasics(t *testing.T) {
 	assert(t, arch.ABI == "gnu")
 	assert(t, arch.OS == "linux")
 }
+
+/*
+ */
+func TestArchCompareBasics(t *testing.T) {
+	arch, err := dependency.ParseArch("amd64")
+	isok(t, err)
+
+	equivs := []string{
+		"gnu-linux-amd64",
+		"linux-amd64",
+		"linux-any",
+		"any",
+		"gnu-linux-any",
+	}
+
+	for _, el := range equivs {
+		other, err := dependency.ParseArch(el)
+		isok(t, err)
+		assert(t, arch.Is(other))
+		assert(t, other.Is(arch))
+	}
+
+	unequivs := []string{
+		"gnu-linux-all",
+		"all",
+
+		"gnuu-linux-amd64",
+		"gnu-linuxx-amd64",
+		"gnu-linux-amd644",
+	}
+
+	for _, el := range unequivs {
+		other, err := dependency.ParseArch(el)
+		isok(t, err)
+
+		assert(t, !arch.Is(other))
+		assert(t, !other.Is(arch))
+	}
+}

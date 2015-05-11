@@ -83,9 +83,35 @@ func ParseArch(arch string) (*Arch, error) {
 
 /*
  */
-func (arch *Arch) IsWildcard(other *Arch) bool {
+func (arch *Arch) IsWildcard() bool {
+	if arch.CPU == "all" {
+		return false
+	}
+
 	if arch.ABI == "any" || arch.OS == "any" || arch.CPU == "any" {
 		return true
 	}
+	return false
+}
+
+/*
+ */
+func (arch *Arch) Is(other *Arch) bool {
+
+	if arch.IsWildcard() && other.IsWildcard() {
+		return false
+	} else if arch.IsWildcard() {
+		/* OK, so we're a wildcard. Let's defer to the other
+		 * struct to deal with this */
+		return other.Is(arch)
+	}
+
+	if (arch.CPU == other.CPU || other.CPU == "any") &&
+		(arch.OS == other.OS || other.OS == "any") &&
+		(arch.ABI == other.ABI || other.ABI == "any") {
+
+		return true
+	}
+
 	return false
 }
