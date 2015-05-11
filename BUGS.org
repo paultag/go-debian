@@ -1,0 +1,14 @@
+* Profiles
+** Handle build profiles
+
+* Arches
+** Add /usr/share/dpkg/trippletable to arch compare code
+** Validate arches for insanity
+** Implement test cases against dpkg-dev ?
+
+* Versions
+** Validation all over the place
+** Compare operations
+
+* Parser
+** Add in code to parse foo:amd64
