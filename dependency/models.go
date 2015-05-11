@@ -61,6 +61,7 @@ type StageSet struct {
 //
 type Possibility struct {
 	Name    string
+	Arch    *Arch
 	Arches  *ArchSet
 	Stages  *StageSet
 	Version *VersionRelation

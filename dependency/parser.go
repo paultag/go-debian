@@ -132,6 +132,12 @@ func parsePossibility(input *Input, relation *Relation) error {
 	for {
 		peek := input.Peek()
 		switch peek {
+		case ':':
+			err := parseMultiarch(input, ret)
+			if err != nil {
+				return err
+			}
+			continue
 		case ' ':
 			err := parsePossibilityControllers(input, ret)
 			if err != nil {
@@ -148,6 +154,27 @@ func parsePossibility(input *Input, relation *Relation) error {
 		/* Not a control, let's append */
 		ret.Name += string(input.Next())
 	}
+}
+
+/* */
+func parseMultiarch(input *Input, possi *Possibility) error {
+	input.Next() /* mandated to be a : */
+	name := ""
+	for {
+		peek := input.Peek()
+		switch peek {
+		case ',', '|', 0, ' ', '(', '[', '<':
+			arch, err := ParseArch(name)
+			if err != nil {
+				return err
+			}
+			possi.Arch = arch
+			return nil
+		default:
+			name += string(input.Next())
+		}
+	}
+	return nil
 }
 
 /* */

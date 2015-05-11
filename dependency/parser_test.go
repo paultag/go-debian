@@ -65,6 +65,23 @@ func TestSingleParse(t *testing.T) {
 	}
 }
 
+func TestMultiarchParse(t *testing.T) {
+	dep, err := dependency.Parse("foo:amd64")
+	isok(t, err)
+
+	assert(t, dep.Relations[0].Possibilities[0].Name == "foo")
+	assert(t, dep.Relations[0].Possibilities[0].Arch.CPU == "amd64")
+
+	dep, err = dependency.Parse("foo:amd64 [amd64 sparc]")
+	isok(t, err)
+
+	assert(t, dep.Relations[0].Possibilities[0].Name == "foo")
+	assert(t, dep.Relations[0].Possibilities[0].Arch.CPU == "amd64")
+
+	assert(t, dep.Relations[0].Possibilities[0].Arches.Arches[0].CPU == "amd64")
+	assert(t, dep.Relations[0].Possibilities[0].Arches.Arches[1].CPU == "sparc")
+}
+
 func TestTwoRelations(t *testing.T) {
 	dep, err := dependency.Parse("foo, bar")
 	isok(t, err)
