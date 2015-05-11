@@ -83,7 +83,9 @@ func ParseArch(arch string) (*Arch, error) {
 
 /*
  */
-func (set *ArchSet) Is(other *Arch) bool {
+func (set *ArchSet) Matches(other *Arch) bool {
+	/* If [!amd64 sparc] matches gnu-linux-any */
+
 	not := set.Not
 	for _, el := range set.Arches {
 		if el.Is(other) {

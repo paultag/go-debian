@@ -39,7 +39,7 @@ func (iter *DepedencyIterator) Next() *Possibility {
 			return possi
 		}
 		/* OK, we need to do an arch constraint check */
-		if possi.Arches.Is(&iter.arch) {
+		if possi.Arches.Matches(&iter.arch) {
 			return possi
 		}
 	}
