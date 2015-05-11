@@ -44,7 +44,7 @@ func TestIteratorBasics(t *testing.T) {
 	bar := iter.Next()
 	assert(t, bar.Name == "bar")
 
-	// assert(t, !iter.HasNext())
+	assert(t, !iter.HasNext())
 
 	/**/
 
@@ -61,5 +61,15 @@ func TestIteratorBasics(t *testing.T) {
 	baz := iter.Next()
 	assert(t, baz.Name == "baz")
 
-	// assert(t, !iter.HasNext())
+	assert(t, !iter.HasNext())
+
+	deps, err = dependency.Parse("foo, bar [amd64] | baz")
+	isok(t, err)
+
+	iter = deps.IterPossibility(*arch)
+	assert(t, iter.HasNext())
+	iter.Next()
+	assert(t, iter.HasNext())
+	iter.Next()
+	assert(t, !iter.HasNext())
 }

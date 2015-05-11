@@ -31,6 +31,10 @@ type DepedencyIterator struct {
 /*
  */
 func (iter *DepedencyIterator) peekNext() *Possibility {
+	if len(iter.dependency.Relations) <= iter.relationIndex {
+		return nil
+	}
+
 	relation := iter.dependency.Relations[iter.relationIndex]
 
 	for _, possi := range relation.Possibilities {
