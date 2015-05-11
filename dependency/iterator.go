@@ -30,9 +30,8 @@ type DepedencyIterator struct {
 
 /*
  */
-func (iter *DepedencyIterator) Next() *Possibility {
+func (iter *DepedencyIterator) peekNext() *Possibility {
 	relation := iter.dependency.Relations[iter.relationIndex]
-	iter.relationIndex += 1
 
 	for _, possi := range relation.Possibilities {
 		if len(possi.Arches.Arches) == 0 {
@@ -45,6 +44,19 @@ func (iter *DepedencyIterator) Next() *Possibility {
 	}
 
 	return nil
+}
+
+func (iter *DepedencyIterator) HasNext() bool {
+	el := iter.peekNext()
+	return el != nil
+}
+
+func (iter *DepedencyIterator) Next() *Possibility {
+	el := iter.peekNext()
+	if el != nil {
+		iter.relationIndex += 1
+	}
+	return el
 }
 
 /*
