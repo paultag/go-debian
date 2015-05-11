@@ -76,3 +76,25 @@ func TestArchCompareBasics(t *testing.T) {
 		assert(t, !other.Is(arch))
 	}
 }
+
+/*
+ */
+func TestArchSetCompare(t *testing.T) {
+	dep, err := dependency.Parse("foo [amd64], bar [!sparc]")
+	isok(t, err)
+
+	iAm, err := dependency.ParseArch("amd64")
+	isok(t, err)
+
+	fooArch := dep.Relations[0].Possibilities[0].Arches
+	barArch := dep.Relations[1].Possibilities[0].Arches
+
+	assert(t, fooArch.Matches(iAm))
+	assert(t, barArch.Matches(iAm))
+
+	iAmNot, err := dependency.ParseArch("armhf")
+	isok(t, err)
+
+	assert(t, !fooArch.Matches(iAmNot))
+	assert(t, barArch.Matches(iAmNot))
+}
