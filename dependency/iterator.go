@@ -26,6 +26,11 @@ type DepedencyIterator struct {
 	dependency    Depedency
 	relationIndex int
 	arch          Arch
+	next          *Possibility
+}
+
+func (iter *DepedencyIterator) setNext() {
+	iter.next = iter.peekNext()
 }
 
 /*
@@ -51,15 +56,15 @@ func (iter *DepedencyIterator) peekNext() *Possibility {
 }
 
 func (iter *DepedencyIterator) HasNext() bool {
-	el := iter.peekNext()
-	return el != nil
+	return iter.next != nil
 }
 
 func (iter *DepedencyIterator) Next() *Possibility {
-	el := iter.peekNext()
+	el := iter.next
 	if el != nil {
 		iter.relationIndex += 1
 	}
+	iter.setNext()
 	return el
 }
 
@@ -67,9 +72,11 @@ func (iter *DepedencyIterator) Next() *Possibility {
  *
  */
 func (dep *Depedency) IterPossibilities(arch Arch) *DepedencyIterator {
-	return &DepedencyIterator{
+	iter := DepedencyIterator{
 		dependency:    *dep,
 		relationIndex: 0,
 		arch:          arch,
 	}
+	iter.setNext()
+	return &iter
 }
