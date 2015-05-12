@@ -29,6 +29,16 @@ type DepedencyIterator struct {
 	next          *Possibility
 }
 
+func (iter *DepedencyIterator) ToSlice() (ret []*Possibility) {
+	for {
+		el := iter.Next()
+		if el == nil {
+			return
+		}
+		ret = append(ret, el)
+	}
+}
+
 func (iter *DepedencyIterator) setNext() {
 	iter.next = iter.peekNext()
 }

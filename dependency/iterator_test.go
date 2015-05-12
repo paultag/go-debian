@@ -73,3 +73,17 @@ func TestIteratorBasics(t *testing.T) {
 	iter.Next()
 	assert(t, !iter.HasNext())
 }
+
+func TestIteratorSlice(t *testing.T) {
+	deps, err := dependency.Parse("foo, bar [amd64] | baz")
+	isok(t, err)
+
+	arch, err := dependency.ParseArch("amd64")
+	isok(t, err)
+
+	slice := deps.IterPossibilities(*arch).ToSlice()
+	assert(t, len(slice) == 2)
+
+	assert(t, slice[0].Name == "foo")
+	assert(t, slice[1].Name == "bar")
+}
