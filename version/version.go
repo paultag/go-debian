@@ -61,8 +61,6 @@ func Parse(in string) (*Version, error) {
 	components := strings.SplitN(in, ":", 2)
 
 	switch len(components) {
-	case 0:
-		return nil, errors.New("OMGWTFBBQ")
 	case 1:
 		version.Epoch = 0
 		in = components[0]
