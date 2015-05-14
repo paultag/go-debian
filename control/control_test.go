@@ -50,10 +50,7 @@ func TestBasicControlParse(t *testing.T) {
 
 	reader = bufio.NewReader(strings.NewReader(`Foo: bar`))
 	deb822, err = control.ParseDeb822(reader)
-	isok(t, err)
-
-	assert(t, len(deb822.Order) == 0)
-	assert(t, len(deb822.Order) == len(deb822.Values))
+	notok(t, err)
 }
 
 func TestMultilineControlParse(t *testing.T) {

@@ -50,5 +50,9 @@ func ParseDeb822(reader *bufio.Reader) (ret *Deb822, ohshit error) {
 		}
 	}
 
+	if len(ret.Order) == 0 {
+		return nil, fmt.Errorf("Reached end of blocks")
+	}
+
 	return
 }
