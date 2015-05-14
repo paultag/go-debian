@@ -21,11 +21,13 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 
+	"pault.ag/x/go-debian/control"
 	"pault.ag/x/go-debian/dependency"
 	"pault.ag/x/go-debian/version"
 )
@@ -46,6 +48,9 @@ func main() {
 	case "dependency":
 		dependencyTool()
 		return
+	case "control":
+		controlTool()
+		return
 	}
 
 	helpTool()
@@ -64,6 +69,7 @@ Commands:
 	help          | show this help
 	version       | parse a version
 	dependency    | parse dependency relations to json
+	control       | parse debian/control relations to json
 		`,
 	)
 }
@@ -100,4 +106,19 @@ func versionTool() {
 	} else {
 		fmt.Printf("         %d:%s-%s\n", ver.Epoch, ver.Version, ver.Revision)
 	}
+}
+
+func controlTool() {
+	if len(os.Args) <= 2 {
+		fmt.Printf("Error! Give me a file to parse!\n")
+		return
+	}
+	file, err := os.Open(os.Args[2])
+	dep, err := control.ParseControl(bufio.NewReader(file))
+	if err != nil {
+		log.Fatalf("Oh no! %s", err)
+		return
+	}
+	data, err := json.MarshalIndent(&dep, "", "  ")
+	fmt.Printf("%s\n", data)
 }
