@@ -14,16 +14,13 @@ type Control struct {
 
 type ControlSource struct {
 	Paragraph
-	Maintainer string
-	Source     string
-}
 
-func (control *ControlSource) GetBuildDepends() (*dependency.Depedency, error) {
-	return control.getDependencyField("Build-Depends")
-}
-
-func (control *ControlSource) GetBuildDependsIndep() (*dependency.Depedency, error) {
-	return control.getDependencyField("Build-Depends-Indep")
+	Maintainer          string
+	Source              string
+	BuildDepends        dependency.Dependency
+	BuildDependsIndep   dependency.Dependency
+	BuildConflicts      dependency.Dependency
+	BuildConflictsIndep dependency.Dependency
 }
 
 func (para *Paragraph) getDependencyField(field string) (*dependency.Dependency, error) {
