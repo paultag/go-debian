@@ -45,4 +45,5 @@ Description: XDG compliant autostarting app for Fluxbox
 	assert(t, depends.Relations[0].Possibilities[0].Version.Number == "9")
 	assert(t, depends.Relations[0].Possibilities[0].Version.Operator == ">=")
 
+	assert(t, c.Binaries[0].Arch.CPU == "any")
 }

@@ -33,6 +33,7 @@ func (para *Paragraph) getDependencyField(field string) (*dependency.Depedency, 
 
 type ControlBinary struct {
 	Paragraph
+	Arch dependency.Arch
 }
 
 func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
@@ -56,7 +57,15 @@ func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
 			break
 		}
 
-		ret.Binaries = append(ret.Binaries, ControlBinary{*para})
+		arch, err := dependency.ParseArch(para.Values["Architecture"])
+		if err != nil {
+			return nil, err
+		}
+
+		ret.Binaries = append(ret.Binaries, ControlBinary{
+			Paragraph: *para,
+			Arch:      *arch,
+		})
 	}
 	return
 }
