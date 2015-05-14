@@ -22,14 +22,14 @@ package dependency
 
 /*
  */
-type DepedencyIterator struct {
-	dependency    Depedency
+type DependencyIterator struct {
+	dependency    Dependency
 	relationIndex int
 	arch          Arch
 	next          *Possibility
 }
 
-func (iter *DepedencyIterator) ToSlice() (ret []*Possibility) {
+func (iter *DependencyIterator) ToSlice() (ret []*Possibility) {
 	for {
 		el := iter.Next()
 		if el == nil {
@@ -39,13 +39,13 @@ func (iter *DepedencyIterator) ToSlice() (ret []*Possibility) {
 	}
 }
 
-func (iter *DepedencyIterator) setNext() {
+func (iter *DependencyIterator) setNext() {
 	iter.next = iter.peekNext()
 }
 
 /*
  */
-func (iter *DepedencyIterator) peekNext() *Possibility {
+func (iter *DependencyIterator) peekNext() *Possibility {
 	if len(iter.dependency.Relations) <= iter.relationIndex {
 		return nil
 	}
@@ -65,11 +65,11 @@ func (iter *DepedencyIterator) peekNext() *Possibility {
 	return nil
 }
 
-func (iter *DepedencyIterator) HasNext() bool {
+func (iter *DependencyIterator) HasNext() bool {
 	return iter.next != nil
 }
 
-func (iter *DepedencyIterator) Next() *Possibility {
+func (iter *DependencyIterator) Next() *Possibility {
 	el := iter.next
 	if el != nil {
 		iter.relationIndex += 1
@@ -81,8 +81,8 @@ func (iter *DepedencyIterator) Next() *Possibility {
 /*
  *
  */
-func (dep *Depedency) IterPossibilities(arch Arch) *DepedencyIterator {
-	iter := DepedencyIterator{
+func (dep *Dependency) IterPossibilities(arch Arch) *DependencyIterator {
+	iter := DependencyIterator{
 		dependency:    *dep,
 		relationIndex: 0,
 		arch:          arch,

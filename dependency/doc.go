@@ -4,7 +4,7 @@ The Dependency module provides an interface to parse and inspect Debian
 Dependency relationships.
 
 
- Depedency               |               foo, bar (>= 1.0) [amd64] | baz
+ Dependency              |               foo, bar (>= 1.0) [amd64] | baz
    -> Relations          | -> Relation        bar (>= 1.0) [amd64] | baz
         -> Possibilities | -> Possibility     bar (>= 1.0) [amd64]
            | Name        | -> Name            bar

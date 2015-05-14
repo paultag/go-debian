@@ -78,7 +78,7 @@ type Relation struct {
 	Possibilities []*Possibility
 }
 
-// A Dependency is the top level type that models a full Depedency relation.
-type Depedency struct {
+// A Dependency is the top level type that models a full Dependency relation.
+type Dependency struct {
 	Relations []*Relation
 }

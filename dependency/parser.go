@@ -25,11 +25,11 @@ import (
 	"fmt"
 )
 
-// Parse a string into a Depedency object. The input should look something
+// Parse a string into a Dependency object. The input should look something
 // like "foo, bar | baz".
-func Parse(in string) (*Depedency, error) {
+func Parse(in string) (*Dependency, error) {
 	ibuf := Input{Index: 0, Data: in}
-	dep := &Depedency{Relations: []*Relation{}}
+	dep := &Dependency{Relations: []*Relation{}}
 	err := parseDependency(&ibuf, dep)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func eatWhitespace(input *Input) {
 }
 
 /* */
-func parseDependency(input *Input, ret *Depedency) error {
+func parseDependency(input *Input, ret *Dependency) error {
 	eatWhitespace(input)
 
 	for {
@@ -96,7 +96,7 @@ func parseDependency(input *Input, ret *Depedency) error {
 }
 
 /* */
-func parseRelation(input *Input, dependency *Depedency) error {
+func parseRelation(input *Input, dependency *Dependency) error {
 	eatWhitespace(input) /* Clean out leading whitespace */
 
 	ret := &Relation{Possibilities: []*Possibility{}}

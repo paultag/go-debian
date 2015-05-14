@@ -26,7 +26,7 @@ func (control *ControlSource) GetBuildDependsIndep() (*dependency.Depedency, err
 	return control.getDependencyField("Build-Depends-Indep")
 }
 
-func (para *Paragraph) getDependencyField(field string) (*dependency.Depedency, error) {
+func (para *Paragraph) getDependencyField(field string) (*dependency.Dependency, error) {
 	if val, ok := para.Values[field]; ok {
 		return dependency.Parse(val)
 	}
