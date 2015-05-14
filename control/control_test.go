@@ -43,6 +43,11 @@ Description: XDG compliant autostarting app for Fluxbox
 
 	depends := c.Source.BuildDepends
 
+	assert(t, len(c.Source.BuildDepends.Relations) == 1)
+	assert(t, len(c.Source.BuildDependsIndep.Relations) == 0)
+	assert(t, len(c.Source.BuildConflicts.Relations) == 0)
+	assert(t, len(c.Source.BuildConflictsIndep.Relations) == 0)
+
 	assert(t, depends.Relations[0].Possibilities[0].Name == "debhelper")
 	assert(t, depends.Relations[0].Possibilities[0].Version.Number == "9")
 	assert(t, depends.Relations[0].Possibilities[0].Version.Operator == ">=")

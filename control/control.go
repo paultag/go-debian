@@ -30,6 +30,15 @@ func (para *Paragraph) getDependencyField(field string) (*dependency.Dependency,
 	return nil, fmt.Errorf("Field `%s' Missing", field)
 }
 
+func (para *Paragraph) getOptionalDependencyField(field string) dependency.Dependency {
+	val := para.Values[field]
+	dep, err := dependency.Parse(val)
+	if err != nil {
+		return dependency.Dependency{}
+	}
+	return *dep
+}
+
 type ControlBinary struct {
 	Paragraph
 	Arch        dependency.Arch
@@ -51,6 +60,11 @@ func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
 		Paragraph:  *src,
 		Maintainer: src.Values["Maintainer"],
 		Source:     src.Values["Source"],
+
+		BuildDepends:        src.getOptionalDependencyField("Build-Depends"),
+		BuildDependsIndep:   src.getOptionalDependencyField("Build-Depends-Indep"),
+		BuildConflicts:      src.getOptionalDependencyField("Build-Conflicts"),
+		BuildConflictsIndep: src.getOptionalDependencyField("Build-Conflicts-Indep"),
 	}
 
 	for {
