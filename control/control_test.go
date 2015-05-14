@@ -111,4 +111,11 @@ But-not: me
 		 * quickly. */
 		t.FailNow()
 	}
+
+	deb822, err = control.ParseDeb822(reader)
+	isok(t, err)
+
+	assert(t, len(deb822.Order) == 1)
+	assert(t, len(deb822.Order) == len(deb822.Values))
+	assert(t, deb822.Values["But-not"] == "me")
 }
