@@ -3,17 +3,18 @@ package control
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"strings"
 )
 
-type Deb822 struct {
+type Paragraph struct {
 	Values map[string]string
 	Order  []string
 }
 
-func ParseDeb822(reader *bufio.Reader) (ret *Deb822, ohshit error) {
+func ParseParagraph(reader *bufio.Reader) (ret *Paragraph, ohshit error) {
 
-	ret = &Deb822{
+	ret = &Paragraph{
 		Values: map[string]string{},
 		Order:  []string{},
 	}
@@ -25,7 +26,13 @@ func ParseDeb822(reader *bufio.Reader) (ret *Deb822, ohshit error) {
 	for {
 		line, err := reader.ReadString('\n')
 
-		if err != nil || line == "\n" {
+		if err == io.EOF {
+			if len(ret.Order) == 0 {
+				return nil, nil
+			}
+			return ret, nil
+		}
+		if line == "\n" {
 			break
 		}
 
@@ -48,10 +55,6 @@ func ParseDeb822(reader *bufio.Reader) (ret *Deb822, ohshit error) {
 		default:
 			return nil, fmt.Errorf("The shit.")
 		}
-	}
-
-	if len(ret.Order) == 0 {
-		return nil, fmt.Errorf("Reached end of blocks")
 	}
 
 	return
