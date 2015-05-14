@@ -38,6 +38,9 @@ Description: XDG compliant autostarting app for Fluxbox
 	assert(t, c != nil)
 	assert(t, len(c.Binaries) == 1)
 
+	assert(t, c.Source.Maintainer == "Paul Tagliamonte <paultag@ubuntu.com>")
+	assert(t, c.Source.Source == "fbautostart")
+
 	depends, err := c.Source.GetBuildDepends()
 	isok(t, err)
 
@@ -46,4 +49,5 @@ Description: XDG compliant autostarting app for Fluxbox
 	assert(t, depends.Relations[0].Possibilities[0].Version.Operator == ">=")
 
 	assert(t, c.Binaries[0].Arch.CPU == "any")
+	assert(t, c.Binaries[0].Package == "fbautostart")
 }

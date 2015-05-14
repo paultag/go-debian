@@ -14,6 +14,8 @@ type Control struct {
 
 type ControlSource struct {
 	Paragraph
+	Maintainer string
+	Source     string
 }
 
 func (control *ControlSource) GetBuildDepends() (*dependency.Depedency, error) {
@@ -33,7 +35,9 @@ func (para *Paragraph) getDependencyField(field string) (*dependency.Depedency, 
 
 type ControlBinary struct {
 	Paragraph
-	Arch dependency.Arch
+	Arch        dependency.Arch
+	Description string
+	Package     string
 }
 
 func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
@@ -46,7 +50,11 @@ func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
 		return nil, err
 	}
 
-	ret.Source = ControlSource{*src}
+	ret.Source = ControlSource{
+		Paragraph:  *src,
+		Maintainer: src.Values["Maintainer"],
+		Source:     src.Values["Source"],
+	}
 
 	for {
 		para, err := ParseParagraph(reader)
@@ -65,6 +73,9 @@ func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
 		ret.Binaries = append(ret.Binaries, ControlBinary{
 			Paragraph: *para,
 			Arch:      *arch,
+
+			Description: para.Values["Description"],
+			Package:     para.Values["Package"],
 		})
 	}
 	return
