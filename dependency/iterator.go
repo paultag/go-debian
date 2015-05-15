@@ -53,11 +53,11 @@ func (iter *DependencyIterator) peekNext() *Possibility {
 	relation := iter.dependency.Relations[iter.relationIndex]
 
 	for _, possi := range relation.Possibilities {
-		if len(possi.Arches.Arches) == 0 {
+		if len(possi.Architectures.Architectures) == 0 {
 			return possi
 		}
 		/* OK, we need to do an arch constraint check */
-		if possi.Arches.Matches(&iter.arch) {
+		if possi.Architectures.Matches(&iter.arch) {
 			return possi
 		}
 	}

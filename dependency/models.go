@@ -24,8 +24,8 @@ package dependency
 // restrict the relation to one some architectures. This is also usually
 // used in a string of many possibilities.
 type ArchSet struct {
-	Not    bool
-	Arches []*Arch
+	Not           bool
+	Architectures []*Arch
 }
 
 // VersionRelation models a version restriction on a possibility, such as
@@ -60,11 +60,11 @@ type StageSet struct {
 // Build Stage.
 //
 type Possibility struct {
-	Name    string
-	Arch    *Arch
-	Arches  *ArchSet
-	Stages  *StageSet
-	Version *VersionRelation
+	Name          string
+	Arch          *Arch
+	Architectures *ArchSet
+	Stages        *StageSet
+	Version       *VersionRelation
 }
 
 // A Relation is a set of Possibilities that must be satisfied. Given the

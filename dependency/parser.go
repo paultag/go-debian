@@ -123,10 +123,10 @@ func parseRelation(input *Input, dependency *Dependency) error {
 func parsePossibility(input *Input, relation *Relation) error {
 	eatWhitespace(input) /* Clean out leading whitespace */
 	ret := &Possibility{
-		Name:    "",
-		Version: nil,
-		Arches:  &ArchSet{Arches: []*Arch{}},
-		Stages:  &StageSet{Stages: []*Stage{}},
+		Name:          "",
+		Version:       nil,
+		Architectures: &ArchSet{Architectures: []*Arch{}},
+		Stages:        &StageSet{Stages: []*Stage{}},
 	}
 
 	for {
@@ -197,7 +197,7 @@ func parsePossibilityControllers(input *Input, possi *Possibility) error {
 			}
 			continue
 		case '[':
-			if len(possi.Arches.Arches) != 0 {
+			if len(possi.Architectures.Architectures) != 0 {
 				return errors.New(
 					"Only one Arch relation per Possibility, please!",
 				)
@@ -295,7 +295,7 @@ func parsePossibilityArchs(input *Input, possi *Possibility) error {
 	peek := input.Peek()
 	if peek == '!' {
 		input.Next() /* Omnom */
-		possi.Arches.Not = true
+		possi.Architectures.Not = true
 	}
 
 	for {
@@ -332,7 +332,7 @@ func parsePossibilityArch(input *Input, possi *Possibility) error {
 			if err != nil {
 				return err
 			}
-			possi.Arches.Arches = append(possi.Arches.Arches, archObj)
+			possi.Architectures.Architectures = append(possi.Architectures.Architectures, archObj)
 			return nil
 		}
 		arch += string(input.Next())

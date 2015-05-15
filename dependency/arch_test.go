@@ -86,8 +86,8 @@ func TestArchSetCompare(t *testing.T) {
 	iAm, err := dependency.ParseArch("amd64")
 	isok(t, err)
 
-	fooArch := dep.Relations[0].Possibilities[0].Arches
-	barArch := dep.Relations[1].Possibilities[0].Arches
+	fooArch := dep.Relations[0].Possibilities[0].Architectures
+	barArch := dep.Relations[1].Possibilities[0].Architectures
 
 	assert(t, fooArch.Matches(iAm))
 	assert(t, barArch.Matches(iAm))

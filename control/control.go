@@ -141,7 +141,7 @@ func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
 			break
 		}
 
-		arch, err := dependency.ParseArches(para.Values["Architecture"])
+		arch, err := dependency.ParseArchitectures(para.Values["Architecture"])
 		if err != nil {
 			return nil, err
 		}

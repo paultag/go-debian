@@ -33,7 +33,7 @@ type Arch struct {
 	CPU string
 }
 
-func ParseArches(arch string) ([]Arch, error) {
+func ParseArchitectures(arch string) ([]Arch, error) {
 	ret := []Arch{}
 	arches := strings.Split(arch, " ")
 	for _, el := range arches {
@@ -106,7 +106,7 @@ func (set *ArchSet) Matches(other *Arch) bool {
 	/* If [!amd64 sparc] matches gnu-linux-any */
 
 	not := set.Not
-	for _, el := range set.Arches {
+	for _, el := range set.Architectures {
 		if el.Is(other) {
 			/* For each arch; check if it matches. If it does, then
 			 * return true (unless we're negated) */

@@ -78,8 +78,8 @@ func TestMultiarchParse(t *testing.T) {
 	assert(t, dep.Relations[0].Possibilities[0].Name == "foo")
 	assert(t, dep.Relations[0].Possibilities[0].Arch.CPU == "amd64")
 
-	assert(t, dep.Relations[0].Possibilities[0].Arches.Arches[0].CPU == "amd64")
-	assert(t, dep.Relations[0].Possibilities[0].Arches.Arches[1].CPU == "sparc")
+	assert(t, dep.Relations[0].Possibilities[0].Architectures.Architectures[0].CPU == "amd64")
+	assert(t, dep.Relations[0].Possibilities[0].Architectures.Architectures[1].CPU == "sparc")
 }
 
 func TestTwoRelations(t *testing.T) {
@@ -118,7 +118,7 @@ func TestSingleArch(t *testing.T) {
 	assert(t, len(dep.Relations) == 1)
 
 	possi := dep.Relations[0].Possibilities[0]
-	arches := possi.Arches.Arches
+	arches := possi.Architectures.Architectures
 
 	assert(t, len(arches) == 1)
 	assert(t, arches[0].CPU == "arch")
@@ -130,11 +130,11 @@ func TestSingleNotArch(t *testing.T) {
 	assert(t, len(dep.Relations) == 1)
 
 	possi := dep.Relations[0].Possibilities[0]
-	arches := possi.Arches.Arches
+	arches := possi.Architectures.Architectures
 
 	assert(t, len(arches) == 1)
 	assert(t, arches[0].CPU == "arch")
-	assert(t, possi.Arches.Not)
+	assert(t, possi.Architectures.Not)
 }
 
 func TestDoubleInvalidNotArch(t *testing.T) {
@@ -151,7 +151,7 @@ func TestDoubleArch(t *testing.T) {
 	assert(t, len(dep.Relations) == 1)
 
 	possi := dep.Relations[0].Possibilities[0]
-	arches := possi.Arches.Arches
+	arches := possi.Architectures.Architectures
 
 	assert(t, len(arches) == 2)
 	assert(t, arches[0].CPU == "arch")
@@ -188,7 +188,7 @@ func TestTwoVersions(t *testing.T) {
 	notok(t, err)
 }
 
-func TestTwoArches(t *testing.T) {
+func TestTwoArchitectures(t *testing.T) {
 	_, err := dependency.Parse("foo [amd64] [sparc]")
 	notok(t, err)
 }
