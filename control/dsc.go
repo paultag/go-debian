@@ -27,6 +27,8 @@ import (
 	"pault.ag/x/go-debian/version"
 )
 
+// A DSC is the ecapsulation of a Debian .dsc control file. This contains
+// information about the source package, and is general handy.
 type DSC struct {
 	Paragraph
 
@@ -52,8 +54,12 @@ type DSC struct {
 	*/
 }
 
+// Given a bufio.Reader, produce a DSC struct to encapsulate the
+// data contained within.
 func ParseDsc(reader *bufio.Reader) (ret *DSC, err error) {
 
+	/* a DSC is a Paragraph, with some stuff. So, let's first take
+	 * the bufio.Reader and produce a stock Paragraph. */
 	src, err := ParseParagraph(reader)
 	if err != nil {
 		return nil, err

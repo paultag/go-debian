@@ -27,11 +27,15 @@ import (
 	"strings"
 )
 
+// A Paragraph is a block of RFC2822-like key value pairs. This struct contains
+// two methods to fetch values, a Map called Values, and a Slice called
+// Order, which maintains the ordering as defined in the RFC2822-like block
 type Paragraph struct {
 	Values map[string]string
 	Order  []string
 }
 
+// Given a bufio.Reader, go through and return a Paragraph.
 func ParseParagraph(reader *bufio.Reader) (ret *Paragraph, ohshit error) {
 
 	ret = &Paragraph{

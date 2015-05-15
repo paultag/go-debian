@@ -28,6 +28,9 @@ import (
 	"pault.ag/x/go-debian/dependency"
 )
 
+// Encapsulation for a debian/control file, which is a series of RFC2822-like
+// blocks, starting with a Source control paragraph, and then a series of
+// Binary control paragraphs.
 type Control struct {
 	Source   SourceParagraph
 	Binaries []BinaryParagraph
