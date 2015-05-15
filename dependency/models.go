@@ -47,7 +47,7 @@ type Stage struct {
 }
 
 type StageSet struct {
-	Stages []*Stage
+	Stages []Stage
 }
 
 // Possibility models a concrete Possibility that may be satisfied in order

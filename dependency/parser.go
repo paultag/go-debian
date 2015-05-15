@@ -126,7 +126,7 @@ func parsePossibility(input *Input, relation *Relation) error {
 		Name:          "",
 		Version:       nil,
 		Architectures: &ArchSet{Architectures: []Arch{}},
-		Stages:        &StageSet{Stages: []*Stage{}},
+		Stages:        &StageSet{Stages: []Stage{}},
 	}
 
 	for {
