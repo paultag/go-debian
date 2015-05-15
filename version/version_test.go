@@ -85,3 +85,13 @@ func TestNoEpoch(t *testing.T) {
 	assert(t, ver.Epoch == 0)
 	assert(t, ver.Version == "1.0")
 }
+
+func TestComplexParse(t *testing.T) {
+	ver, err := version.Parse("1:1:1.0-1-1") // Yes, this is valid.
+	isok(t, err)
+
+	assert(t, !ver.Native)
+	assert(t, ver.Epoch == 1)
+	assert(t, ver.Version == "1:1.0-1")
+	assert(t, ver.Revision == "1")
+}
