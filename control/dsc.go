@@ -72,6 +72,11 @@ func ParseDsc(reader *bufio.Reader) (ret *DSC, err error) {
 		return nil, err
 	}
 
+	arch, err := dependency.ParseArchitectures(src.Values["Architecture"])
+	if err != nil {
+		return nil, err
+	}
+
 	ret = &DSC{
 		Paragraph: *src,
 
@@ -79,8 +84,7 @@ func ParseDsc(reader *bufio.Reader) (ret *DSC, err error) {
 		Source: src.Values["Source"],
 
 		// Binaries:
-		// Architecturess:
-
+		Architectures:    arch,
 		Version:          *version,
 		Origin:           src.Values["Origin"],
 		Maintainer:       src.Values["Maintainer"],
