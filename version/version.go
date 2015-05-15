@@ -90,7 +90,10 @@ func Parse(in string) (*Version, error) {
 	version.Native = debversion == nil
 
 	version.Version = *ver
-	/* XXX: Verify Version - Debian Policy section 5.6.12:
+	/* XXX: Verify Version
+	 *
+	 * Debian Policy section 5.6.12 regarding valid Versions:
+	 *
 	 *  The upstream_version may contain only alphanumerics and the
 	 * characters . + - : ~ (full stop, plus, hyphen, colon, tilde) and should
 	 * start with a digit. If there is no debian_revision then hyphens are not
