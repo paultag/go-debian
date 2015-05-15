@@ -26,7 +26,7 @@ import (
 	"strings"
 )
 
-//
+// Debian Policy 5.6.12
 type Version struct {
 	Native   bool
 	Epoch    int
@@ -59,6 +59,9 @@ func Parse(in string) (*Version, error) {
 
 	in = strings.Trim(in, " \n\t\r")
 	components := strings.SplitN(in, ":", 2)
+	/* Apropos ":" split behavior, from Debian Policy section 5.6.12:
+	 *
+	 * if there is no epoch then colons are not allowed. */
 
 	switch len(components) {
 	case 1:
@@ -76,10 +79,22 @@ func Parse(in string) (*Version, error) {
 	}
 
 	ver, debversion := rSplit(in, "-")
+	/* apropos "-" in version string, from Debian Policy section 5.6.12:
+	 *
+	 * if it isn't present then the upstream_version may not contain a hyphen.
+	 * This format represents the case where a piece of software was written
+	 * specifically to be a Debian package, where the Debian package source
+	 * must always be identical to the pristine source and therefore no
+	 * revision indication is required. */
 
 	version.Native = debversion == nil
 
 	version.Version = *ver
+	/* XXX: Verify Version - Debian Policy section 5.6.12:
+	 *  The upstream_version may contain only alphanumerics and the
+	 * characters . + - : ~ (full stop, plus, hyphen, colon, tilde) and should
+	 * start with a digit. If there is no debian_revision then hyphens are not
+	 * allowed; if there is no epoch then colons are not allowed. */
 
 	if !version.Native {
 		version.Revision = *debversion
