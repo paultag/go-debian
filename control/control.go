@@ -8,11 +8,11 @@ import (
 )
 
 type Control struct {
-	Source   ControlSource
-	Binaries []ControlBinary
+	Source   SourceParagraph
+	Binaries []BinaryParagraph
 }
 
-type ControlSource struct {
+type SourceParagraph struct {
 	Paragraph
 
 	Maintainer          string
@@ -39,7 +39,7 @@ func (para *Paragraph) getOptionalDependencyField(field string) dependency.Depen
 	return *dep
 }
 
-type ControlBinary struct {
+type BinaryParagraph struct {
 	Paragraph
 	Arch        dependency.Arch
 	Description string
@@ -48,7 +48,7 @@ type ControlBinary struct {
 
 func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
 	ret = &Control{
-		Binaries: []ControlBinary{},
+		Binaries: []BinaryParagraph{},
 	}
 
 	src, err := ParseParagraph(reader)
@@ -56,7 +56,7 @@ func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
 		return nil, err
 	}
 
-	ret.Source = ControlSource{
+	ret.Source = SourceParagraph{
 		Paragraph:  *src,
 		Maintainer: src.Values["Maintainer"],
 		Source:     src.Values["Source"],
@@ -81,7 +81,7 @@ func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
 			return nil, err
 		}
 
-		ret.Binaries = append(ret.Binaries, ControlBinary{
+		ret.Binaries = append(ret.Binaries, BinaryParagraph{
 			Paragraph: *para,
 			Arch:      *arch,
 
