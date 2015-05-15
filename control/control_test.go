@@ -103,10 +103,23 @@ Description: XDG compliant autostarting app for Fluxbox
  according to the XDG spec.
  .
  This package contains support for GNOME and KDE.
+
+Package: fbautostart-foo
+Architecture: amd64 sparc kfreebsd-any
+Depends: ${shlibs:Depends}, ${misc:Depends}, test
+Description: XDG compliant autostarting app for Fluxbox
+ The fbautostart app was designed to have little to no overhead, while
+ still maintaining the needed functionality of launching applications
+ according to the XDG spec.
+ .
+ This package contains support for GNOME and KDE.
 `))
 	c, err := control.ParseControl(reader)
 	isok(t, err)
 	assert(t, c != nil)
-	assert(t, len(c.Binaries) == 1)
+	assert(t, len(c.Binaries) == 2)
 	assert(t, len(c.Source.Maintainers) == 3)
+
+	arches := c.Binaries[1].Architectures
+	assert(t, len(arches) == 3)
 }

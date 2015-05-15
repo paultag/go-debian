@@ -36,6 +36,8 @@ type Control struct {
 	Binaries []BinaryParagraph
 }
 
+// Encapsulation for a debian/control Source entry. This contains information
+// that will wind up in the .dsc and friends. Really quite fun!
 type SourceParagraph struct {
 	Paragraph
 
