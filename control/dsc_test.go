@@ -68,4 +68,7 @@ Files:
 
 	assert(t, c.Version.Version == "2.718281828")
 	assert(t, c.Version.Revision == "1")
+
+	assert(t, c.StandardsVersion == "3.9.3")
+	assert(t, c.Homepage == "https://launchpad.net/fbautostart")
 }

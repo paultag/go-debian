@@ -39,7 +39,7 @@ type DSC struct {
 	Maintainer       string
 	Maintainers      []string
 	Uploaders        []string
-	Homagepage       string
+	Homepage         string
 	StandardsVersion string
 	BuildDepends     dependency.Dependency
 
@@ -69,13 +69,21 @@ func ParseDsc(reader *bufio.Reader) (ret *DSC, err error) {
 	ret = &DSC{
 		Paragraph: *src,
 
-		Format:  src.Values["Format"],
-		Source:  src.Values["Source"],
-		Version: *version,
+		Format: src.Values["Format"],
+		Source: src.Values["Source"],
 
-		Maintainers: maintainers,
-		Uploaders:   uploaders,
-		Maintainer:  src.Values["Maintainer"],
+		// Binaries:
+		// Architecturess:
+
+		Version:          *version,
+		Origin:           src.Values["Origin"],
+		Maintainer:       src.Values["Maintainer"],
+		Homepage:         src.Values["Homepage"],
+		StandardsVersion: src.Values["Standards-Version"],
+
+		Maintainers:  maintainers,
+		Uploaders:    uploaders,
+		BuildDepends: src.getOptionalDependencyField("Build-Depends"),
 	}
 
 	return
