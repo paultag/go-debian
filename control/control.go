@@ -36,10 +36,14 @@ type Control struct {
 type SourceParagraph struct {
 	Paragraph
 
-	Maintainer          string
-	Maintainers         []string
-	Uploaders           []string
-	Source              string
+	Maintainer  string
+	Maintainers []string
+	Uploaders   []string
+	Source      string
+	Priority    string
+	Section     string
+	Description string
+
 	BuildDepends        dependency.Dependency
 	BuildDependsIndep   dependency.Dependency
 	BuildConflicts      dependency.Dependency
@@ -49,8 +53,23 @@ type SourceParagraph struct {
 type BinaryParagraph struct {
 	Paragraph
 	Arch        dependency.Arch
-	Description string
 	Package     string
+	Priority    string
+	Section     string
+	Essential   bool
+	Description string
+
+	Depends    dependency.Dependency
+	Recommends dependency.Dependency
+	Suggests   dependency.Dependency
+	Enhances   dependency.Dependency
+	PreDepends dependency.Dependency
+
+	Breaks    dependency.Dependency
+	Conflicts dependency.Dependency
+	Replaces  dependency.Dependency
+
+	BuiltUsing dependency.Dependency
 }
 
 func (para *Paragraph) getDependencyField(field string) (*dependency.Dependency, error) {
@@ -71,7 +90,7 @@ func (para *Paragraph) getOptionalDependencyField(field string) dependency.Depen
 
 func splitList(names string) (ret []string) {
 	for _, el := range strings.Split(names, ",") {
-		el := strings.Trim("\n\r\t ", el)
+		el := strings.Trim(el, "\n\r\t ")
 		if el != "" {
 			ret = append(ret, el)
 		}
@@ -98,6 +117,8 @@ func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
 		Maintainers: maintainers,
 		Uploaders:   uploaders,
 		Source:      src.Values["Source"],
+		Section:     src.Values["Section"],
+		Priority:    src.Values["Priority"],
 
 		BuildDepends:        src.getOptionalDependencyField("Build-Depends"),
 		BuildDependsIndep:   src.getOptionalDependencyField("Build-Depends-Indep"),
@@ -125,6 +146,17 @@ func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
 
 			Description: para.Values["Description"],
 			Package:     para.Values["Package"],
+
+			Depends:    para.getOptionalDependencyField("Depends"),
+			Recommends: para.getOptionalDependencyField("Recommends"),
+			Suggests:   para.getOptionalDependencyField("Suggests"),
+			Enhances:   para.getOptionalDependencyField("Enhances"),
+			Breaks:     para.getOptionalDependencyField("Breaks"),
+			Conflicts:  para.getOptionalDependencyField("Conflicts"),
+			Replaces:   para.getOptionalDependencyField("Replaces"),
+
+			PreDepends: para.getOptionalDependencyField("Pre-Depends"),
+			BuiltUsing: para.getOptionalDependencyField("Built-Using"),
 		})
 	}
 	return

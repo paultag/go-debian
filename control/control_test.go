@@ -63,6 +63,9 @@ Description: XDG compliant autostarting app for Fluxbox
 
 	depends := c.Source.BuildDepends
 
+	assert(t, len(c.Source.Maintainers) == 1)
+	assert(t, len(c.Source.Uploaders) == 0)
+
 	assert(t, len(c.Source.BuildDepends.Relations) == 1)
 	assert(t, len(c.Source.BuildDependsIndep.Relations) == 0)
 	assert(t, len(c.Source.BuildConflicts.Relations) == 0)
@@ -91,7 +94,7 @@ Vcs-Browser: http://git.debian.org/?p=collab-maint/fbautostart.git
 
 Package: fbautostart
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, test
 Description: XDG compliant autostarting app for Fluxbox
  The fbautostart app was designed to have little to no overhead, while
  still maintaining the needed functionality of launching applications
