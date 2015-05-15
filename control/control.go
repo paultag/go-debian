@@ -23,6 +23,7 @@ package control
 import (
 	"bufio"
 	"fmt"
+	"strings"
 
 	"pault.ag/x/go-debian/dependency"
 )
@@ -36,11 +37,20 @@ type SourceParagraph struct {
 	Paragraph
 
 	Maintainer          string
+	Maintainers         []string
+	Uploaders           []string
 	Source              string
 	BuildDepends        dependency.Dependency
 	BuildDependsIndep   dependency.Dependency
 	BuildConflicts      dependency.Dependency
 	BuildConflictsIndep dependency.Dependency
+}
+
+type BinaryParagraph struct {
+	Paragraph
+	Arch        dependency.Arch
+	Description string
+	Package     string
 }
 
 func (para *Paragraph) getDependencyField(field string) (*dependency.Dependency, error) {
@@ -59,11 +69,14 @@ func (para *Paragraph) getOptionalDependencyField(field string) dependency.Depen
 	return *dep
 }
 
-type BinaryParagraph struct {
-	Paragraph
-	Arch        dependency.Arch
-	Description string
-	Package     string
+func splitList(names string) (ret []string) {
+	for _, el := range strings.Split(names, ",") {
+		el := strings.Trim("\n\r\t ", el)
+		if el != "" {
+			ret = append(ret, el)
+		}
+	}
+	return ret
 }
 
 func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
@@ -76,10 +89,15 @@ func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
 		return nil, err
 	}
 
+	uploaders := splitList(src.Values["Uploaders"])
+	maintainers := append(uploaders, src.Values["Maintainer"])
+
 	ret.Source = SourceParagraph{
-		Paragraph:  *src,
-		Maintainer: src.Values["Maintainer"],
-		Source:     src.Values["Source"],
+		Paragraph:   *src,
+		Maintainer:  src.Values["Maintainer"],
+		Maintainers: maintainers,
+		Uploaders:   uploaders,
+		Source:      src.Values["Source"],
 
 		BuildDepends:        src.getOptionalDependencyField("Build-Depends"),
 		BuildDependsIndep:   src.getOptionalDependencyField("Build-Depends-Indep"),
