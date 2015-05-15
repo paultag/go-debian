@@ -51,6 +51,9 @@ func main() {
 	case "control":
 		controlTool()
 		return
+	case "dsc":
+		dscTool()
+		return
 	}
 
 	helpTool()
@@ -70,6 +73,7 @@ Commands:
 	version       | parse a version
 	dependency    | parse dependency relations to json
 	control       | parse debian/control relations to json
+	dsc           | parse a .dsc into json
 		`,
 	)
 }
@@ -115,6 +119,21 @@ func controlTool() {
 	}
 	file, err := os.Open(os.Args[2])
 	dep, err := control.ParseControl(bufio.NewReader(file))
+	if err != nil {
+		log.Fatalf("Oh no! %s", err)
+		return
+	}
+	data, err := json.MarshalIndent(&dep, "", "  ")
+	fmt.Printf("%s\n", data)
+}
+
+func dscTool() {
+	if len(os.Args) <= 2 {
+		fmt.Printf("Error! Give me a file to parse!\n")
+		return
+	}
+	file, err := os.Open(os.Args[2])
+	dep, err := control.ParseDsc(bufio.NewReader(file))
 	if err != nil {
 		log.Fatalf("Oh no! %s", err)
 		return
