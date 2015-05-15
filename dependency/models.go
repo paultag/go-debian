@@ -25,7 +25,7 @@ package dependency
 // used in a string of many possibilities.
 type ArchSet struct {
 	Not           bool
-	Architectures []*Arch
+	Architectures []Arch
 }
 
 // VersionRelation models a version restriction on a possibility, such as

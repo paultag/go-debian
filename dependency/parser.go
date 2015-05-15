@@ -125,7 +125,7 @@ func parsePossibility(input *Input, relation *Relation) error {
 	ret := &Possibility{
 		Name:          "",
 		Version:       nil,
-		Architectures: &ArchSet{Architectures: []*Arch{}},
+		Architectures: &ArchSet{Architectures: []Arch{}},
 		Stages:        &StageSet{Stages: []*Stage{}},
 	}
 
@@ -332,7 +332,10 @@ func parsePossibilityArch(input *Input, possi *Possibility) error {
 			if err != nil {
 				return err
 			}
-			possi.Architectures.Architectures = append(possi.Architectures.Architectures, archObj)
+			possi.Architectures.Architectures = append(
+				possi.Architectures.Architectures,
+				*archObj,
+			)
 			return nil
 		}
 		arch += string(input.Next())
