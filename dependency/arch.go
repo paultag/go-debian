@@ -33,6 +33,25 @@ type Arch struct {
 	CPU string
 }
 
+func ParseArches(arch string) ([]Arch, error) {
+	ret := []Arch{}
+	arches := strings.Split(arch, " ")
+	for _, el := range arches {
+		el := strings.Trim(el, " \t\n\r")
+
+		if el == "" {
+			continue
+		}
+
+		arch, err := ParseArch(el)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, *arch)
+	}
+	return ret, nil
+}
+
 /*
  */
 func ParseArch(arch string) (*Arch, error) {

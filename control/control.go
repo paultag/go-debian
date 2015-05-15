@@ -53,14 +53,17 @@ type SourceParagraph struct {
 	BuildConflictsIndep dependency.Dependency
 }
 
+// Encapsulation for a debian/control Binary control entry. This contains
+// information that will be eventually put lovingly into the .deb file
+// after it's built on a given Arch.
 type BinaryParagraph struct {
 	Paragraph
-	Arch        dependency.Arch
-	Package     string
-	Priority    string
-	Section     string
-	Essential   bool
-	Description string
+	Architectures []dependency.Arch
+	Package       string
+	Priority      string
+	Section       string
+	Essential     bool
+	Description   string
 
 	Depends    dependency.Dependency
 	Recommends dependency.Dependency
@@ -138,14 +141,14 @@ func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
 			break
 		}
 
-		arch, err := dependency.ParseArch(para.Values["Architecture"])
+		arch, err := dependency.ParseArches(para.Values["Architecture"])
 		if err != nil {
 			return nil, err
 		}
 
 		ret.Binaries = append(ret.Binaries, BinaryParagraph{
-			Paragraph: *para,
-			Arch:      *arch,
+			Paragraph:     *para,
+			Architectures: arch,
 
 			Description: para.Values["Description"],
 			Package:     para.Values["Package"],
