@@ -85,6 +85,7 @@ type Relation struct {
 // A Dependency is the top level type that models a full Dependency relation.
 type Dependency struct {
 	Relations []*Relation
+	Substvars []string
 }
 
 // vim: foldmethod=marker
