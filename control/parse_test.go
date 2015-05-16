@@ -110,6 +110,7 @@ Bar-Baz: fnord:and:this:here
 }
 
 func TestSingleParse(t *testing.T) {
+	// Test Paragraph {{{
 	reader := bufio.NewReader(strings.NewReader(`Foo: bar
 Bar-Baz: fnord:and:this:here
  and:not
@@ -120,6 +121,7 @@ Hello: world
 
 But-not: me
 `))
+	// }}}
 	deb822, err := control.ParseParagraph(reader)
 	isok(t, err)
 	assert(t, deb822 != nil)
@@ -142,3 +144,5 @@ But-not: me
 	assert(t, len(deb822.Order) == len(deb822.Values))
 	assert(t, deb822.Values["But-not"] == "me")
 }
+
+// vim: foldmethod=marker

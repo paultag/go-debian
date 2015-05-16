@@ -33,6 +33,7 @@ import (
  */
 
 func TestDependencyControlParse(t *testing.T) {
+	// Test Control {{{
 	reader := bufio.NewReader(strings.NewReader(`Source: fbautostart
 Section: misc
 Priority: optional
@@ -53,6 +54,7 @@ Description: XDG compliant autostarting app for Fluxbox
  .
  This package contains support for GNOME and KDE.
 `))
+	// }}}
 	c, err := control.ParseControl(reader)
 	isok(t, err)
 	assert(t, c != nil)
@@ -82,6 +84,7 @@ Description: XDG compliant autostarting app for Fluxbox
 }
 
 func TestMaintainersParse(t *testing.T) {
+	// Test Control {{{
 	reader := bufio.NewReader(strings.NewReader(`Source: fbautostart
 Section: misc
 Priority: optional
@@ -114,6 +117,7 @@ Description: XDG compliant autostarting app for Fluxbox
  .
  This package contains support for GNOME and KDE.
 `))
+	// }}}
 	c, err := control.ParseControl(reader)
 	isok(t, err)
 	assert(t, c != nil)
@@ -123,3 +127,5 @@ Description: XDG compliant autostarting app for Fluxbox
 	arches := c.Binaries[1].Architectures
 	assert(t, len(arches) == 3)
 }
+
+// vim: foldmethod=marker

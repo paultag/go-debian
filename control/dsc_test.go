@@ -33,6 +33,7 @@ import (
  */
 
 func TestDSCParse(t *testing.T) {
+	// Test DSC {{{
 	reader := bufio.NewReader(strings.NewReader(`Format: 3.0 (quilt)
 Source: fbautostart
 Binary: fbautostart
@@ -56,6 +57,7 @@ Files:
  06495f9b23b1c9b1bf35c2346cb48f63 92748 fbautostart_2.718281828.orig.tar.gz
  f58c0e0bf4d56461e776232484c07301 2356 fbautostart_2.718281828-1.debian.tar.xz
 `))
+	// }}}
 	c, err := control.ParseDsc(reader)
 	isok(t, err)
 	assert(t, c != nil)
@@ -72,3 +74,5 @@ Files:
 	assert(t, c.StandardsVersion == "3.9.3")
 	assert(t, c.Homepage == "https://launchpad.net/fbautostart")
 }
+
+// vim: foldmethod=marker

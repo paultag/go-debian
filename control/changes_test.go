@@ -33,6 +33,7 @@ import (
  */
 
 func TestChangesParse(t *testing.T) {
+	// Test Paragraph {{{
 	reader := bufio.NewReader(strings.NewReader(`Format: 1.8
 Date: Wed, 29 Apr 2015 21:29:13 -0400
 Source: dput-ng
@@ -72,8 +73,11 @@ Files:
  a74c9e3e9fe05d480d24cd43b225ee0c 1131 devel extra dput-ng_1.9.dsc
  67e67e85a267c0c8110001b1a6cfc293 82504 devel extra dput-ng_1.9.tar.xz
 `))
+	// }}}
 	changes, err := control.ParseChanges(reader)
 	isok(t, err)
 	assert(t, changes.Format == "1.8")
 	assert(t, changes.ChangedBy == "Paul Tagliamonte <paultag@debian.org>")
 }
+
+// vim: foldmethod=marker
