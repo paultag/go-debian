@@ -20,7 +20,8 @@
 
 package dependency
 
-/* Possibilities {{{ */
+// Possibilities {{{
+
 // Arch models an architecture dependency restriction, commonly used to
 // restrict the relation to one some architectures. This is also usually
 // used in a string of many possibilities.
@@ -68,7 +69,7 @@ type Possibility struct {
 	Version       *VersionRelation
 }
 
-/* }}} */
+// }}}
 
 // A Relation is a set of Possibilities that must be satisfied. Given the
 // Dependency line:

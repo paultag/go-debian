@@ -37,7 +37,8 @@ func Parse(in string) (*Dependency, error) {
 	return dep, nil
 }
 
-/* Input Model {{{ */
+// Input Model {{{
+
 /*
  */
 type Input struct {
@@ -62,9 +63,9 @@ func (i *Input) Next() byte {
 	return chr
 }
 
-/* }}} */
+// }}}
 
-/* Parse Helpers {{{ */
+// Parse Helpers {{{
 
 /* */
 func eatWhitespace(input *Input) {
@@ -79,9 +80,10 @@ func eatWhitespace(input *Input) {
 	}
 }
 
-/* }}} */
+// }}}
 
-/* Dependency Parser {{{ */
+// Dependency Parser {{{
+
 /* */
 func parseDependency(input *Input, ret *Dependency) error {
 	eatWhitespace(input)
@@ -103,8 +105,10 @@ func parseDependency(input *Input, ret *Dependency) error {
 	}
 }
 
-/* }}} */
-/* Relation Parser {{{ */
+// }}}
+
+// Relation Parser {{{
+
 /* */
 func parseRelation(input *Input, dependency *Dependency) error {
 	eatWhitespace(input) /* Clean out leading whitespace */
@@ -129,8 +133,10 @@ func parseRelation(input *Input, dependency *Dependency) error {
 	}
 }
 
-/* }}} */
-/* Possibility Parser {{{ */
+// }}}
+
+// Possibility Parser {{{
+
 /* */
 func parsePossibility(input *Input, relation *Relation) error {
 	eatWhitespace(input) /* Clean out leading whitespace */
@@ -354,6 +360,6 @@ func parsePossibilityArch(input *Input, possi *Possibility) error {
 	}
 }
 
-/* }}} */
+// }}}
 
 // vim: foldmethod=marker

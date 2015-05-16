@@ -32,7 +32,8 @@ import (
 	"pault.ag/x/go-debian/version"
 )
 
-/* Main {{{ */
+// Main {{{
+
 func main() {
 	if len(os.Args) <= 1 {
 		helpTool()
@@ -61,9 +62,10 @@ func main() {
 
 }
 
-/* }}} */
+// }}}
 
-/* Help {{{ */
+// Help {{{
+
 func helpTool() {
 	fmt.Printf(
 		"%s\n",
@@ -82,9 +84,10 @@ Commands:
 	)
 }
 
-/* }}} */
+// }}}
 
-/* Dependency Tool {{{ */
+// Dependency Tool {{{
+
 func dependencyTool() {
 	if len(os.Args) <= 2 {
 		fmt.Printf("Error! Give me a dependency to parse!\n")
@@ -100,9 +103,10 @@ func dependencyTool() {
 	fmt.Printf("%s\n", data)
 }
 
-/* }}} */
+// }}}
 
-/* Version Tool {{{ */
+// Version Tool {{{
+
 func versionTool() {
 	if len(os.Args) <= 2 {
 		fmt.Printf("Error! Give me a version to parse!\n")
@@ -122,9 +126,10 @@ func versionTool() {
 	}
 }
 
-/* }}} */
+// }}}
 
-/* Control Tool {{{ */
+// Control Tool {{{
+
 func controlTool() {
 	if len(os.Args) <= 2 {
 		fmt.Printf("Error! Give me a file to parse!\n")
@@ -140,9 +145,10 @@ func controlTool() {
 	fmt.Printf("%s\n", data)
 }
 
-/* }}} */
+// }}}
 
-/* DSC Tool {{{ */
+// DSC Tool {{{
+
 func dscTool() {
 	if len(os.Args) <= 2 {
 		fmt.Printf("Error! Give me a file to parse!\n")
@@ -158,6 +164,6 @@ func dscTool() {
 	fmt.Printf("%s\n", data)
 }
 
-/* }}} */
+// }}}
 
 // vim: foldmethod=marker
