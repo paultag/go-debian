@@ -1,4 +1,4 @@
-/* Copyright (c) Paul R. Tagliamonte <paultag@debian.org>, 2015
+/* {{{ Copyright (c) Paul R. Tagliamonte <paultag@debian.org>, 2015
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -16,7 +16,7 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE. */
+ * THE SOFTWARE. }}} */
 
 package version_test
 
@@ -95,3 +95,5 @@ func TestComplexParse(t *testing.T) {
 	assert(t, ver.Version == "1:1.0-1")
 	assert(t, ver.Revision == "1")
 }
+
+// vim: foldmethod=marker
