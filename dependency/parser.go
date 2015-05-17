@@ -126,7 +126,7 @@ func parseRelation(input *Input, dependency *Dependency) error {
 			eatWhitespace(input)
 			continue
 		}
-		err := parsePossibility(input, ret, dependency)
+		err := parsePossibility(input, ret)
 		if err != nil {
 			return err
 		}
@@ -138,18 +138,8 @@ func parseRelation(input *Input, dependency *Dependency) error {
 // Possibility Parser {{{
 
 /* */
-func parsePossibility(input *Input, relation *Relation, dependency *Dependency) error {
+func parsePossibility(input *Input, relation *Relation) error {
 	eatWhitespace(input) /* Clean out leading whitespace */
-	peek := input.Peek()
-
-	if peek == '$' {
-		/* OK, we've got a substvar. */
-		err := parseSubstvar(input, dependency)
-		return err /* even if nil :) */
-	}
-
-	/* OK, not a substvar; let's go on with the parse */
-
 	ret := &Possibility{
 		Name:          "",
 		Version:       nil,
@@ -367,31 +357,6 @@ func parsePossibilityArch(input *Input, possi *Possibility) error {
 			return nil
 		}
 		arch += string(input.Next())
-	}
-}
-
-// }}}
-
-// {{{ Substvar Parser
-
-func parseSubstvar(input *Input, dependency *Dependency) error {
-	eatWhitespace(input)
-	input.Next() /* Assert ch == '$' */
-	input.Next() /* Assert ch == '{' */
-
-	var substvar = ""
-
-	for {
-		peek := input.Peek()
-		switch peek {
-		case 0:
-			return errors.New("Oh no. Reached EOF before substvar finished")
-		case '}':
-			input.Next()
-			dependency.Substvars = append(dependency.Substvars, substvar)
-			return nil
-		}
-		substvar += string(input.Next())
 	}
 }
 

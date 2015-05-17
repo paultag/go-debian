@@ -225,11 +225,4 @@ func TestBadArch(t *testing.T) {
 	}
 }
 
-func TestSubstvarVersions(t *testing.T) {
-	dep, err := dependency.Parse("${foo:Depends}, foo (>= 1.0)")
-	isok(t, err)
-	assert(t, len(dep.Substvars) == 1)
-	assert(t, dep.Substvars[0] == "foo:Depends")
-}
-
 // vim: foldmethod=marker
