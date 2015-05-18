@@ -37,8 +37,17 @@ func (dep *Dependency) GetPossibilities(arch Arch) []Possibility {
 }
 
 //
-// func (dep *Dependency) GetAllPossibilities() []Possibility {
-// }
+func (dep *Dependency) GetAllPossibilities() []Possibility {
+	possies := []Possibility{}
+
+	for _, relation := range dep.Relations {
+		for _, possibility := range relation.Possibilities {
+			possies = append(possies, *possibility)
+		}
+	}
+
+	return possies
+}
 
 //
 // func (dep *Dependency) GetSubstvars() []Possibility {

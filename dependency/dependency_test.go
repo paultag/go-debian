@@ -56,4 +56,16 @@ func TestArchSliceParse(t *testing.T) {
 	assert(t, els[1].Name == "baz")
 }
 
+func TestSliceAllParse(t *testing.T) {
+	dep, err := dependency.Parse("foo, bar | baz")
+	isok(t, err)
+
+	els := dep.GetAllPossibilities()
+	assert(t, len(els) == 3)
+
+	assert(t, els[0].Name == "foo")
+	assert(t, els[1].Name == "bar")
+	assert(t, els[2].Name == "baz")
+}
+
 // vim: foldmethod=marker
