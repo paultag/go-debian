@@ -68,4 +68,22 @@ func TestSliceAllParse(t *testing.T) {
 	assert(t, els[2].Name == "baz")
 }
 
+func TestSliceSubParse(t *testing.T) {
+	dep, err := dependency.Parse("${foo:Depends}, foo, bar | baz, ${bar:Depends}")
+	isok(t, err)
+
+	els := dep.GetAllPossibilities()
+	assert(t, len(els) == 3)
+
+	assert(t, els[0].Name == "foo")
+	assert(t, els[1].Name == "bar")
+	assert(t, els[2].Name == "baz")
+
+	els = dep.GetSubstvars()
+	assert(t, len(els) == 2)
+
+	assert(t, els[0].Name == "foo:Depends")
+	assert(t, els[1].Name == "bar:Depends")
+}
+
 // vim: foldmethod=marker

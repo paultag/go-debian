@@ -26,6 +26,10 @@ func (dep *Dependency) GetPossibilities(arch Arch) []Possibility {
 
 	for _, relation := range dep.Relations {
 		for _, possibility := range relation.Possibilities {
+			if possibility.Substvar {
+				continue
+			}
+
 			if possibility.Architectures.Matches(&arch) {
 				possies = append(possies, *possibility)
 				break
@@ -42,6 +46,9 @@ func (dep *Dependency) GetAllPossibilities() []Possibility {
 
 	for _, relation := range dep.Relations {
 		for _, possibility := range relation.Possibilities {
+			if possibility.Substvar {
+				continue
+			}
 			possies = append(possies, *possibility)
 		}
 	}
@@ -50,7 +57,18 @@ func (dep *Dependency) GetAllPossibilities() []Possibility {
 }
 
 //
-// func (dep *Dependency) GetSubstvars() []Possibility {
-// }
+func (dep *Dependency) GetSubstvars() []Possibility {
+	possies := []Possibility{}
+
+	for _, relation := range dep.Relations {
+		for _, possibility := range relation.Possibilities {
+			if possibility.Substvar {
+				possies = append(possies, *possibility)
+			}
+		}
+	}
+
+	return possies
+}
 
 // vim: foldmethod=marker
