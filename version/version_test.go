@@ -32,19 +32,22 @@ import (
 
 func isok(t *testing.T, err error) {
 	if err != nil {
-		t.Fail()
+		log.Printf("Error! Error is not nil!\n")
+		t.FailNow()
 	}
 }
 
 func notok(t *testing.T, err error) {
 	if err == nil {
-		t.Fail()
+		log.Printf("Error! Error is  nil!\n")
+		t.FailNow()
 	}
 }
 
 func assert(t *testing.T, expr bool) {
 	if !expr {
-		t.Fail()
+		log.Printf("Assertion failed!")
+		t.FailNow()
 	}
 }
 
