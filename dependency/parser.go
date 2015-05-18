@@ -140,11 +140,21 @@ func parseRelation(input *Input, dependency *Dependency) error {
 /* */
 func parsePossibility(input *Input, relation *Relation) error {
 	eatWhitespace(input) /* Clean out leading whitespace */
+
+	peek := input.Peek()
+	if peek == '$' {
+		/* OK, nice. So, we've got a substvar. Let's eat it. */
+		return parseSubstvar(input, relation)
+	}
+
+	/* Otherwise, let's punt and build it up ourselves. */
+
 	ret := &Possibility{
 		Name:          "",
 		Version:       nil,
 		Architectures: &ArchSet{Architectures: []Arch{}},
 		Stages:        &StageSet{Stages: []Stage{}},
+		Substvar:      false,
 	}
 
 	for {
@@ -170,6 +180,31 @@ func parsePossibility(input *Input, relation *Relation) error {
 			return nil
 		}
 		/* Not a control, let's append */
+		ret.Name += string(input.Next())
+	}
+}
+
+func parseSubstvar(input *Input, relation *Relation) error {
+	eatWhitespace(input)
+	input.Next() /* Assert ch == '$' */
+	input.Next() /* Assert ch == '{' */
+
+	ret := &Possibility{
+		Name:     "",
+		Version:  nil,
+		Substvar: true,
+	}
+
+	for {
+		peek := input.Peek()
+		switch peek {
+		case 0:
+			return errors.New("Oh no. Reached EOF before substvar finished")
+		case '}':
+			input.Next()
+			relation.Possibilities = append(relation.Possibilities, ret)
+			return nil
+		}
 		ret.Name += string(input.Next())
 	}
 }

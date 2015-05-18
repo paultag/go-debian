@@ -225,4 +225,19 @@ func TestBadArch(t *testing.T) {
 	}
 }
 
+func TestSingleSubstvar(t *testing.T) {
+	dep, err := dependency.Parse("${foo:Depends}, bar, baz")
+	isok(t, err)
+	assert(t, len(dep.Relations) == 3)
+
+	assert(t, dep.Relations[0].Possibilities[0].Name == "foo:Depends")
+	assert(t, dep.Relations[1].Possibilities[0].Name == "bar")
+	assert(t, dep.Relations[2].Possibilities[0].Name == "baz")
+
+	assert(t, dep.Relations[0].Possibilities[0].Substvar)
+
+	assert(t, !dep.Relations[1].Possibilities[0].Substvar)
+	assert(t, !dep.Relations[2].Possibilities[0].Substvar)
+}
+
 // vim: foldmethod=marker

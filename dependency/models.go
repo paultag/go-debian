@@ -67,6 +67,7 @@ type Possibility struct {
 	Architectures *ArchSet
 	Stages        *StageSet
 	Version       *VersionRelation
+	Substvar      bool
 }
 
 // }}}
