@@ -64,9 +64,6 @@ func parseHashes(buf string, algorithm string) (ret []ChangesFileHash) {
 		}
 		vals := strings.Split(el, " ")
 
-		// 9c69a2b5437fbe957832599b655e1df0 82504 dput-ng_1.9.tar.xz
-		// a74c9e3e9fe05d480d24cd43b225ee0c 1131 devel extra dput-ng_1.9.dsc
-
 		/* Sanity check length here */
 		size, err := strconv.Atoi(vals[1])
 		if err != nil {
