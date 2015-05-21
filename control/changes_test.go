@@ -126,6 +126,7 @@ Files:
 	isok(t, err)
 	assert(t, len(changes.ChecksumsSha1) == 2)
 	assert(t, len(changes.ChecksumsSha256) == 2)
+	assert(t, len(changes.Files) == 2)
 }
 
 // vim: foldmethod=marker

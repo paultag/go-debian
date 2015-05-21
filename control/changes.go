@@ -63,17 +63,32 @@ func parseHashes(buf string, algorithm string) (ret []ChangesFileHash) {
 			continue
 		}
 		vals := strings.Split(el, " ")
+
+		// 9c69a2b5437fbe957832599b655e1df0 82504 dput-ng_1.9.tar.xz
+		// a74c9e3e9fe05d480d24cd43b225ee0c 1131 devel extra dput-ng_1.9.dsc
+
+		/* Sanity check length here */
 		size, err := strconv.Atoi(vals[1])
 		if err != nil {
 			continue
 		}
 
-		ret = append(ret, ChangesFileHash{
-			Algorithm: algorithm,
-			Hash:      vals[0],
-			Size:      size,
-			Filename:  vals[2],
-		})
+		switch len(vals) {
+		case 5:
+			ret = append(ret, ChangesFileHash{
+				Algorithm: algorithm,
+				Hash:      vals[0],
+				Size:      size,
+				Filename:  vals[4],
+			})
+		case 3:
+			ret = append(ret, ChangesFileHash{
+				Algorithm: algorithm,
+				Hash:      vals[0],
+				Size:      size,
+				Filename:  vals[2],
+			})
+		}
 	}
 	return
 }
@@ -114,10 +129,10 @@ func ParseChanges(reader *bufio.Reader) (ret *Changes, err error) {
 
 		ChecksumsSha1:   parseHashes(src.Values["Checksums-Sha1"], "SHA1"),
 		ChecksumsSha256: parseHashes(src.Values["Checksums-Sha256"], "SHA256"),
+		Files:           parseHashes(src.Values["Files"], "MD5"),
 		/*
 			Binaries      []string
 			Closes        []string
-			Files         []
 		*/
 	}
 
