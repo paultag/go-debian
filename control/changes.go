@@ -117,6 +117,7 @@ func ParseChanges(reader *bufio.Reader) (ret *Changes, err error) {
 		/*
 			Binaries      []string
 			Closes        []string
+			Files         []
 		*/
 	}
 
