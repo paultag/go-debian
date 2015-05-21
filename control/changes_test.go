@@ -78,6 +78,11 @@ Files:
 	isok(t, err)
 	assert(t, changes.Format == "1.8")
 	assert(t, changes.ChangedBy == "Paul Tagliamonte <paultag@debian.org>")
+	assert(t, len(changes.Binaries) == 3)
+	assert(t, changes.Binaries[2] == "dput-ng-doc")
+
+	assert(t, len(changes.Closes) == 1)
+	assert(t, changes.Closes[0] == "783746")
 }
 
 func TestChangesParseFiles(t *testing.T) {

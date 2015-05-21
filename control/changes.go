@@ -127,10 +127,8 @@ func ParseChanges(reader *bufio.Reader) (ret *Changes, err error) {
 		ChecksumsSha1:   parseHashes(src.Values["Checksums-Sha1"], "SHA1"),
 		ChecksumsSha256: parseHashes(src.Values["Checksums-Sha256"], "SHA256"),
 		Files:           parseHashes(src.Values["Files"], "MD5"),
-		/*
-			Binaries      []string
-			Closes        []string
-		*/
+		Binaries:        strings.Split(src.Values["Binary"], " "),
+		Closes:          strings.Split(src.Values["Closes"], " "),
 	}
 
 	return
