@@ -22,6 +22,7 @@ package control
 
 import (
 	"bufio"
+	"strings"
 
 	"pault.ag/x/go-debian/dependency"
 	"pault.ag/x/go-debian/version"
@@ -83,13 +84,13 @@ func ParseDsc(reader *bufio.Reader) (ret *DSC, err error) {
 		Format: src.Values["Format"],
 		Source: src.Values["Source"],
 
-		// Binaries:
 		Architectures:    arch,
 		Version:          *version,
 		Origin:           src.Values["Origin"],
 		Maintainer:       src.Values["Maintainer"],
 		Homepage:         src.Values["Homepage"],
 		StandardsVersion: src.Values["Standards-Version"],
+		Binaries:         strings.Split(src.Values["Binary"], " "),
 
 		Maintainers:  maintainers,
 		Uploaders:    uploaders,
