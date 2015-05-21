@@ -22,33 +22,60 @@ package control
 
 import (
 	"bufio"
+	"strconv"
+	"strings"
 
 	"pault.ag/x/go-debian/dependency"
 	"pault.ag/x/go-debian/version"
 )
 
+type ChangesFileHash struct {
+	// cb136f28a8c971d4299cc68e8fdad93a8ca7daf3 1131 dput-ng_1.9.dsc
+	Algorithm string
+	Hash      string
+	Size      int
+	Filename  string
+}
+
 type Changes struct {
 	Paragraph
 
-	Format        string
-	Source        string
-	Binaries      []string
-	Architectures []dependency.Arch
-	Version       version.Version
-	Origin        string
-	Distribution  string
-	Urgency       string
-	Maintainer    string
-	ChangedBy     string
-	Closes        []string
-	Changes       string
+	Format          string
+	Source          string
+	Binaries        []string
+	Architectures   []dependency.Arch
+	Version         version.Version
+	Origin          string
+	Distribution    string
+	Urgency         string
+	Maintainer      string
+	ChangedBy       string
+	Closes          []string
+	Changes         string
+	ChecksumsSha1   []ChangesFileHash
+	ChecksumsSha256 []ChangesFileHash
+	Files           []ChangesFileHash
+}
 
-	/*
-		TODO:
-			Checksums-Sha1
-			Checksums-Sha256
-			Files
-	*/
+func parseHashes(buf string, algorithm string) (ret []ChangesFileHash) {
+	for _, el := range strings.Split(buf, "\n") {
+		if el == "" {
+			continue
+		}
+		vals := strings.Split(el, " ")
+		size, err := strconv.Atoi(vals[1])
+		if err != nil {
+			continue
+		}
+
+		ret = append(ret, ChangesFileHash{
+			Algorithm: algorithm,
+			Hash:      vals[0],
+			Size:      size,
+			Filename:  vals[2],
+		})
+	}
+	return
 }
 
 func ParseChanges(reader *bufio.Reader) (ret *Changes, err error) {
@@ -84,6 +111,9 @@ func ParseChanges(reader *bufio.Reader) (ret *Changes, err error) {
 		Architectures: arch,
 		Version:       *version,
 		Distribution:  src.Values["Distribution"],
+
+		ChecksumsSha1:   parseHashes(src.Values["Checksums-Sha1"], "SHA1"),
+		ChecksumsSha256: parseHashes(src.Values["Checksums-Sha256"], "SHA256"),
 		/*
 			Binaries      []string
 			Closes        []string
