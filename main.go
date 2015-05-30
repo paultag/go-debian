@@ -56,6 +56,9 @@ func main() {
 	case "dsc":
 		dscTool()
 		return
+	case "dscSort":
+		topsortDscTool()
+		return
 	}
 
 	helpTool()
@@ -162,6 +165,40 @@ func dscTool() {
 	}
 	data, err := json.MarshalIndent(&dep, "", "  ")
 	fmt.Printf("%s\n", data)
+}
+
+// }}}
+
+// Topsort DSC Tool {{{
+
+func topsortDscTool() {
+	if len(os.Args) <= 2 {
+		fmt.Printf("Error! Give me a bunch of dsc files!\n")
+		return
+	}
+
+	possies := map[string][]dependency.Possibility{}
+	for _, dscFile := range os.Args[2:] {
+		file, err := os.Open(dscFile)
+		dep, err := control.ParseDsc(bufio.NewReader(file))
+		if err != nil {
+			log.Fatalf("Oh no! %s", err)
+			return
+		}
+
+		arch, err := dependency.ParseArch("amd64")
+		possies[dep.Source] = dep.BuildDepends.GetPossibilities(*arch)
+	}
+
+	order, err := dependency.SortDependencies(possies)
+	if err != nil {
+		fmt.Printf("Error!: %s", err)
+		return
+	}
+
+	for _, el := range order {
+		fmt.Printf(" - %s\n", el)
+	}
 }
 
 // }}}
