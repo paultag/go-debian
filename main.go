@@ -187,7 +187,10 @@ func topsortDscTool() {
 		}
 
 		arch, err := dependency.ParseArch("amd64")
-		possies[dep.Source] = dep.BuildDepends.GetPossibilities(*arch)
+		bds := dep.BuildDepends.GetPossibilities(*arch)
+		for _, binary := range dep.Binaries {
+			possies[binary] = bds
+		}
 	}
 
 	order, err := dependency.SortDependencies(possies)
