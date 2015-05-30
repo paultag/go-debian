@@ -47,4 +47,22 @@ func TestTopsortEasy(t *testing.T) {
 	assert(t, order[1] == "bar")
 }
 
+func TestTopsortCycle(t *testing.T) {
+	foo, err := dependency.Parse("bar")
+	isok(t, err)
+
+	bar, err := dependency.Parse("baz, quix, foo")
+	isok(t, err)
+
+	arch, err := dependency.ParseArch("amd64")
+	isok(t, err)
+
+	_, err = dependency.SortDependencies(map[string][]dependency.Possibility{
+		"foo": foo.GetPossibilities(*arch),
+		"bar": bar.GetPossibilities(*arch),
+	})
+	notok(t, err)
+	/* since foo -> bar -> foo; this should raise an error */
+}
+
 // vim: foldmethod=marker
