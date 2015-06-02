@@ -26,6 +26,8 @@ import (
 
 	"pault.ag/x/go-debian/dependency"
 	"pault.ag/x/go-debian/version"
+
+	"pault.ag/x/topsort"
 )
 
 // A DSC is the ecapsulation of a Debian .dsc control file. This contains
@@ -53,6 +55,50 @@ type DSC struct {
 			Checksums-Sha256
 			Files
 	*/
+}
+
+func OrderDSCForBuild(dscs []*DSC, arch dependency.Arch) ([]*DSC, error) {
+	sourceMapping := map[string]string{}
+	network := topsort.NewNetwork()
+	ret := []*DSC{}
+
+	/*
+	 * - Create binary -> source mapping.
+	 * - Error if two sources provide the same binary
+	 * - Create a node for each source
+	 * - Create an edge from the source -> source
+	 * - return sorted list of dsc files
+	 */
+
+	for _, dsc := range dscs {
+		for _, binary := range dsc.Binaries {
+			sourceMapping[binary] = dsc.Source
+		}
+		network.AddNode(dsc.Source, dsc)
+	}
+
+	for _, dsc := range dscs {
+		concreteBuildDepends := dsc.BuildDepends.GetPossibilities(arch)
+		for _, relation := range concreteBuildDepends {
+			if val, ok := sourceMapping[relation.Name]; ok {
+				err := network.AddEdge(val, dsc.Source)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+
+	nodes, err := network.Sort()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, node := range nodes {
+		ret = append(ret, node.Value.(*DSC))
+	}
+
+	return ret, nil
 }
 
 // Given a bufio.Reader, produce a DSC struct to encapsulate the
@@ -90,7 +136,7 @@ func ParseDsc(reader *bufio.Reader) (ret *DSC, err error) {
 		Maintainer:       src.Values["Maintainer"],
 		Homepage:         src.Values["Homepage"],
 		StandardsVersion: src.Values["Standards-Version"],
-		Binaries:         strings.Split(src.Values["Binary"], " "),
+		Binaries:         strings.Split(src.Values["Binary"], ", "),
 
 		Maintainers:  maintainers,
 		Uploaders:    uploaders,
