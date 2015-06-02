@@ -27,9 +27,9 @@ import (
 	"log"
 	"os"
 
-	"pault.ag/x/go-debian/control"
-	"pault.ag/x/go-debian/dependency"
-	"pault.ag/x/go-debian/version"
+	"pault.ag/go/debian/control"
+	"pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/version"
 )
 
 // Main {{{

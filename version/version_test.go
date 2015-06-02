@@ -23,7 +23,7 @@ package version_test
 import (
 	"testing"
 
-	"pault.ag/x/go-debian/version"
+	"pault.ag/go/debian/version"
 )
 
 /*

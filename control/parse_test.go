@@ -26,7 +26,7 @@ import (
 	"strings"
 	"testing"
 
-	"pault.ag/x/go-debian/control"
+	"pault.ag/go/debian/control"
 )
 
 /*

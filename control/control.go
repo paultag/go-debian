@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"strings"
 
-	"pault.ag/x/go-debian/dependency"
+	"pault.ag/go/debian/dependency"
 )
 
 // Encapsulation for a debian/control file, which is a series of RFC2822-like

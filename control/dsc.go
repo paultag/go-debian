@@ -24,10 +24,10 @@ import (
 	"bufio"
 	"strings"
 
-	"pault.ag/x/go-debian/dependency"
-	"pault.ag/x/go-debian/version"
+	"pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/version"
 
-	"pault.ag/x/topsort"
+	"pault.ag/go/topsort"
 )
 
 // A DSC is the ecapsulation of a Debian .dsc control file. This contains

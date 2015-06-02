@@ -25,8 +25,8 @@ import (
 	"strconv"
 	"strings"
 
-	"pault.ag/x/go-debian/dependency"
-	"pault.ag/x/go-debian/version"
+	"pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/version"
 )
 
 type ChangesFileHash struct {

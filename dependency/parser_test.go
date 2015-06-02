@@ -24,7 +24,7 @@ import (
 	"log"
 	"testing"
 
-	"pault.ag/x/go-debian/dependency"
+	"pault.ag/go/debian/dependency"
 )
 
 /*
