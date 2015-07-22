@@ -131,7 +131,7 @@ func ParseDsc(reader *bufio.Reader) (ret *DSC, err error) {
 		Source: src.Values["Source"],
 
 		Architectures:    arch,
-		Version:          *version,
+		Version:          version,
 		Origin:           src.Values["Origin"],
 		Maintainer:       src.Values["Maintainer"],
 		Homepage:         src.Values["Homepage"],

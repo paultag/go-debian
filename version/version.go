@@ -1,109 +1,182 @@
-/* {{{ Copyright (c) Paul R. Tagliamonte <paultag@debian.org>, 2015
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE. }}} */
-
+// dpkgversion is a pure-go implementation of dpkg version string functions
+// (parsing, comparison) which is compatible with dpkg(1).
 package version
 
 import (
-	"errors"
+	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
-// Debian Policy 5.6.12
 type Version struct {
-	Native   bool
-	Epoch    int
+	Epoch    uint
 	Version  string
 	Revision string
 }
 
-//
-func rSplit(in string, piviot string) (*string, *string) {
-	if strings.Contains(in, piviot) {
-		for i := len(in) - 1; i > 0; i-- {
-			if string(in[i]) == piviot {
-				l := in[:i]
-				r := in[i+1:]
-				return &l, &r
+func (v *Version) IsNative() bool {
+	return len(v.Revision) == 0
+}
+
+func (v Version) String() string {
+	var result string
+	if v.Epoch > 0 {
+		result = strconv.Itoa(int(v.Epoch)) + ":" + v.Version
+	} else {
+		result = v.Version
+	}
+	if len(v.Revision) > 0 {
+		result += "-" + v.Revision
+	}
+	return result
+}
+
+func cisdigit(r rune) bool {
+	return r >= '0' && r <= '9'
+}
+
+func cisalpha(r rune) bool {
+	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')
+}
+
+func order(r rune) int {
+	if cisdigit(r) {
+		return 0
+	}
+	if cisalpha(r) {
+		return int(r)
+	}
+	if r == '~' {
+		return -1
+	}
+	if int(r) != 0 {
+		return int(r) + 256
+	}
+	return 0
+}
+
+func verrevcmp(a string, b string) int {
+	i := 0
+	j := 0
+	for i < len(a) || j < len(b) {
+		var first_diff int
+		for (i < len(a) && !cisdigit(rune(a[i]))) ||
+			(j < len(b) && !cisdigit(rune(b[j]))) {
+			ac := 0
+			if i < len(a) {
+				ac = order(rune(a[i]))
 			}
+			bc := 0
+			if j < len(b) {
+				bc = order(rune(b[j]))
+			}
+			if ac != bc {
+				return ac - bc
+			}
+			i++
+			j++
+		}
+
+		for i < len(a) && a[i] == '0' {
+			i++
+		}
+		for j < len(b) && b[j] == '0' {
+			j++
+		}
+
+		for i < len(a) && cisdigit(rune(a[i])) && j < len(b) && cisdigit(rune(b[j])) {
+			if first_diff == 0 {
+				first_diff = int(rune(a[i]) - rune(b[j]))
+			}
+			i++
+			j++
+		}
+
+		if i < len(a) && cisdigit(rune(a[i])) {
+			return 1
+		}
+		if j < len(b) && cisdigit(rune(b[j])) {
+			return -1
+		}
+		if first_diff != 0 {
+			return first_diff
 		}
 	}
-	return &in, nil
+	return 0
 }
 
-//
-func Parse(in string) (*Version, error) {
-	version := &Version{
-		Epoch:    0,
-		Version:  "",
-		Revision: "",
-		Native:   false,
+// Compare compares the two provided Debian versions. It returns 0 if a and b
+// are equal, a value < 0 if a is smaller than b and a value > 0 if a is
+// greater than b.
+func Compare(a Version, b Version) int {
+	if a.Epoch > b.Epoch {
+		return 1
+	}
+	if a.Epoch < b.Epoch {
+		return -1
 	}
 
-	in = strings.Trim(in, " \n\t\r")
-	components := strings.SplitN(in, ":", 2)
-	/* Apropos ":" split behavior, from Debian Policy section 5.6.12:
-	 *
-	 * if there is no epoch then colons are not allowed. */
+	rc := verrevcmp(a.Version, b.Version)
+	if rc != 0 {
+		return rc
+	}
 
-	switch len(components) {
-	case 1:
-		version.Epoch = 0
-		in = components[0]
-	case 2:
-		epoch, err := strconv.Atoi(components[0])
+	return verrevcmp(a.Revision, b.Revision)
+}
+
+// Parse returns a Version struct filled with the epoch, version and revision
+// specified in input. It verifies the version string as a whole, just like
+// dpkg(1), and even returns roughly the same error messages.
+func Parse(input string) (Version, error) {
+	result := Version{}
+	trimmed := strings.TrimSpace(input)
+	if trimmed == "" {
+		return result, fmt.Errorf("version string is empty")
+	}
+
+	if strings.IndexFunc(trimmed, unicode.IsSpace) != -1 {
+		return result, fmt.Errorf("version string has embedded spaces")
+	}
+
+	colon := strings.Index(trimmed, ":")
+	if colon != -1 {
+		epoch, err := strconv.ParseInt(trimmed[:colon], 10, 64)
 		if err != nil {
-			return nil, err
+			return result, fmt.Errorf("epoch: %v", err)
 		}
-		in = components[1]
-		version.Epoch = epoch
-	default:
-		return nil, errors.New("ohshit")
+		if epoch < 0 {
+			return result, fmt.Errorf("epoch in version is negative")
+		}
+		result.Epoch = uint(epoch)
 	}
 
-	ver, debversion := rSplit(in, "-")
-	/* apropos "-" in version string, from Debian Policy section 5.6.12:
-	 *
-	 * if it isn't present then the upstream_version may not contain a hyphen.
-	 * This format represents the case where a piece of software was written
-	 * specifically to be a Debian package, where the Debian package source
-	 * must always be identical to the pristine source and therefore no
-	 * revision indication is required. */
-
-	version.Native = debversion == nil
-
-	version.Version = *ver
-	/* XXX: Verify Version
-	 *
-	 * Debian Policy section 5.6.12 regarding valid Versions:
-	 *
-	 *  The upstream_version may contain only alphanumerics and the
-	 * characters . + - : ~ (full stop, plus, hyphen, colon, tilde) and should
-	 * start with a digit. If there is no debian_revision then hyphens are not
-	 * allowed; if there is no epoch then colons are not allowed. */
-
-	if !version.Native {
-		version.Revision = *debversion
+	result.Version = trimmed[colon+1:]
+	if len(result.Version) == 0 {
+		return result, fmt.Errorf("nothing after colon in version number")
+	}
+	if hyphen := strings.LastIndex(result.Version, "-"); hyphen != -1 {
+		result.Revision = result.Version[hyphen+1:]
+		result.Version = result.Version[:hyphen]
 	}
 
-	return version, nil
+	if len(result.Version) > 0 && !unicode.IsDigit(rune(result.Version[0])) {
+		return result, fmt.Errorf("version number does not start with digit")
+	}
+
+	if strings.IndexFunc(result.Version, func(c rune) bool {
+		return !cisdigit(c) && !cisalpha(c) && c != '.' && c != '-' && c != '+' && c != '~' && c != ':'
+	}) != -1 {
+		return result, fmt.Errorf("invalid character in version number")
+	}
+
+	if strings.IndexFunc(result.Revision, func(c rune) bool {
+		return !cisdigit(c) && !cisalpha(c) && c != '.' && c != '+' && c != '~'
+	}) != -1 {
+		return result, fmt.Errorf("invalid character in revision number")
+	}
+
+	return result, nil
 }
 
-// vim: foldmethod=marker
+// vim:ts=4:sw=4:noexpandtab

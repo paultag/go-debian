@@ -121,7 +121,7 @@ func ParseChanges(reader *bufio.Reader) (ret *Changes, err error) {
 		Changes:    src.Values["Changes"],
 
 		Architectures: arch,
-		Version:       *version,
+		Version:       version,
 		Distribution:  src.Values["Distribution"],
 
 		ChecksumsSha1:   parseHashes(src.Values["Checksums-Sha1"], "SHA1"),
