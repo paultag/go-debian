@@ -14,3 +14,9 @@ version
 -------
 
 This module contains bits to work with package versions
+
+
+control
+-------
+
+This module contains bits to work with control files
