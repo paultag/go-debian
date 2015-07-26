@@ -25,6 +25,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"golang.org/x/crypto/openpgp/clearsign"
 )
 
 // A Paragraph is a block of RFC2822-like key value pairs. This struct contains
@@ -35,8 +37,31 @@ type Paragraph struct {
 	Order  []string
 }
 
+func ParseOpenPGPParagraph(reader *bufio.Reader) (ret *Paragraph, ohshit error) {
+	els := ""
+	for {
+		line, err := reader.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
+		els = els + line
+	}
+	block, _ := clearsign.Decode([]byte(els))
+	/**
+	 * XXX: With the block, we need to validate everything.
+	 *
+	 * We need to hit openpgp.CheckDetachedSignature with block and
+	 * a keyring. For now, it'll ignore all signature checking entirely.
+	 */
+	return ParseParagraph(bufio.NewReader(strings.NewReader(string(block.Bytes))))
+}
+
 // Given a bufio.Reader, go through and return a Paragraph.
 func ParseParagraph(reader *bufio.Reader) (ret *Paragraph, ohshit error) {
+	line, _ := reader.Peek(15)
+	if string(line) == "-----BEGIN PGP " {
+		return ParseOpenPGPParagraph(reader)
+	}
 
 	ret = &Paragraph{
 		Values: map[string]string{},
@@ -49,7 +74,6 @@ func ParseParagraph(reader *bufio.Reader) (ret *Paragraph, ohshit error) {
 
 	for {
 		line, err := reader.ReadString('\n')
-
 		if err == io.EOF {
 			if len(ret.Order) == 0 {
 				return nil, nil
