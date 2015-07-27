@@ -50,6 +50,10 @@ type BinaryIndex struct {
 	SHA256         string
 }
 
+func (index *BinaryIndex) GetDepends() dependency.Dependency {
+	return index.getOptionalDependencyField("Depends")
+}
+
 type SourceIndex struct {
 	Paragraph
 
