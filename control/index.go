@@ -37,7 +37,6 @@ type PackageIndex struct {
 	Version    version.Version
 	Maintainer string
 
-	BuildDepends dependency.Dependency
 	Architecture []dependency.Arch
 
 	StandardsVersion string
@@ -56,6 +55,10 @@ type PackageIndex struct {
 			Checksums-Sha256:
 			Package-List:
 	*/
+}
+
+func (index *PackageIndex) GetBuildDepends() dependency.Dependency {
+	return index.getOptionalDependencyField("Build-Depends")
 }
 
 func ParsePackagesIndex(reader *bufio.Reader) (ret []PackageIndex, err error) {
@@ -110,7 +113,6 @@ func ParsePackagesIndexParagraph(reader *bufio.Reader) (ret *PackageIndex, err e
 		Version:    version,
 		Maintainer: src.Values["Maintainer"],
 
-		BuildDepends: src.getOptionalDependencyField("Build-Depends"),
 		Architecture: arch,
 
 		// Directory        string
