@@ -29,6 +29,8 @@ import (
 )
 
 type BinaryIndex struct {
+	Paragraph
+
 	Package        string
 	Source         string
 	Version        version.Version
@@ -38,7 +40,7 @@ type BinaryIndex struct {
 	Description    string
 	Homepage       string
 	DescriptionMD5 string
-	Tag            []string
+	Tags           []string
 	Section        string
 	Priority       string
 	Filename       string
@@ -81,11 +83,10 @@ func (index *SourceIndex) GetBuildDepends() dependency.Dependency {
 	return index.getOptionalDependencyField("Build-Depends")
 }
 
-func ParseSourceIndex(reader *bufio.Reader) (ret []SourceIndex, err error) {
-	ret = []SourceIndex{}
-
+func ParseBinaryIndex(reader *bufio.Reader) (ret []BinaryIndex, err error) {
+	ret = []BinaryIndex{}
 	for {
-		block, err := ParsePackagesIndexParagraph(reader)
+		block, err := ParseBinaryIndexParagraph(reader)
 		if err != nil {
 			return ret, err
 		}
@@ -95,13 +96,28 @@ func ParseSourceIndex(reader *bufio.Reader) (ret []SourceIndex, err error) {
 			break
 		}
 	}
+	return
+}
 
+func ParseSourceIndex(reader *bufio.Reader) (ret []SourceIndex, err error) {
+	ret = []SourceIndex{}
+	for {
+		block, err := ParseSourceIndexParagraph(reader)
+		if err != nil {
+			return ret, err
+		}
+		if block != nil {
+			ret = append(ret, *block)
+		} else {
+			break
+		}
+	}
 	return
 }
 
 // Given a bufio.Reader, produce a SourceIndex struct to encapsulate the
 // data contained within.
-func ParsePackagesIndexParagraph(reader *bufio.Reader) (ret *SourceIndex, err error) {
+func ParseSourceIndexParagraph(reader *bufio.Reader) (ret *SourceIndex, err error) {
 
 	/* a SourceIndex is a Paragraph, with some stuff. So, let's first take
 	 * the bufio.Reader and produce a stock Paragraph. */
@@ -147,6 +163,56 @@ func ParsePackagesIndexParagraph(reader *bufio.Reader) (ret *SourceIndex, err er
 		Homepage:         src.Values["Homepage"],
 
 		Files: strings.Split(src.Values["Files"], "\n"),
+	}
+
+	return
+}
+
+func ParseBinaryIndexParagraph(reader *bufio.Reader) (ret *BinaryIndex, err error) {
+
+	/* a BinaryIndex is a Paragraph, with some stuff. So, let's first take
+	 * the bufio.Reader and produce a stock Paragraph. */
+	src, err := ParseParagraph(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	if src == nil {
+		return nil, nil
+	}
+
+	version, err := version.Parse(src.Values["Version"])
+	if err != nil {
+		return nil, err
+	}
+
+	arch, err := dependency.ParseArch(src.Values["Architecture"])
+	if err != nil {
+		return nil, err
+	}
+
+	ret = &BinaryIndex{
+		Paragraph: *src,
+
+		Package: src.Values["Package"],
+		Source:  src.Values["Source"],
+
+		Version: version,
+
+		InstalledSize:  src.Values["Installed-Size:"],
+		Maintainer:     src.Values["Maintainer"],
+		Architecture:   *arch,
+		Description:    src.Values["Description"],
+		Homepage:       src.Values["Homepage"],
+		DescriptionMD5: src.Values["Description-md5"],
+		Tags:           strings.Split(src.Values["Tags"], ", "),
+		Section:        src.Values["Section"],
+		Priority:       src.Values["Priority"],
+		Filename:       src.Values["Filename"],
+		Size:           src.Values["Size"],
+		MD5sum:         src.Values["MD5sum"],
+		SHA1:           src.Values["SHA1"],
+		SHA256:         src.Values["SHA256"],
 	}
 
 	return
