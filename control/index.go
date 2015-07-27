@@ -28,7 +28,7 @@ import (
 	"pault.ag/go/debian/version"
 )
 
-type PackageIndex struct {
+type SourceIndex struct {
 	Paragraph
 
 	Package  string
@@ -57,12 +57,12 @@ type PackageIndex struct {
 	*/
 }
 
-func (index *PackageIndex) GetBuildDepends() dependency.Dependency {
+func (index *SourceIndex) GetBuildDepends() dependency.Dependency {
 	return index.getOptionalDependencyField("Build-Depends")
 }
 
-func ParsePackagesIndex(reader *bufio.Reader) (ret []PackageIndex, err error) {
-	ret = []PackageIndex{}
+func ParseSourceIndex(reader *bufio.Reader) (ret []SourceIndex, err error) {
+	ret = []SourceIndex{}
 
 	for {
 		block, err := ParsePackagesIndexParagraph(reader)
@@ -79,11 +79,11 @@ func ParsePackagesIndex(reader *bufio.Reader) (ret []PackageIndex, err error) {
 	return
 }
 
-// Given a bufio.Reader, produce a PackageIndex struct to encapsulate the
+// Given a bufio.Reader, produce a SourceIndex struct to encapsulate the
 // data contained within.
-func ParsePackagesIndexParagraph(reader *bufio.Reader) (ret *PackageIndex, err error) {
+func ParsePackagesIndexParagraph(reader *bufio.Reader) (ret *SourceIndex, err error) {
 
-	/* a PackageIndex is a Paragraph, with some stuff. So, let's first take
+	/* a SourceIndex is a Paragraph, with some stuff. So, let's first take
 	 * the bufio.Reader and produce a stock Paragraph. */
 	src, err := ParseParagraph(reader)
 	if err != nil {
@@ -104,7 +104,7 @@ func ParsePackagesIndexParagraph(reader *bufio.Reader) (ret *PackageIndex, err e
 		return nil, err
 	}
 
-	ret = &PackageIndex{
+	ret = &SourceIndex{
 		Paragraph: *src,
 
 		Package:  src.Values["Package"],
