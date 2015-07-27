@@ -34,7 +34,7 @@ type BinaryIndex struct {
 	Version        version.Version
 	InstalledSize  string
 	Maintainer     string
-	Architecture   dependency.Architecture
+	Architecture   dependency.Arch
 	Description    string
 	Homepage       string
 	DescriptionMD5 string
@@ -135,8 +135,8 @@ func ParsePackagesIndexParagraph(reader *bufio.Reader) (ret *SourceIndex, err er
 
 		Architecture: arch,
 
-		VcsBrowser: src.Values["VcsBrowser"],
-		VcsGit:     src.Values["VcsGit"],
+		VcsBrowser: src.Values["Vcs-Browser"],
+		VcsGit:     src.Values["Vcs-Git"],
 
 		Directory: src.Values["Directory"],
 		Priority:  src.Values["Priority"],
