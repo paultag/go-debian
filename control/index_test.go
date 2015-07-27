@@ -97,7 +97,7 @@ Section: misc
 }
 
 func TestBinaryIndexParse(t *testing.T) {
-	// Test Source Index {{{
+	// Test Binary Index {{{
 	reader := bufio.NewReader(strings.NewReader(`Package: android-tools-fastboot
 Source: android-tools
 Version: 4.2.2+git20130529-5.1
