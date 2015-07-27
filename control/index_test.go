@@ -161,4 +161,34 @@ SHA256: fa53e4f50349c5c9b564b8dc1da86c503b0baf56ab95a4ef6e204b6f77bfe70c
 	assert(t, sources[2].Filename == "pool/main/a/androidsdk-tools/androidsdk-ddms_22.2+git20130830~92d25d6-1_all.deb")
 }
 
+func TestBinaryIndexDependsParse(t *testing.T) {
+	// Test Binary Index {{{
+	reader := bufio.NewReader(strings.NewReader(`Package: androidsdk-ddms
+Source: androidsdk-tools
+Version: 22.2+git20130830~92d25d6-1
+Installed-Size: 211
+Maintainer: Debian Java Maintainers <pkg-java-maintainers@lists.alioth.debian.org>
+Architecture: all
+Depends: libandroidsdk-swtmenubar-java (= 22.2+git20130830~92d25d6-1), libandroidsdk-ddmlib-java (= 22.2+git20130830~92d25d6-1), libandroidsdk-ddmuilib-java (= 22.2+git20130830~92d25d6-1), libandroidsdk-sdkstats-java (= 22.2+git20130830~92d25d6-1), eclipse-rcp
+Description: Graphical debugging tool for Android
+Homepage: http://developer.android.com/tools/help/index.html
+Description-md5: a2f559d2abf6ebb1d25bc3929d5aa2b0
+Section: java
+Priority: extra
+Filename: pool/main/a/androidsdk-tools/androidsdk-ddms_22.2+git20130830~92d25d6-1_all.deb
+Size: 132048
+MD5sum: fde05f3552457e91a415c99ab2a2a514
+SHA1: 82b05c97163ccfbbb10a52a5514882412a13ee43
+SHA256: fa53e4f50349c5c9b564b8dc1da86c503b0baf56ab95a4ef6e204b6f77bfe70c
+`))
+	// }}}
+	sources, err := control.ParseBinaryIndex(reader)
+	isok(t, err)
+	assert(t, len(sources) == 1)
+
+	ddms := sources[0]
+	ddmsDepends := ddms.GetDepends()
+	assert(t, ddmsDepends.GetAllPossibilities()[0].Version.Number == "22.2+git20130830~92d25d6-1")
+}
+
 // vim: foldmethod=marker
