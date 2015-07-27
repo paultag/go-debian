@@ -28,6 +28,26 @@ import (
 	"pault.ag/go/debian/version"
 )
 
+type BinaryIndex struct {
+	Package        string
+	Source         string
+	Version        version.Version
+	InstalledSize  string
+	Maintainer     string
+	Architecture   dependency.Architecture
+	Description    string
+	Homepage       string
+	DescriptionMD5 string
+	Tag            []string
+	Section        string
+	Priority       string
+	Filename       string
+	Size           string
+	MD5sum         string
+	SHA1           string
+	SHA256         string
+}
+
 type SourceIndex struct {
 	Paragraph
 
@@ -114,10 +134,6 @@ func ParsePackagesIndexParagraph(reader *bufio.Reader) (ret *SourceIndex, err er
 		Maintainer: src.Values["Maintainer"],
 
 		Architecture: arch,
-
-		// Directory        string
-		// Priority         string
-		// Section          string
 
 		VcsBrowser: src.Values["VcsBrowser"],
 		VcsGit:     src.Values["VcsGit"],
