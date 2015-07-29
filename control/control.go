@@ -23,6 +23,7 @@ package control
 import (
 	"bufio"
 	"fmt"
+	"os"
 	"strings"
 
 	"pault.ag/go/debian/dependency"
@@ -32,6 +33,8 @@ import (
 // blocks, starting with a Source control paragraph, and then a series of
 // Binary control paragraphs.
 type Control struct {
+	Filename string
+
 	Source   SourceParagraph
 	Binaries []BinaryParagraph
 }
@@ -106,8 +109,22 @@ func splitList(names string) (ret []string) {
 	return ret
 }
 
-func ParseControl(reader *bufio.Reader) (ret *Control, err error) {
+func ParseControlFile(path string) (ret *Control, err error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	ret, err = ParseControl(bufio.NewReader(f), path)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+func ParseControl(reader *bufio.Reader, path string) (ret *Control, err error) {
 	ret = &Control{
+		Filename: path,
 		Binaries: []BinaryParagraph{},
 	}
 

@@ -55,7 +55,7 @@ Description: XDG compliant autostarting app for Fluxbox
  This package contains support for GNOME and KDE.
 `))
 	// }}}
-	c, err := control.ParseControl(reader)
+	c, err := control.ParseControl(reader, "")
 	isok(t, err)
 	assert(t, c != nil)
 	assert(t, len(c.Binaries) == 1)
@@ -118,7 +118,7 @@ Description: XDG compliant autostarting app for Fluxbox
  This package contains support for GNOME and KDE.
 `))
 	// }}}
-	c, err := control.ParseControl(reader)
+	c, err := control.ParseControl(reader, "")
 	isok(t, err)
 	assert(t, c != nil)
 	assert(t, len(c.Binaries) == 2)
