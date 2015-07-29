@@ -22,6 +22,7 @@ package control
 
 import (
 	"bufio"
+	"os"
 	"strconv"
 	"strings"
 
@@ -39,6 +40,8 @@ type ChangesFileHash struct {
 
 type Changes struct {
 	Paragraph
+
+	Filename string
 
 	Format          string
 	Source          string
@@ -90,6 +93,20 @@ func parseHashes(buf string, algorithm string) (ret []ChangesFileHash) {
 	return
 }
 
+func ParseChangesFilepath(path string) (ret *Changes, err error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	ret, err = ParseChanges(bufio.NewReader(f))
+	if err != nil {
+		return nil, err
+	}
+
+	ret.Filename = path
+	return ret, nil
+}
+
 func ParseChanges(reader *bufio.Reader) (ret *Changes, err error) {
 
 	/* a Changes is a Paragraph, with some stuff. So, let's first take
@@ -132,6 +149,15 @@ func ParseChanges(reader *bufio.Reader) (ret *Changes, err error) {
 	}
 
 	return
+}
+
+func (changes *Changes) GetDSC() *ChangesFileHash {
+	for _, file := range changes.Files {
+		if strings.HasSuffix(file.Filename, ".dsc") {
+			return &file
+		}
+	}
+	return nil
 }
 
 // vim: foldmethod=marker
