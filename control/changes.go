@@ -22,6 +22,7 @@ package control
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -162,6 +163,10 @@ func (changes *Changes) GetDSC() *ChangesFileHash {
 
 // dest better be a directory :)
 func (changes *Changes) Move(dest string) error {
+	if file, err := os.Stat(dest); err == nil && !file.IsDir() {
+		return fmt.Errorf("Attempting to move .changes to a non-directory")
+	}
+
 	err := os.Rename(changes.Filename, dest+"/"+changes.Filename)
 	if err != nil {
 		return err
