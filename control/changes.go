@@ -93,11 +93,12 @@ func parseHashes(buf string, algorithm string) (ret []ChangesFileHash) {
 	return
 }
 
-func ParseChangesFilepath(path string) (ret *Changes, err error) {
+func ParseChangesFile(path string) (ret *Changes, err error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
+
 	ret, err = ParseChanges(bufio.NewReader(f))
 	if err != nil {
 		return nil, err
