@@ -160,4 +160,18 @@ func (changes *Changes) GetDSC() *ChangesFileHash {
 	return nil
 }
 
+func (changes *Changes) Remove() error {
+	err := os.Remove(changes.Filename)
+	if err != nil {
+		return err
+	}
+	for _, file := range changes.Files {
+		err := os.Remove(file.Filename)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // vim: foldmethod=marker
