@@ -23,6 +23,7 @@ package control
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"pault.ag/go/debian/dependency"
@@ -105,6 +106,11 @@ func OrderDSCForBuild(dscs []*DSC, arch dependency.Arch) ([]*DSC, error) {
 }
 
 func ParseDscFile(path string) (ret *DSC, err error) {
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err

@@ -24,6 +24,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -95,6 +96,11 @@ func parseHashes(buf string, algorithm string) (ret []ChangesFileHash) {
 }
 
 func ParseChangesFile(path string) (ret *Changes, err error) {
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -170,12 +176,14 @@ func (changes *Changes) Move(dest string) error {
 		return fmt.Errorf("Attempting to move .changes to a non-directory")
 	}
 
-	err := os.Rename(changes.Filename, dest+"/"+changes.Filename)
+	dirname := filepath.Base(changes.Filename)
+	err := os.Rename(changes.Filename, dest+"/"+dirname)
 	if err != nil {
 		return err
 	}
 	for _, file := range changes.Files {
-		err := os.Rename(file.Filename, dest+"/"+file.Filename)
+		dirname := filepath.Base(changes.Filename)
+		err := os.Rename(file.Filename, dest+"/"+dirname)
 		if err != nil {
 			return err
 		}

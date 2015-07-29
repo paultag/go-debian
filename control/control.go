@@ -24,6 +24,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"pault.ag/go/debian/dependency"
@@ -110,6 +111,11 @@ func splitList(names string) (ret []string) {
 }
 
 func ParseControlFile(path string) (ret *Control, err error) {
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
