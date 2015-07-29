@@ -99,16 +99,14 @@ func ParseChangesFile(path string) (ret *Changes, err error) {
 		return nil, err
 	}
 
-	ret, err = ParseChanges(bufio.NewReader(f))
+	ret, err = ParseChanges(bufio.NewReader(f), path)
 	if err != nil {
 		return nil, err
 	}
-
-	ret.Filename = path
 	return ret, nil
 }
 
-func ParseChanges(reader *bufio.Reader) (ret *Changes, err error) {
+func ParseChanges(reader *bufio.Reader, path string) (ret *Changes, err error) {
 
 	/* a Changes is a Paragraph, with some stuff. So, let's first take
 	 * the bufio.Reader and produce a stock Paragraph. */
@@ -129,6 +127,7 @@ func ParseChanges(reader *bufio.Reader) (ret *Changes, err error) {
 
 	ret = &Changes{
 		Paragraph: *src,
+		Filename:  path,
 
 		Format:     src.Values["Format"],
 		Source:     src.Values["Source"],
