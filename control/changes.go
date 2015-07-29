@@ -152,13 +152,17 @@ func ParseChanges(reader *bufio.Reader, path string) (ret *Changes, err error) {
 	return
 }
 
-func (changes *Changes) GetDSC() *ChangesFileHash {
+func (changes *Changes) GetDSC() (*DSC, error) {
 	for _, file := range changes.Files {
 		if strings.HasSuffix(file.Filename, ".dsc") {
-			return &file
+			dsc, err := ParseDscFile(file.Filename)
+			if err != nil {
+				return nil, err
+			}
+			return dsc, nil
 		}
 	}
-	return nil
+	return nil, fmt.Errorf("No .dsc file in .changes")
 }
 
 func (changes *Changes) Move(dest string) error {

@@ -74,7 +74,7 @@ Files:
  67e67e85a267c0c8110001b1a6cfc293 82504 devel extra dput-ng_1.9.tar.xz
 `))
 	// }}}
-	changes, err := control.ParseChanges(reader)
+	changes, err := control.ParseChanges(reader, "")
 	isok(t, err)
 	assert(t, changes.Format == "1.8")
 	assert(t, changes.ChangedBy == "Paul Tagliamonte <paultag@debian.org>")
@@ -127,7 +127,7 @@ Files:
  67e67e85a267c0c8110001b1a6cfc293 82504 devel extra dput-ng_1.9.tar.xz
 `))
 	// }}}
-	changes, err := control.ParseChanges(reader)
+	changes, err := control.ParseChanges(reader, "")
 	isok(t, err)
 	assert(t, len(changes.ChecksumsSha1) == 2)
 	assert(t, len(changes.ChecksumsSha256) == 2)

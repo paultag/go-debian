@@ -58,7 +58,7 @@ Files:
  f58c0e0bf4d56461e776232484c07301 2356 fbautostart_2.718281828-1.debian.tar.xz
 `))
 	// }}}
-	c, err := control.ParseDsc(reader)
+	c, err := control.ParseDsc(reader, "")
 	isok(t, err)
 	assert(t, c != nil)
 
@@ -121,7 +121,7 @@ jKL78j4v9XEo994zqhqTIuzA9xUoAXikzRrb97UbK5oqde4/G95/SotM50NgfQ2k
 -----END PGP SIGNATURE-----
 `))
 	// }}}
-	c, err := control.ParseDsc(reader)
+	c, err := control.ParseDsc(reader, "")
 	isok(t, err)
 	assert(t, c != nil)
 

@@ -22,6 +22,7 @@ package control
 
 import (
 	"bufio"
+	"os"
 	"strings"
 
 	"pault.ag/go/debian/dependency"
@@ -34,6 +35,8 @@ import (
 // information about the source package, and is general handy.
 type DSC struct {
 	Paragraph
+
+	Filename string
 
 	Format           string
 	Source           string
@@ -101,9 +104,22 @@ func OrderDSCForBuild(dscs []*DSC, arch dependency.Arch) ([]*DSC, error) {
 	return ret, nil
 }
 
+func ParseDscFile(path string) (ret *DSC, err error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	ret, err = ParseDsc(bufio.NewReader(f), path)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
 // Given a bufio.Reader, produce a DSC struct to encapsulate the
 // data contained within.
-func ParseDsc(reader *bufio.Reader) (ret *DSC, err error) {
+func ParseDsc(reader *bufio.Reader, path string) (ret *DSC, err error) {
 
 	/* a DSC is a Paragraph, with some stuff. So, let's first take
 	 * the bufio.Reader and produce a stock Paragraph. */
@@ -126,6 +142,7 @@ func ParseDsc(reader *bufio.Reader) (ret *DSC, err error) {
 
 	ret = &DSC{
 		Paragraph: *src,
+		Filename:  path,
 
 		Format: src.Values["Format"],
 		Source: src.Values["Source"],
