@@ -161,6 +161,21 @@ func (changes *Changes) GetDSC() *ChangesFileHash {
 	return nil
 }
 
+// dest better be a directory :)
+func (changes *Changes) Move(dest string) error {
+	err := os.Rename(changes.Filename, dest+"/"+changes.Filename)
+	if err != nil {
+		return err
+	}
+	for _, file := range changes.Files {
+		err := os.Rename(file.Filename, dest+"/"+file.Filename)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (changes *Changes) Remove() error {
 	err := os.Remove(changes.Filename)
 	if err != nil {
