@@ -181,6 +181,8 @@ func (changes *Changes) Move(dest string) error {
 	if err != nil {
 		return err
 	}
+
+	changes.Filename = dest + "/" + dirname
 	for _, file := range changes.Files {
 		dirname := filepath.Base(changes.Filename)
 		err := os.Rename(file.Filename, dest+"/"+dirname)
