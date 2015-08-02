@@ -162,7 +162,7 @@ But-not: me
 	deb822, err := control.ParseParagraph(reader)
 	isok(t, err)
 
-	out := deb822.Serialize()
+	out := deb822.String()
 	assert(t, out == `Foo: bar
 Bar-Baz: fnord:and:this:here
  and:not

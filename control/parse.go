@@ -53,7 +53,7 @@ type Paragraph struct {
 	Order  []string
 }
 
-func (para Paragraph) Serialize() string {
+func (para Paragraph) String() string {
 	ret := ""
 
 	for _, key := range para.Order {
