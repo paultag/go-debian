@@ -29,21 +29,21 @@ import (
 	"golang.org/x/crypto/openpgp/clearsign"
 )
 
-func encodeValue(value string) string {
-	ret := ""
-
-	lines := strings.Split(value, "\n")
-	for _, line := range lines {
-		line = strings.Trim(line, " \t\r\n")
-		if line == "" {
-			line = "."
-		}
-		line = " " + line
-		ret = ret + line + "\n"
-	}
-
-	return ret
-}
+// func encodeValue(value string) string {
+// 	ret := ""
+//
+// 	lines := strings.Split(value, "\n")
+// 	for _, line := range lines {
+// 		line = strings.Trim(line, " \t\r\n")
+// 		if line == "" {
+// 			line = "."
+// 		}
+// 		line = " " + line
+// 		ret = ret + line + "\n"
+// 	}
+//
+// 	return ret
+// }
 
 // A Paragraph is a block of RFC2822-like key value pairs. This struct contains
 // two methods to fetch values, a Map called Values, and a Slice called
@@ -53,16 +53,16 @@ type Paragraph struct {
 	Order  []string
 }
 
-func (para Paragraph) String() string {
-	ret := ""
-
-	for _, key := range para.Order {
-		value := encodeValue(para.Values[key])
-		ret = ret + fmt.Sprintf("%s:%s", key, value)
-	}
-
-	return ret
-}
+// func (para Paragraph) String() string {
+// 	ret := ""
+//
+// 	for _, key := range para.Order {
+// 		value := encodeValue(para.Values[key])
+// 		ret = ret + fmt.Sprintf("%s:%s", key, value)
+// 	}
+//
+// 	return ret
+// }
 
 func ParseOpenPGPParagraph(reader *bufio.Reader) (ret *Paragraph, ohshit error) {
 	els := ""

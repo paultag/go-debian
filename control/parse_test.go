@@ -145,32 +145,32 @@ But-not: me
 	assert(t, deb822.Values["But-not"] == "me")
 }
 
-func TestSeralize(t *testing.T) {
-	// Test Paragraph {{{
-	para := `Foo: bar
-Bar-Baz: fnord:and:this:here
- and:not
- second:here
- line
- here
-Hello: world
-
-But-not: me
-`
-	// }}}
-	reader := bufio.NewReader(strings.NewReader(para))
-	deb822, err := control.ParseParagraph(reader)
-	isok(t, err)
-
-	out := deb822.String()
-	assert(t, out == `Foo: bar
-Bar-Baz: fnord:and:this:here
- and:not
- second:here
- line
- here
-Hello: world
-`)
-}
+// func TestSeralize(t *testing.T) {
+// 	// Test Paragraph {{{
+// 	para := `Foo: bar
+// Bar-Baz: fnord:and:this:here
+//  and:not
+//  second:here
+//  line
+//  here
+// Hello: world
+//
+// But-not: me
+// `
+// 	// }}}
+// 	reader := bufio.NewReader(strings.NewReader(para))
+// 	deb822, err := control.ParseParagraph(reader)
+// 	isok(t, err)
+//
+// 	out := deb822.String()
+// 	assert(t, out == `Foo: bar
+// Bar-Baz: fnord:and:this:here
+//  and:not
+//  second:here
+//  line
+//  here
+// Hello: world
+// `)
+// }
 
 // vim: foldmethod=marker
