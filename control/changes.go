@@ -175,6 +175,7 @@ func (changes *Changes) Move(dest string) error {
 	if file, err := os.Stat(dest); err == nil && !file.IsDir() {
 		return fmt.Errorf("Attempting to move .changes to a non-directory")
 	}
+	dirname := filepath.Base(changes.Filename)
 
 	changes.Filename = dest + "/" + dirname
 	for _, file := range changes.Files {
@@ -185,7 +186,6 @@ func (changes *Changes) Move(dest string) error {
 		}
 	}
 
-	dirname := filepath.Base(changes.Filename)
 	err := os.Rename(changes.Filename, dest+"/"+dirname)
 	if err != nil {
 		return err
