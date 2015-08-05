@@ -169,4 +169,13 @@ func ParseDsc(reader *bufio.Reader, path string) (ret *DSC, err error) {
 	return
 }
 
+func (d *DSC) HasArchAll() bool {
+	for _, arch := range d.Architectures {
+		if arch.CPU == "all" && arch.OS == "all" && arch.ABI == "all" {
+			return true
+		}
+	}
+	return false
+}
+
 // vim: foldmethod=marker

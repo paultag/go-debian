@@ -74,6 +74,7 @@ Files:
 	assert(t, c.StandardsVersion == "3.9.3")
 	assert(t, c.Homepage == "https://launchpad.net/fbautostart")
 }
+
 func TestOpenPGPDSCParse(t *testing.T) {
 	// Test OpenPGP DSC {{{
 	reader := bufio.NewReader(strings.NewReader(`-----BEGIN PGP SIGNED MESSAGE-----
@@ -136,6 +137,66 @@ jKL78j4v9XEo994zqhqTIuzA9xUoAXikzRrb97UbK5oqde4/G95/SotM50NgfQ2k
 
 	assert(t, c.StandardsVersion == "3.9.3")
 	assert(t, c.Homepage == "https://launchpad.net/fbautostart")
+}
+
+func TestDSCArchAllParse(t *testing.T) {
+	// Test DSC (arch: any) {{{
+	reader := bufio.NewReader(strings.NewReader(`Format: 3.0 (quilt)
+Source: fbautostart
+Binary: fbautostart
+Architecture: any
+Version: 2.718281828-1
+Maintainer: Paul Tagliamonte <paultag@ubuntu.com>
+Homepage: https://launchpad.net/fbautostart
+Standards-Version: 3.9.3
+Vcs-Browser: http://git.debian.org/?p=collab-maint/fbautostart.git
+Vcs-Git: git://git.debian.org/collab-maint/fbautostart.git
+Build-Depends: debhelper (>= 9)
+Package-List:
+ fbautostart deb misc optional arch=any
+Checksums-Sha1:
+ bc36310c15edc9acf48f0a1daf548bcc6f861372 92748 fbautostart_2.718281828.orig.tar.gz
+ eaed7f053dce48d4ad4e442bbb0da73ea1181a26 2356 fbautostart_2.718281828-1.debian.tar.xz
+Checksums-Sha256:
+ bb2fdfd4a38505905222ee02d8236a594bdf6eaefca23462294cacda631745c1 92748 fbautostart_2.718281828.orig.tar.gz
+ f7186d1bebde403527b5b3fd80406decaaf295366206667d5b402da962f0b772 2356 fbautostart_2.718281828-1.debian.tar.xz
+Files:
+ 06495f9b23b1c9b1bf35c2346cb48f63 92748 fbautostart_2.718281828.orig.tar.gz
+ f58c0e0bf4d56461e776232484c07301 2356 fbautostart_2.718281828-1.debian.tar.xz
+`))
+	// }}}
+	c, err := control.ParseDsc(reader, "")
+	isok(t, err)
+	assert(t, !c.HasArchAll())
+
+	// Test DSC (arch: any all) {{{
+	reader = bufio.NewReader(strings.NewReader(`Format: 3.0 (quilt)
+Source: fbautostart
+Binary: fbautostart
+Architecture: any all
+Version: 2.718281828-1
+Maintainer: Paul Tagliamonte <paultag@ubuntu.com>
+Homepage: https://launchpad.net/fbautostart
+Standards-Version: 3.9.3
+Vcs-Browser: http://git.debian.org/?p=collab-maint/fbautostart.git
+Vcs-Git: git://git.debian.org/collab-maint/fbautostart.git
+Build-Depends: debhelper (>= 9)
+Package-List:
+ fbautostart deb misc optional arch=any
+Checksums-Sha1:
+ bc36310c15edc9acf48f0a1daf548bcc6f861372 92748 fbautostart_2.718281828.orig.tar.gz
+ eaed7f053dce48d4ad4e442bbb0da73ea1181a26 2356 fbautostart_2.718281828-1.debian.tar.xz
+Checksums-Sha256:
+ bb2fdfd4a38505905222ee02d8236a594bdf6eaefca23462294cacda631745c1 92748 fbautostart_2.718281828.orig.tar.gz
+ f7186d1bebde403527b5b3fd80406decaaf295366206667d5b402da962f0b772 2356 fbautostart_2.718281828-1.debian.tar.xz
+Files:
+ 06495f9b23b1c9b1bf35c2346cb48f63 92748 fbautostart_2.718281828.orig.tar.gz
+ f58c0e0bf4d56461e776232484c07301 2356 fbautostart_2.718281828-1.debian.tar.xz
+`))
+	// }}}
+	c, err = control.ParseDsc(reader, "")
+	isok(t, err)
+	assert(t, c.HasArchAll())
 }
 
 // vim: foldmethod=marker
