@@ -178,7 +178,6 @@ func (changes *Changes) Move(dest string) error {
 
 	for _, file := range changes.Files {
 		dirname := filepath.Base(file.Filename)
-		fmt.Printf("%s -> %s\n", file.Filename, dest+"/"+dirname)
 		err := os.Rename(file.Filename, dest+"/"+dirname)
 		if err != nil {
 			return err
@@ -188,7 +187,6 @@ func (changes *Changes) Move(dest string) error {
 	dirname := filepath.Base(changes.Filename)
 	err := os.Rename(changes.Filename, dest+"/"+dirname)
 	changes.Filename = dest + "/" + dirname
-	fmt.Printf("%s -> %s\n", changes.Filename, dest+"/"+dirname)
 
 	if err != nil {
 		return err
