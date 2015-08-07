@@ -161,7 +161,11 @@ func ParseChanges(reader *bufio.Reader, path string) (ret *Changes, err error) {
 func (changes *Changes) GetDSC() (*DSC, error) {
 	for _, file := range changes.Files {
 		if strings.HasSuffix(file.Filename, ".dsc") {
-			dsc, err := ParseDscFile(file.Filename)
+
+			// Right, now lets resolve the absolute path.
+			baseDir := filepath.Dir(changes.Filename)
+
+			dsc, err := ParseDscFile(baseDir + "/" + file.Filename)
 			if err != nil {
 				return nil, err
 			}
