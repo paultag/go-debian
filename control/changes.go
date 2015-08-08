@@ -29,6 +29,7 @@ import (
 	"strings"
 
 	"pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/internal"
 	"pault.ag/go/debian/version"
 )
 
@@ -173,6 +174,30 @@ func (changes *Changes) GetDSC() (*DSC, error) {
 		}
 	}
 	return nil, fmt.Errorf("No .dsc file in .changes")
+}
+
+func (changes *Changes) Copy(dest string) error {
+	if file, err := os.Stat(dest); err == nil && !file.IsDir() {
+		return fmt.Errorf("Attempting to move .changes to a non-directory")
+	}
+
+	for _, file := range changes.Files {
+		dirname := filepath.Base(file.Filename)
+		err := internal.Copy(file.Filename, dest+"/"+dirname)
+		if err != nil {
+			return err
+		}
+	}
+
+	dirname := filepath.Base(changes.Filename)
+	err := internal.Copy(changes.Filename, dest+"/"+dirname)
+	changes.Filename = dest + "/" + dirname
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (changes *Changes) Move(dest string) error {
