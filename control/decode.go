@@ -106,7 +106,7 @@ func decodePointer(incoming reflect.Value, data Paragraph) error {
 
 		paragraphKey := fieldType.Name
 		if it := fieldType.Tag.Get("control"); it != "" {
-			paragraphKey = paragraphKey
+			paragraphKey = it
 		}
 
 		if val, ok := data.Values[paragraphKey]; ok {
