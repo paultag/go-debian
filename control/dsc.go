@@ -126,7 +126,7 @@ func ParseDscFile(path string) (ret *DSC, err error) {
 // data contained within.
 func ParseDsc(reader *bufio.Reader, path string) (*DSC, error) {
 	ret := DSC{}
-	err := Decode(&ret, reader)
+	err := Unmarshal(&ret, reader)
 	if err != nil {
 		return nil, err
 	}

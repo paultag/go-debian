@@ -22,55 +22,55 @@ type TestStruct struct {
 	}
 }
 
-func TestBasicDecode(t *testing.T) {
+func TestBasicUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Decode(&foo, strings.NewReader(`Value: foo
+	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
 Foo-Bar: baz
 `)))
 	assert(t, foo.Value == "foo")
 }
 
-func TestTagDecode(t *testing.T) {
+func TestTagUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Decode(&foo, strings.NewReader(`Value: foo
+	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
 Value-Two: baz
 `)))
 	assert(t, foo.Value == "foo")
 	assert(t, foo.ValueTwo == "baz")
 }
 
-func TestDependsDecode(t *testing.T) {
+func TestDependsUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Decode(&foo, strings.NewReader(`Value: foo
+	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
 Depends: foo, bar
 `)))
 	assert(t, foo.Value == "foo")
 	assert(t, foo.Depends.Relations[0].Possibilities[0].Name == "foo")
 
 	/* Actually invalid below */
-	notok(t, control.Decode(&foo, strings.NewReader(`Depends: foo (>= 1.0) (<= 1.0)
+	notok(t, control.Unmarshal(&foo, strings.NewReader(`Depends: foo (>= 1.0) (<= 1.0)
 `)))
 }
 
-func TestVersionDecode(t *testing.T) {
+func TestVersionUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Decode(&foo, strings.NewReader(`Value: foo
+	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
 Version: 1.0-1
 `)))
 	assert(t, foo.Value == "foo")
 	assert(t, foo.Version.Revision == "1")
 }
 
-func TestArchDecode(t *testing.T) {
+func TestArchUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Decode(&foo, strings.NewReader(`Value: foo
+	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
 Arch: amd64
 `)))
 	assert(t, foo.Value == "foo")
 	assert(t, foo.Arch.CPU == "amd64")
 
 	foo = TestStruct{}
-	isok(t, control.Decode(&foo, strings.NewReader(`Value: foo
+	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
 Arches: amd64 sparc any
 `)))
 	assert(t, foo.Value == "foo")
@@ -79,26 +79,26 @@ Arches: amd64 sparc any
 	assert(t, foo.Arches[2].CPU == "any")
 }
 
-func TestNestedDecode(t *testing.T) {
+func TestNestedUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Decode(&foo, strings.NewReader(`Value: foo
+	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
 Fnord-Foo-Bar: Thing
 `)))
 	assert(t, foo.Value == "foo")
 	assert(t, foo.Fnord.FooBar == "Thing")
 }
 
-func TestListDecode(t *testing.T) {
+func TestListUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Decode(&foo, strings.NewReader(`Value: foo
+	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
 ValueThree: foo bar baz
 `)))
 	assert(t, foo.Value == "foo")
 	assert(t, foo.ValueThree[0] == "foo")
 }
 
-func TestRequiredDecode(t *testing.T) {
+func TestRequiredUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	notok(t, control.Decode(&foo, strings.NewReader(`Foo-Bar: baz
+	notok(t, control.Unmarshal(&foo, strings.NewReader(`Foo-Bar: baz
 `)))
 }

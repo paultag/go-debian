@@ -163,7 +163,7 @@ func decodePointer(incoming reflect.Value, data Paragraph) error {
 	return nil
 }
 
-func Decode(incoming interface{}, data io.Reader) error {
+func Unmarshal(incoming interface{}, data io.Reader) error {
 	reader := bufio.NewReader(data)
 	para, err := ParseParagraph(reader)
 	if err != nil {
