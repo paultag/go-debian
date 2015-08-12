@@ -26,10 +26,26 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"pault.ag/go/debian/dependency"
 	"pault.ag/go/debian/version"
 )
+
+func decodeCustomValues(incoming reflect.Value, data string) error {
+	/* Incoming is a slice */
+	underlyingType := incoming.Type().Elem()
+
+	for _, el := range strings.Split(data, " ") {
+		targetValue := reflect.New(underlyingType)
+		err := decodeValue(targetValue.Elem(), el)
+		if err != nil {
+			return err
+		}
+		incoming.Set(reflect.Append(incoming, targetValue.Elem()))
+	}
+	return nil
+}
 
 func decodeCustomValue(incoming reflect.Value, data string) error {
 	/* Check out the type */
@@ -81,10 +97,12 @@ func decodeValue(incoming reflect.Value, data string) error {
 		}
 		incoming.SetInt(int64(value))
 		return nil
+	case reflect.Slice:
+		return decodeCustomValues(incoming, data)
 	case reflect.Struct:
 		return decodeCustomValue(incoming, data)
 	}
-	return fmt.Errorf("Unknown type of field")
+	return fmt.Errorf("Unknown type of field: ", incoming.Type())
 }
 
 func decodePointer(incoming reflect.Value, data Paragraph) error {
@@ -110,7 +128,6 @@ func decodePointer(incoming reflect.Value, data Paragraph) error {
 		}
 
 		if val, ok := data.Values[paragraphKey]; ok {
-			fmt.Printf("%s %s\n", paragraphKey, fieldType.Type.Kind())
 			err := decodeValue(field, val)
 			if err != nil {
 				return fmt.Errorf(

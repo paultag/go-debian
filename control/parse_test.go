@@ -35,14 +35,14 @@ import (
 
 func isok(t *testing.T, err error) {
 	if err != nil {
-		log.Printf("Error! Error is not nil!\n")
+		log.Printf("Error! Error is not nil! - %s\n", err)
 		t.FailNow()
 	}
 }
 
 func notok(t *testing.T, err error) {
 	if err == nil {
-		log.Printf("Error! Error is  nil!\n")
+		log.Printf("Error! Error is nil!\n")
 		t.FailNow()
 	}
 }

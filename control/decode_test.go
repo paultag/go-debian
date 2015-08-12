@@ -10,12 +10,13 @@ import (
 )
 
 type TestStruct struct {
-	Value    string
-	ValueTwo string `control:"Value-Two"`
-	Depends  dependency.Dependency
-	Version  version.Version
-	Arch     dependency.Arch
-	Fnord    struct {
+	Value      string
+	ValueTwo   string `control:"Value-Two"`
+	ValueThree []string
+	Depends    dependency.Dependency
+	Version    version.Version
+	Arch       dependency.Arch
+	Fnord      struct {
 		FooBar string `control:"Fnord-Foo-Bar"`
 	}
 }
@@ -75,4 +76,13 @@ Fnord-Foo-Bar: Thing
 `)))
 	assert(t, foo.Value == "foo")
 	assert(t, foo.Fnord.FooBar == "Thing")
+}
+
+func TestListDecode(t *testing.T) {
+	foo := TestStruct{}
+	isok(t, control.Decode(&foo, strings.NewReader(`Value: foo
+ValueThree: foo bar baz
+`)))
+	assert(t, foo.Value == "foo")
+	assert(t, foo.ValueThree[0] == "foo")
 }
