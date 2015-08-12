@@ -82,7 +82,7 @@ func decodeCustomValue(incoming reflect.Value, data string) error {
 		return nil
 		// }}}
 	}
-	return fmt.Errorf("Unknown field type")
+	return fmt.Errorf("Unknown custom field type: %s", incoming.Type())
 }
 
 func decodeValue(incoming reflect.Value, data string) error {
@@ -106,7 +106,7 @@ func decodeValue(incoming reflect.Value, data string) error {
 	case reflect.Struct:
 		return decodeCustomValue(incoming, data)
 	}
-	return fmt.Errorf("Unknown type of field: ", incoming.Type())
+	return fmt.Errorf("Unknown type of field: %s", incoming.Type())
 }
 
 func decodePointer(incoming reflect.Value, data Paragraph) error {
