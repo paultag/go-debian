@@ -10,7 +10,7 @@ import (
 )
 
 type TestStruct struct {
-	Value      string
+	Value      string `required:"true"`
 	ValueTwo   string `control:"Value-Two"`
 	ValueThree []string
 	Depends    dependency.Dependency
@@ -95,4 +95,10 @@ ValueThree: foo bar baz
 `)))
 	assert(t, foo.Value == "foo")
 	assert(t, foo.ValueThree[0] == "foo")
+}
+
+func TestRequiredDecode(t *testing.T) {
+	foo := TestStruct{}
+	notok(t, control.Decode(&foo, strings.NewReader(`Foo-Bar: baz
+`)))
 }

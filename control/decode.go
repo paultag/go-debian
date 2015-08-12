@@ -131,6 +131,8 @@ func decodePointer(incoming reflect.Value, data Paragraph) error {
 			paragraphKey = it
 		}
 
+		required := fieldType.Tag.Get("required") == "true"
+
 		if val, ok := data.Values[paragraphKey]; ok {
 			err := decodeValue(field, val)
 			if err != nil {
@@ -140,7 +142,13 @@ func decodePointer(incoming reflect.Value, data Paragraph) error {
 					err,
 				)
 			}
-		} /* XXX: else { validateNotRequired } */
+		} else if required {
+			return fmt.Errorf(
+				"pault.ag/go/debian/control: required field %s missing",
+				fieldType.Name,
+			)
+
+		}
 	}
 
 	return nil
