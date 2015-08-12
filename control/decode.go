@@ -32,17 +32,22 @@ import (
 	"pault.ag/go/debian/version"
 )
 
-func decodeCustomValues(incoming reflect.Value, data string) error {
+func decodeCustomValues(incoming reflect.Value, incomingField reflect.StructField, data string) error {
 	/* Incoming is a slice */
 	underlyingType := incoming.Type().Elem()
+
+	var delim = " "
+	if it := incomingField.Tag.Get("delim"); it != "" {
+		delim = it
+	}
 
 	/* XXX: Fix stuff like []dependency.Dependency, since it's really really
 	 *      silly. Perhaps we need some sort of function registration
 	 *      magic. */
 
-	for _, el := range strings.Split(data, " ") {
+	for _, el := range strings.Split(data, delim) {
 		targetValue := reflect.New(underlyingType)
-		err := decodeValue(targetValue.Elem(), el)
+		err := decodeValue(targetValue.Elem(), incomingField, el)
 		if err != nil {
 			return err
 		}
@@ -51,7 +56,7 @@ func decodeCustomValues(incoming reflect.Value, data string) error {
 	return nil
 }
 
-func decodeCustomValue(incoming reflect.Value, data string) error {
+func decodeCustomValue(incoming reflect.Value, incomingField reflect.StructField, data string) error {
 	/* Check out the type */
 	switch incoming.Type() {
 	case reflect.TypeOf(dependency.Dependency{}):
@@ -85,7 +90,7 @@ func decodeCustomValue(incoming reflect.Value, data string) error {
 	return fmt.Errorf("Unknown custom field type: %s", incoming.Type())
 }
 
-func decodeValue(incoming reflect.Value, data string) error {
+func decodeValue(incoming reflect.Value, incomingField reflect.StructField, data string) error {
 	switch incoming.Type().Kind() {
 	case reflect.String:
 		incoming.SetString(data)
@@ -102,9 +107,9 @@ func decodeValue(incoming reflect.Value, data string) error {
 		incoming.SetInt(int64(value))
 		return nil
 	case reflect.Slice:
-		return decodeCustomValues(incoming, data)
+		return decodeCustomValues(incoming, incomingField, data)
 	case reflect.Struct:
-		return decodeCustomValue(incoming, data)
+		return decodeCustomValue(incoming, incomingField, data)
 	}
 	return fmt.Errorf("Unknown type of field: %s", incoming.Type())
 }
@@ -131,10 +136,14 @@ func decodePointer(incoming reflect.Value, data Paragraph) error {
 			paragraphKey = it
 		}
 
+		if paragraphKey == "-" {
+			continue
+		}
+
 		required := fieldType.Tag.Get("required") == "true"
 
 		if val, ok := data.Values[paragraphKey]; ok {
-			err := decodeValue(field, val)
+			err := decodeValue(field, fieldType, val)
 			if err != nil {
 				return fmt.Errorf(
 					"pault.ag/go/debian/control: failed to set %s: %s",

@@ -24,7 +24,6 @@ import (
 	"bufio"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"pault.ag/go/debian/dependency"
 	"pault.ag/go/debian/version"
@@ -41,16 +40,16 @@ type DSC struct {
 
 	Format           string
 	Source           string
-	Binaries         []string
-	Architectures    []dependency.Arch
+	Binaries         []string          `control:"Binary" delim:","`
+	Architectures    []dependency.Arch `control:"Architecture"`
 	Version          version.Version
 	Origin           string
 	Maintainer       string
-	Maintainers      []string
+	Maintainers      []string `control:"-"`
 	Uploaders        []string
 	Homepage         string
-	StandardsVersion string
-	BuildDepends     dependency.Dependency
+	StandardsVersion string                `control:"Standards-Version"`
+	BuildDepends     dependency.Dependency `control:"Build-Depends"`
 
 	/*
 		TODO:
@@ -125,48 +124,14 @@ func ParseDscFile(path string) (ret *DSC, err error) {
 
 // Given a bufio.Reader, produce a DSC struct to encapsulate the
 // data contained within.
-func ParseDsc(reader *bufio.Reader, path string) (ret *DSC, err error) {
-
-	/* a DSC is a Paragraph, with some stuff. So, let's first take
-	 * the bufio.Reader and produce a stock Paragraph. */
-	src, err := ParseParagraph(reader)
+func ParseDsc(reader *bufio.Reader, path string) (*DSC, error) {
+	ret := DSC{}
+	err := Decode(&ret, reader)
 	if err != nil {
 		return nil, err
 	}
-
-	uploaders := splitList(src.Values["Uploaders"])
-	maintainers := append(uploaders, src.Values["Maintainer"])
-	version, err := version.Parse(src.Values["Version"])
-	if err != nil {
-		return nil, err
-	}
-
-	arch, err := dependency.ParseArchitectures(src.Values["Architecture"])
-	if err != nil {
-		return nil, err
-	}
-
-	ret = &DSC{
-		Paragraph: *src,
-		Filename:  path,
-
-		Format: src.Values["Format"],
-		Source: src.Values["Source"],
-
-		Architectures:    arch,
-		Version:          version,
-		Origin:           src.Values["Origin"],
-		Maintainer:       src.Values["Maintainer"],
-		Homepage:         src.Values["Homepage"],
-		StandardsVersion: src.Values["Standards-Version"],
-		Binaries:         strings.Split(src.Values["Binary"], ", "),
-
-		Maintainers:  maintainers,
-		Uploaders:    uploaders,
-		BuildDepends: src.getOptionalDependencyField("Build-Depends"),
-	}
-
-	return
+	ret.Maintainers = append([]string{ret.Maintainer}, ret.Uploaders...)
+	return &ret, nil
 }
 
 func (d *DSC) HasArchAll() bool {
