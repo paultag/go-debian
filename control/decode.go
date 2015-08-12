@@ -36,6 +36,10 @@ func decodeCustomValues(incoming reflect.Value, data string) error {
 	/* Incoming is a slice */
 	underlyingType := incoming.Type().Elem()
 
+	/* XXX: Fix stuff like []dependency.Dependency, since it's really really
+	 *      silly. Perhaps we need some sort of function registration
+	 *      magic. */
+
 	for _, el := range strings.Split(data, " ") {
 		targetValue := reflect.New(underlyingType)
 		err := decodeValue(targetValue.Elem(), el)

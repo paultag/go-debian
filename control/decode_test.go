@@ -16,6 +16,7 @@ type TestStruct struct {
 	Depends    dependency.Dependency
 	Version    version.Version
 	Arch       dependency.Arch
+	Arches     []dependency.Arch
 	Fnord      struct {
 		FooBar string `control:"Fnord-Foo-Bar"`
 	}
@@ -67,6 +68,15 @@ Arch: amd64
 `)))
 	assert(t, foo.Value == "foo")
 	assert(t, foo.Arch.CPU == "amd64")
+
+	foo = TestStruct{}
+	isok(t, control.Decode(&foo, strings.NewReader(`Value: foo
+Arches: amd64 sparc any
+`)))
+	assert(t, foo.Value == "foo")
+	assert(t, foo.Arches[0].CPU == "amd64")
+	assert(t, foo.Arches[1].CPU == "sparc")
+	assert(t, foo.Arches[2].CPU == "any")
 }
 
 func TestNestedDecode(t *testing.T) {
