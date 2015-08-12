@@ -26,7 +26,44 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+
+	"pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/version"
 )
+
+func decodeCustomValue(incoming reflect.Value, data string) error {
+	/* Check out the type */
+	switch incoming.Type() {
+	case reflect.TypeOf(dependency.Dependency{}):
+		// {{{ pault.ag/go/debian/dependency.Dependency
+		value, err := dependency.Parse(data)
+		if err != nil {
+			return err
+		}
+		incoming.Set(reflect.ValueOf(*value))
+		return nil
+		// }}}
+	case reflect.TypeOf(version.Version{}):
+		// {{{ pault.ag/go/debian/version.Version
+		value, err := version.Parse(data)
+		if err != nil {
+			return err
+		}
+		incoming.Set(reflect.ValueOf(value))
+		return nil
+		// }}}
+	case reflect.TypeOf(dependency.Arch{}):
+		// {{{ pault.ag/go/debian/dependency.Arch
+		value, err := dependency.ParseArch(data)
+		if err != nil {
+			return err
+		}
+		incoming.Set(reflect.ValueOf(*value))
+		return nil
+		// }}}
+	}
+	return fmt.Errorf("Unknown field type")
+}
 
 func decodeValue(incoming reflect.Value, data string) error {
 	switch incoming.Type().Kind() {
@@ -44,10 +81,10 @@ func decodeValue(incoming reflect.Value, data string) error {
 		}
 		incoming.SetInt(int64(value))
 		return nil
+	case reflect.Struct:
+		return decodeCustomValue(incoming, data)
 	}
-	return fmt.Errorf(
-		"pault.ag/go/debian/control: Unknown type of field",
-	)
+	return fmt.Errorf("Unknown type of field")
 }
 
 func decodePointer(incoming reflect.Value, data Paragraph) error {
@@ -67,18 +104,22 @@ func decodePointer(incoming reflect.Value, data Paragraph) error {
 			}
 		}
 
+		paragraphKey := fieldType.Name
 		if it := fieldType.Tag.Get("control"); it != "" {
-			if val, ok := data.Values[it]; ok {
-				err := decodeValue(field, val)
-				if err != nil {
-					return fmt.Errorf(
-						"pault.ag/go/debian/control: failed to set %s: %s",
-						fieldType.Name,
-						err,
-					)
-				}
-			}
+			paragraphKey = paragraphKey
 		}
+
+		if val, ok := data.Values[paragraphKey]; ok {
+			fmt.Printf("%s %s\n", paragraphKey, fieldType.Type.Kind())
+			err := decodeValue(field, val)
+			if err != nil {
+				return fmt.Errorf(
+					"pault.ag/go/debian/control: failed to set %s: %s",
+					fieldType.Name,
+					err,
+				)
+			}
+		} /* XXX: else { validateNotRequired } */
 	}
 
 	return nil
