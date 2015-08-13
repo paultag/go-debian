@@ -33,7 +33,7 @@ import (
 	"pault.ag/go/debian/version"
 )
 
-// {{{
+// {{{ .changes Files list entries
 
 type FileListChangesFileHash struct {
 	DebianFileHash

@@ -64,7 +64,7 @@ func (c *SHADebianFileHash) unmarshalControl(algorithm, data string) error {
 type SHA1DebianFileHash struct{ SHADebianFileHash }
 
 func (c *SHA1DebianFileHash) UnmarshalControl(data string) error {
-	return c.unmarshalControl("SHA1", data)
+	return c.unmarshalControl("sha1", data)
 }
 
 // }}}
@@ -74,7 +74,7 @@ func (c *SHA1DebianFileHash) UnmarshalControl(data string) error {
 type SHA256DebianFileHash struct{ SHADebianFileHash }
 
 func (c *SHA256DebianFileHash) UnmarshalControl(data string) error {
-	return c.unmarshalControl("SHA256", data)
+	return c.unmarshalControl("sha256", data)
 }
 
 // }}}
