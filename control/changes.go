@@ -25,99 +25,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"pault.ag/go/debian/dependency"
 	"pault.ag/go/debian/internal"
 	"pault.ag/go/debian/version"
 )
-
-// {{{ Changes File Hash line struct helpers (Files, SHA1, SHA256)
-
-type DebianFileHash struct {
-	// cb136f28a8c971d4299cc68e8fdad93a8ca7daf3 1131 dput-ng_1.9.dsc
-	Algorithm string
-	Hash      string
-	Size      int
-	Filename  string
-}
-
-// {{{ DebianFileHashs
-
-type FileListDebianFileHash struct {
-	DebianFileHash
-
-	Component string
-	Priority  string
-}
-
-func (c *FileListDebianFileHash) UnmarshalControl(data string) error {
-	var err error
-	c.Algorithm = "md5"
-	vals := strings.Split(data, " ")
-	if len(data) < 5 {
-		return fmt.Errorf("Error: Unknown File List Hash line: '%s'", data)
-	}
-
-	c.Hash = vals[0]
-	c.Size, err = strconv.Atoi(vals[1])
-	if err != nil {
-		return err
-	}
-	c.Component = vals[2]
-	c.Priority = vals[3]
-
-	c.Filename = vals[4]
-	return nil
-}
-
-// }}}
-
-// {{{ SHA DebianFileHash (both 1 and 256)
-
-type SHADebianFileHash struct {
-	DebianFileHash
-}
-
-func (c *SHADebianFileHash) unmarshalControl(algorithm, data string) error {
-	var err error
-	c.Algorithm = algorithm
-	vals := strings.Split(data, " ")
-	if len(data) < 4 {
-		return fmt.Errorf("Error: Unknown SHA Hash line: '%s'", data)
-	}
-
-	c.Hash = vals[0]
-	c.Size, err = strconv.Atoi(vals[1])
-	if err != nil {
-		return err
-	}
-	c.Filename = vals[2]
-	return nil
-}
-
-// {{{ SHA1 DebianFileHash
-
-type SHA1DebianFileHash struct{ SHADebianFileHash }
-
-func (c *SHA1DebianFileHash) UnmarshalControl(data string) error {
-	return c.unmarshalControl("SHA1", data)
-}
-
-// }}}
-
-// {{{ SHA256 DebianFileHash
-
-type SHA256DebianFileHash struct{ SHADebianFileHash }
-
-func (c *SHA256DebianFileHash) UnmarshalControl(data string) error {
-	return c.unmarshalControl("SHA256", data)
-}
-
-// }}}
-// }}}
-// }}}
 
 // The Changes struct is the default encapsulation of the Debian .changes
 // package filetype.This struct contains an anonymous member of type Paragraph,
