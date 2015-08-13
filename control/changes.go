@@ -25,12 +25,44 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"pault.ag/go/debian/dependency"
 	"pault.ag/go/debian/internal"
 	"pault.ag/go/debian/version"
 )
+
+// {{{
+
+type FileListChangesFileHash struct {
+	DebianFileHash
+
+	Component string
+	Priority  string
+}
+
+func (c *FileListChangesFileHash) UnmarshalControl(data string) error {
+	var err error
+	c.Algorithm = "md5"
+	vals := strings.Split(data, " ")
+	if len(data) < 5 {
+		return fmt.Errorf("Error: Unknown File List Hash line: '%s'", data)
+	}
+
+	c.Hash = vals[0]
+	c.Size, err = strconv.Atoi(vals[1])
+	if err != nil {
+		return err
+	}
+	c.Component = vals[2]
+	c.Priority = vals[3]
+
+	c.Filename = vals[4]
+	return nil
+}
+
+// }}}
 
 // The Changes struct is the default encapsulation of the Debian .changes
 // package filetype.This struct contains an anonymous member of type Paragraph,
@@ -58,9 +90,9 @@ type Changes struct {
 	ChangedBy       string `control:"Changed-By"`
 	Closes          []string
 	Changes         string
-	ChecksumsSha1   []SHA1DebianFileHash     `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
-	ChecksumsSha256 []SHA256DebianFileHash   `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
-	Files           []FileListDebianFileHash `control:"Files" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha1   []SHA1DebianFileHash      `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha256 []SHA256DebianFileHash    `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
+	Files           []FileListChangesFileHash `control:"Files" delim:"\n" strip:"\n\r\t "`
 }
 
 // Given a path on the filesystem, Parse the file off the disk and return

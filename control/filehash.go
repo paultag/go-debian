@@ -36,37 +36,6 @@ type DebianFileHash struct {
 	Filename  string
 }
 
-// {{{ DebianFileHashs
-
-type FileListDebianFileHash struct {
-	DebianFileHash
-
-	Component string
-	Priority  string
-}
-
-func (c *FileListDebianFileHash) UnmarshalControl(data string) error {
-	var err error
-	c.Algorithm = "md5"
-	vals := strings.Split(data, " ")
-	if len(data) < 5 {
-		return fmt.Errorf("Error: Unknown File List Hash line: '%s'", data)
-	}
-
-	c.Hash = vals[0]
-	c.Size, err = strconv.Atoi(vals[1])
-	if err != nil {
-		return err
-	}
-	c.Component = vals[2]
-	c.Priority = vals[3]
-
-	c.Filename = vals[4]
-	return nil
-}
-
-// }}}
-
 // {{{ SHA DebianFileHash (both 1 and 256)
 
 type SHADebianFileHash struct {
