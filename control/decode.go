@@ -38,10 +38,6 @@ func decodeCustomValues(incoming reflect.Value, incomingField reflect.StructFiel
 		delim = it
 	}
 
-	/* XXX: Fix stuff like []dependency.Dependency, since it's really really
-	 *      silly. Perhaps we need some sort of function registration
-	 *      magic. */
-
 	for _, el := range strings.Split(data, delim) {
 		targetValue := reflect.New(underlyingType)
 		err := decodeValue(targetValue.Elem(), incomingField, el)
