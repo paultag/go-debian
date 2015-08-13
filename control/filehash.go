@@ -80,3 +80,5 @@ func (c *SHA256DebianFileHash) UnmarshalControl(data string) error {
 // }}}
 // }}}
 // }}}
+
+// vim: foldmethod=marker
