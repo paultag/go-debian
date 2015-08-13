@@ -27,9 +27,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-
-	"pault.ag/go/debian/dependency"
-	"pault.ag/go/debian/version"
 )
 
 func decodeCustomValues(incoming reflect.Value, incomingField reflect.StructField, data string) error {
@@ -56,38 +53,23 @@ func decodeCustomValues(incoming reflect.Value, incomingField reflect.StructFiel
 	return nil
 }
 
+type Unmarshalable interface {
+	UnmarshalControl(data string) error
+}
+
 func decodeCustomValue(incoming reflect.Value, incomingField reflect.StructField, data string) error {
-	/* Check out the type */
-	switch incoming.Type() {
-	case reflect.TypeOf(dependency.Dependency{}):
-		// {{{ pault.ag/go/debian/dependency.Dependency
-		value, err := dependency.Parse(data)
-		if err != nil {
-			return err
-		}
-		incoming.Set(reflect.ValueOf(*value))
-		return nil
-		// }}}
-	case reflect.TypeOf(version.Version{}):
-		// {{{ pault.ag/go/debian/version.Version
-		value, err := version.Parse(data)
-		if err != nil {
-			return err
-		}
-		incoming.Set(reflect.ValueOf(value))
-		return nil
-		// }}}
-	case reflect.TypeOf(dependency.Arch{}):
-		// {{{ pault.ag/go/debian/dependency.Arch
-		value, err := dependency.ParseArch(data)
-		if err != nil {
-			return err
-		}
-		incoming.Set(reflect.ValueOf(*value))
-		return nil
-		// }}}
+	/* Right, so, we've got a type we don't know what to do with. We should
+	 * grab the method, or throw a shitfit. */
+	elem := incoming.Addr()
+
+	if unmarshal, ok := elem.Interface().(Unmarshalable); ok {
+		return unmarshal.UnmarshalControl(data)
 	}
-	return fmt.Errorf("Unknown custom field type: %s", incoming.Type())
+
+	return fmt.Errorf(
+		"Type '%s' does not implement control.Unmarshalable",
+		incomingField.Type.Name(),
+	)
 }
 
 func decodeValue(incoming reflect.Value, incomingField reflect.StructField, data string) error {

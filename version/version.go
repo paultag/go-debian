@@ -47,6 +47,10 @@ func (v *Version) IsNative() bool {
 	return len(v.Revision) == 0
 }
 
+func (version *Version) UnmarshalControl(data string) error {
+	return parseInto(version, data)
+}
+
 func (v Version) String() string {
 	var result string
 	if v.Epoch > 0 {
@@ -158,30 +162,34 @@ func Compare(a Version, b Version) int {
 // dpkg(1), and even returns roughly the same error messages.
 func Parse(input string) (Version, error) {
 	result := Version{}
+	return result, parseInto(&result, input)
+}
+
+func parseInto(result *Version, input string) error {
 	trimmed := strings.TrimSpace(input)
 	if trimmed == "" {
-		return result, fmt.Errorf("version string is empty")
+		return fmt.Errorf("version string is empty")
 	}
 
 	if strings.IndexFunc(trimmed, unicode.IsSpace) != -1 {
-		return result, fmt.Errorf("version string has embedded spaces")
+		return fmt.Errorf("version string has embedded spaces")
 	}
 
 	colon := strings.Index(trimmed, ":")
 	if colon != -1 {
 		epoch, err := strconv.ParseInt(trimmed[:colon], 10, 64)
 		if err != nil {
-			return result, fmt.Errorf("epoch: %v", err)
+			return fmt.Errorf("epoch: %v", err)
 		}
 		if epoch < 0 {
-			return result, fmt.Errorf("epoch in version is negative")
+			return fmt.Errorf("epoch in version is negative")
 		}
 		result.Epoch = uint(epoch)
 	}
 
 	result.Version = trimmed[colon+1:]
 	if len(result.Version) == 0 {
-		return result, fmt.Errorf("nothing after colon in version number")
+		return fmt.Errorf("nothing after colon in version number")
 	}
 	if hyphen := strings.LastIndex(result.Version, "-"); hyphen != -1 {
 		result.Revision = result.Version[hyphen+1:]
@@ -189,22 +197,22 @@ func Parse(input string) (Version, error) {
 	}
 
 	if len(result.Version) > 0 && !unicode.IsDigit(rune(result.Version[0])) {
-		return result, fmt.Errorf("version number does not start with digit")
+		return fmt.Errorf("version number does not start with digit")
 	}
 
 	if strings.IndexFunc(result.Version, func(c rune) bool {
 		return !cisdigit(c) && !cisalpha(c) && c != '.' && c != '-' && c != '+' && c != '~' && c != ':'
 	}) != -1 {
-		return result, fmt.Errorf("invalid character in version number")
+		return fmt.Errorf("invalid character in version number")
 	}
 
 	if strings.IndexFunc(result.Revision, func(c rune) bool {
 		return !cisdigit(c) && !cisalpha(c) && c != '.' && c != '+' && c != '~'
 	}) != -1 {
-		return result, fmt.Errorf("invalid character in revision number")
+		return fmt.Errorf("invalid character in revision number")
 	}
 
-	return result, nil
+	return nil
 }
 
 // vim:ts=4:sw=4:noexpandtab foldmethod=marker

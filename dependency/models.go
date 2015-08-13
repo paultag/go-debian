@@ -88,4 +88,11 @@ type Dependency struct {
 	Relations []*Relation
 }
 
+func (dep *Dependency) UnmarshalControl(data string) error {
+	ibuf := Input{Index: 0, Data: data}
+	dep.Relations = []*Relation{}
+	err := parseDependency(&ibuf, dep)
+	return err
+}
+
 // vim: foldmethod=marker
