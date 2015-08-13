@@ -146,7 +146,7 @@ func ParseDscFile(path string) (ret *DSC, err error) {
 // Given a bufio.Reader, consume the Reader, and return a DSC object
 // for use.
 func ParseDsc(reader *bufio.Reader, path string) (*DSC, error) {
-	ret := DSC{}
+	ret := DSC{Filename: path}
 	err := Unmarshal(&ret, reader)
 	if err != nil {
 		return nil, err

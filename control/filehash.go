@@ -29,9 +29,9 @@ import (
 	"strconv"
 	"strings"
 
-	"crypt/md5"
-	"crypt/sha1"
-	"crypt/sha256"
+	"crypto/md5"
+	"crypto/sha1"
+	"crypto/sha256"
 )
 
 func hashFile(path string, algo hash.Hash) (string, error) {
@@ -59,10 +59,11 @@ type DebianFileHash struct {
 func (d *DebianFileHash) Validate() (bool, error) {
 	var algo hash.Hash
 
-	if stat, err := os.Stat(file); err != nil {
+	stat, err := os.Stat(d.Filename)
+	if err != nil {
 		return false, err
 	}
-	if size := stat.Size(); size != d.Size {
+	if size := stat.Size(); size != int64(d.Size) {
 		return false, fmt.Errorf("Error! Size mismatch! %d != %d", size, d.Size)
 	}
 
