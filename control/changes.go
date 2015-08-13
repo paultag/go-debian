@@ -33,6 +33,8 @@ import (
 	"pault.ag/go/debian/version"
 )
 
+// {{{ Changes File Hash line struct helpers (Files, SHA1, SHA256)
+
 type ChangesFileHash struct {
 	// cb136f28a8c971d4299cc68e8fdad93a8ca7daf3 1131 dput-ng_1.9.dsc
 	Algorithm string
@@ -114,7 +116,7 @@ func (c *SHA256ChangesFileHash) UnmarshalControl(data string) error {
 }
 
 // }}}
-
+// }}}
 // }}}
 
 type Changes struct {
