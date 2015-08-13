@@ -64,8 +64,8 @@ Files:
 
 	assert(t, c.Format == "3.0 (quilt)")
 	assert(t, c.Source == "fbautostart")
-	assert(t, len(c.Maintainers) == 1)
-	assert(t, c.Maintainers[0] == "Paul Tagliamonte <paultag@ubuntu.com>")
+	assert(t, len(c.Maintainers()) == 1)
+	assert(t, c.Maintainers()[0] == "Paul Tagliamonte <paultag@ubuntu.com>")
 	assert(t, c.Maintainer == "Paul Tagliamonte <paultag@ubuntu.com>")
 
 	assert(t, c.Version.Version == "2.718281828")
@@ -128,8 +128,8 @@ jKL78j4v9XEo994zqhqTIuzA9xUoAXikzRrb97UbK5oqde4/G95/SotM50NgfQ2k
 
 	assert(t, c.Format == "3.0 (quilt)")
 	assert(t, c.Source == "fbautostart")
-	assert(t, len(c.Maintainers) == 1)
-	assert(t, c.Maintainers[0] == "Paul Tagliamonte <paultag@ubuntu.com>")
+	assert(t, len(c.Maintainers()) == 1)
+	assert(t, c.Maintainers()[0] == "Paul Tagliamonte <paultag@ubuntu.com>")
 	assert(t, c.Maintainer == "Paul Tagliamonte <paultag@ubuntu.com>")
 
 	assert(t, c.Version.Version == "2.718281828")

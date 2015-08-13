@@ -45,7 +45,6 @@ type DSC struct {
 	Version          version.Version
 	Origin           string
 	Maintainer       string
-	Maintainers      []string `control:"-"`
 	Uploaders        []string
 	Homepage         string
 	StandardsVersion string                `control:"Standards-Version"`
@@ -130,7 +129,6 @@ func ParseDsc(reader *bufio.Reader, path string) (*DSC, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret.Maintainers = append([]string{ret.Maintainer}, ret.Uploaders...)
 	return &ret, nil
 }
 
@@ -141,6 +139,10 @@ func (d *DSC) HasArchAll() bool {
 		}
 	}
 	return false
+}
+
+func (d *DSC) Maintainers() []string {
+	return append([]string{d.Maintainer}, d.Uploaders...)
 }
 
 // vim: foldmethod=marker
