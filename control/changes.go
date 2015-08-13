@@ -41,6 +41,8 @@ type ChangesFileHash struct {
 	Filename  string
 }
 
+// {{{ ChangesFileHashs
+
 type FileListChangesFileHash struct {
 	ChangesFileHash
 
@@ -68,6 +70,10 @@ func (c *FileListChangesFileHash) UnmarshalControl(data string) error {
 	return nil
 }
 
+// }}}
+
+// {{{ SHA ChangesFileHash (both 1 and 256)
+
 type SHAChangesFileHash struct {
 	ChangesFileHash
 }
@@ -89,17 +95,27 @@ func (c *SHAChangesFileHash) unmarshalControl(algorithm, data string) error {
 	return nil
 }
 
+// {{{ SHA1 ChangesFileHash
+
 type SHA1ChangesFileHash struct{ SHAChangesFileHash }
 
 func (c *SHA1ChangesFileHash) UnmarshalControl(data string) error {
 	return c.unmarshalControl("SHA1", data)
 }
 
+// }}}
+
+// {{{ SHA256 ChangesFileHash
+
 type SHA256ChangesFileHash struct{ SHAChangesFileHash }
 
 func (c *SHA256ChangesFileHash) UnmarshalControl(data string) error {
 	return c.unmarshalControl("SHA256", data)
 }
+
+// }}}
+
+// }}}
 
 type Changes struct {
 	Paragraph
@@ -121,39 +137,6 @@ type Changes struct {
 	ChecksumsSha1   []SHA1ChangesFileHash     `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
 	ChecksumsSha256 []SHA256ChangesFileHash   `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
 	Files           []FileListChangesFileHash `control:"Files" delim:"\n" strip:"\n\r\t "`
-}
-
-func parseHashes(buf string, algorithm string) (ret []ChangesFileHash) {
-	for _, el := range strings.Split(buf, "\n") {
-		if el == "" {
-			continue
-		}
-		vals := strings.Split(el, " ")
-
-		/* Sanity check length here */
-		size, err := strconv.Atoi(vals[1])
-		if err != nil {
-			continue
-		}
-
-		switch len(vals) {
-		case 5:
-			ret = append(ret, ChangesFileHash{
-				Algorithm: algorithm,
-				Hash:      vals[0],
-				Size:      size,
-				Filename:  vals[4],
-			})
-		case 3:
-			ret = append(ret, ChangesFileHash{
-				Algorithm: algorithm,
-				Hash:      vals[0],
-				Size:      size,
-				Filename:  vals[2],
-			})
-		}
-	}
-	return
 }
 
 func ParseChangesFile(path string) (ret *Changes, err error) {
