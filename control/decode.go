@@ -193,6 +193,18 @@ func unmarshalSlice(incoming interface{}, data io.Reader) error {
 	return nil
 }
 
+func isParagraph(incoming reflect.Value) (int, bool) {
+	paragraphType := reflect.TypeOf(Paragraph{})
+	val := incoming.Type()
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		if field.Anonymous && field.Type == paragraphType {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
 func unmarshalStruct(incoming interface{}, data io.Reader) error {
 	reader := bufio.NewReader(data)
 	para, err := ParseParagraph(reader)
@@ -202,6 +214,15 @@ func unmarshalStruct(incoming interface{}, data io.Reader) error {
 	if para == nil {
 		return io.EOF
 	}
+
+	val := reflect.ValueOf(incoming).Elem()
+	/* Before we dump it back, we should give the Paragraph back to
+	 * the object */
+	if index, is := isParagraph(val); is {
+		/* If we're a Paragraph, let's go ahead and set the index. */
+		val.Field(index).Set(reflect.ValueOf(*para))
+	}
+
 	return decodePointer(reflect.ValueOf(incoming), *para)
 }
 
