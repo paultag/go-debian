@@ -33,6 +33,14 @@ import (
 // Encapsulation for a debian/control file, which is a series of RFC2822-like
 // blocks, starting with a Source control paragraph, and then a series of
 // Binary control paragraphs.
+//
+// The debian/control file contains the most vital (and version-independent)
+// information about the source package and about the binary packages it
+// creates.
+//
+// The first paragraph of the control file contains information about the source
+// package in general. The subsequent sets each describe a binary package that
+// the source tree builds.
 type Control struct {
 	Filename string
 
@@ -58,6 +66,9 @@ type SourceParagraph struct {
 	BuildConflictsIndep dependency.Dependency `control:"Build-Conflicts-Indep"`
 }
 
+// Return a list of all entities that are responsible for the package's
+// well being. The 0th element is always the package's Maintainer,
+// with any Uploaders following.
 func (s *SourceParagraph) Maintainers() []string {
 	return append([]string{s.Maintainer}, s.Uploaders...)
 }
@@ -103,16 +114,9 @@ func (para *Paragraph) getOptionalDependencyField(field string) dependency.Depen
 	return *dep
 }
 
-func splitList(names string) (ret []string) {
-	for _, el := range strings.Split(names, ",") {
-		el := strings.Trim(el, "\n\r\t ")
-		if el != "" {
-			ret = append(ret, el)
-		}
-	}
-	return ret
-}
-
+// Given a path on the filesystem, Parse the file off the disk and return
+// a pointer to a brand new Control struct, unless error is set to a value
+// other than nil.
 func ParseControlFile(path string) (ret *Control, err error) {
 	path, err = filepath.Abs(path)
 	if err != nil {
@@ -131,6 +135,8 @@ func ParseControlFile(path string) (ret *Control, err error) {
 	return ret, nil
 }
 
+// Given a bufio.Reader, consume the Reader, and return a Control object
+// for use.
 func ParseControl(reader *bufio.Reader, path string) (*Control, error) {
 	ret := Control{
 		Filename: path,
