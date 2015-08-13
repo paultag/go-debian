@@ -152,10 +152,55 @@ func decodePointer(incoming reflect.Value, data Paragraph) error {
 
 func Unmarshal(incoming interface{}, data io.Reader) error {
 	/* Dispatch if incoming is a slice or not */
+	val := reflect.ValueOf(incoming)
+
+	if val.Type().Kind() != reflect.Ptr {
+		return fmt.Errorf("Ouchie! Please give me a pointer!")
+	}
+
+	switch val.Elem().Type().Kind() {
+	case reflect.Struct:
+		return unmarshalStruct(incoming, data)
+	case reflect.Slice:
+		return unmarshalSlice(incoming, data)
+	default:
+		return fmt.Errorf(
+			"Ouchie! I don't know how to deal with a %s",
+			val.Elem().Type().Name,
+		)
+
+	}
+}
+
+func unmarshalSlice(incoming interface{}, data io.Reader) error {
+	/* Good holy hot damn this code is ugly */
+	for {
+		val := reflect.ValueOf(incoming)
+		flavor := val.Elem().Type().Elem()
+
+		targetValue := reflect.New(flavor)
+		target := targetValue.Interface()
+		err := unmarshalStruct(target, data)
+
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+
+		val.Elem().Set(reflect.Append(val.Elem(), targetValue.Elem()))
+	}
+	return nil
+}
+
+func unmarshalStruct(incoming interface{}, data io.Reader) error {
 	reader := bufio.NewReader(data)
 	para, err := ParseParagraph(reader)
 	if err != nil {
 		return err
+	}
+	if para == nil {
+		return io.EOF
 	}
 	return decodePointer(reflect.ValueOf(incoming), *para)
 }

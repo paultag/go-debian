@@ -30,6 +30,18 @@ Foo-Bar: baz
 	assert(t, foo.Value == "foo")
 }
 
+func TestBasicArrayUnmarshal(t *testing.T) {
+	foo := []TestStruct{}
+	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+Foo-Bar: baz
+
+Value: Bar
+
+Value Baz
+`)))
+	assert(t, foo[0].Value == "foo")
+}
+
 func TestTagUnmarshal(t *testing.T) {
 	foo := TestStruct{}
 	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
