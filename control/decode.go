@@ -38,7 +38,16 @@ func decodeCustomValues(incoming reflect.Value, incomingField reflect.StructFiel
 		delim = it
 	}
 
+	var strip = ""
+	if it := incomingField.Tag.Get("strip"); it != "" {
+		strip = it
+	}
+
 	for _, el := range strings.Split(data, delim) {
+		if strip != "" {
+			el = strings.Trim(el, strip)
+		}
+
 		targetValue := reflect.New(underlyingType)
 		err := decodeValue(targetValue.Elem(), incomingField, el)
 		if err != nil {
