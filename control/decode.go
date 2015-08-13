@@ -151,6 +151,7 @@ func decodePointer(incoming reflect.Value, data Paragraph) error {
 }
 
 func Unmarshal(incoming interface{}, data io.Reader) error {
+	/* Dispatch if incoming is a slice or not */
 	reader := bufio.NewReader(data)
 	para, err := ParseParagraph(reader)
 	if err != nil {
