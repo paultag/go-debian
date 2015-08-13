@@ -119,6 +119,15 @@ func (c *SHA256ChangesFileHash) UnmarshalControl(data string) error {
 // }}}
 // }}}
 
+// The Changes struct is the default encapsulation of the Debian .changes
+// package filetype.This struct contains an anonymous member of type Paragraph,
+// allowing you to use the standard .Values and .Order of the Paragraph type.
+//
+// The .changes files are used by the Debian archive maintenance software to
+// process updates to packages. They consist of a single paragraph, possibly
+// surrounded by a PGP signature. That paragraph contains information from the
+// debian/control file and other data about the source package gathered via
+// debian/changelog and debian/rules.
 type Changes struct {
 	Paragraph
 
@@ -141,6 +150,9 @@ type Changes struct {
 	Files           []FileListChangesFileHash `control:"Files" delim:"\n" strip:"\n\r\t "`
 }
 
+// Given a path on the filesystem, Parse the file off the disk and return
+// a pointer to a brand new Changes struct, unless error is set to a value
+// other than nil.
 func ParseChangesFile(path string) (ret *Changes, err error) {
 	path, err = filepath.Abs(path)
 	if err != nil {
@@ -159,6 +171,11 @@ func ParseChangesFile(path string) (ret *Changes, err error) {
 	return ret, nil
 }
 
+// Given a bufio.Reader, consume the Reader, and return a Changes object
+// for use. The "path" argument is used to set Changes.Filename, which
+// is used by Changes.GetDSC, Changes.Remove, Changes.Move and Changes.Copy to
+// figure out where all the files on the filesystem are. This value can be set
+// to something invalid if you're not using those functions.
 func ParseChanges(reader *bufio.Reader, path string) (*Changes, error) {
 	ret := &Changes{Filename: path}
 	if err := Unmarshal(ret, reader); err != nil {
@@ -167,6 +184,12 @@ func ParseChanges(reader *bufio.Reader, path string) (*Changes, error) {
 	return ret, nil
 }
 
+// Return a DSC struct for the DSC listed in the .changes file. This requires
+// Changes.Filename to be correctly set, and for the .dsc file to exist
+// in the correct place next to the .changes.
+//
+// This function may also return an error if the given .changes does not
+// include the .dsc (binary-only upload)
 func (changes *Changes) GetDSC() (*DSC, error) {
 	for _, file := range changes.Files {
 		if strings.HasSuffix(file.Filename, ".dsc") {
@@ -184,6 +207,13 @@ func (changes *Changes) GetDSC() (*DSC, error) {
 	return nil, fmt.Errorf("No .dsc file in .changes")
 }
 
+// Copy the .changes file and all refrenced files to the directory
+// listed by the dest argument. This function will error out if the dest
+// argument is not a directory, or if there is an IO operation in transfer.
+//
+// This function will always move .changes last, making it suitable to
+// be used to move something into an incoming directory with an inotify
+// hook. This will also mutate Changes.Filename to match the new location.
 func (changes *Changes) Copy(dest string) error {
 	if file, err := os.Stat(dest); err == nil && !file.IsDir() {
 		return fmt.Errorf("Attempting to move .changes to a non-directory")
@@ -208,6 +238,13 @@ func (changes *Changes) Copy(dest string) error {
 	return nil
 }
 
+// Move the .changes file and all refrenced files to the directory
+// listed by the dest argument. This function will error out if the dest
+// argument is not a directory, or if there is an IO operation in transfer.
+//
+// This function will always move .changes last, making it suitable to
+// be used to move something into an incoming directory with an inotify
+// hook. This will also mutate Changes.Filename to match the new location.
 func (changes *Changes) Move(dest string) error {
 	if file, err := os.Stat(dest); err == nil && !file.IsDir() {
 		return fmt.Errorf("Attempting to move .changes to a non-directory")
@@ -232,6 +269,9 @@ func (changes *Changes) Move(dest string) error {
 	return nil
 }
 
+// Remove the .changes file and any associated files. This function will
+// always remove the .changes last, in the event there are filesystem i/o errors
+// on removing associated files.
 func (changes *Changes) Remove() error {
 	for _, file := range changes.Files {
 		err := os.Remove(file.Filename)
