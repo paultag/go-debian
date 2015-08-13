@@ -46,7 +46,6 @@ type SourceParagraph struct {
 	Paragraph
 
 	Maintainer  string
-	Maintainers []string
 	Uploaders   []string
 	Source      string
 	Priority    string
@@ -57,6 +56,10 @@ type SourceParagraph struct {
 	BuildDependsIndep   dependency.Dependency
 	BuildConflicts      dependency.Dependency
 	BuildConflictsIndep dependency.Dependency
+}
+
+func (s *SourceParagraph) Maintainers() []string {
+	return append([]string{s.Maintainer}, s.Uploaders...)
 }
 
 // Encapsulation for a debian/control Binary control entry. This contains
@@ -140,16 +143,14 @@ func ParseControl(reader *bufio.Reader, path string) (ret *Control, err error) {
 	}
 
 	uploaders := splitList(src.Values["Uploaders"])
-	maintainers := append(uploaders, src.Values["Maintainer"])
 
 	ret.Source = SourceParagraph{
-		Paragraph:   *src,
-		Maintainer:  src.Values["Maintainer"],
-		Maintainers: maintainers,
-		Uploaders:   uploaders,
-		Source:      src.Values["Source"],
-		Section:     src.Values["Section"],
-		Priority:    src.Values["Priority"],
+		Paragraph:  *src,
+		Maintainer: src.Values["Maintainer"],
+		Uploaders:  uploaders,
+		Source:     src.Values["Source"],
+		Section:    src.Values["Section"],
+		Priority:   src.Values["Priority"],
 
 		BuildDepends:        src.getOptionalDependencyField("Build-Depends"),
 		BuildDependsIndep:   src.getOptionalDependencyField("Build-Depends-Indep"),

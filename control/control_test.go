@@ -65,7 +65,7 @@ Description: XDG compliant autostarting app for Fluxbox
 
 	depends := c.Source.BuildDepends
 
-	assert(t, len(c.Source.Maintainers) == 1)
+	assert(t, len(c.Source.Maintainers()) == 1)
 	assert(t, len(c.Source.Uploaders) == 0)
 
 	assert(t, len(c.Source.BuildDepends.Relations) == 1)
@@ -122,7 +122,7 @@ Description: XDG compliant autostarting app for Fluxbox
 	isok(t, err)
 	assert(t, c != nil)
 	assert(t, len(c.Binaries) == 2)
-	assert(t, len(c.Source.Maintainers) == 3)
+	assert(t, len(c.Source.Maintainers()) == 3)
 
 	arches := c.Binaries[1].Architectures
 	assert(t, len(arches) == 3)
