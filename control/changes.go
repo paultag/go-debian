@@ -52,7 +52,7 @@ func (c *FileListChangesFileHash) UnmarshalControl(data string) error {
 	var err error
 	c.Algorithm = "md5"
 	vals := strings.Split(data, " ")
-	if len(data) < 2 {
+	if len(data) < 5 {
 		return fmt.Errorf("Error: Unknown File List Hash line: '%s'", data)
 	}
 
@@ -76,7 +76,7 @@ func (c *SHAChangesFileHash) unmarshalControl(algorithm, data string) error {
 	var err error
 	c.Algorithm = algorithm
 	vals := strings.Split(data, " ")
-	if len(data) < 2 {
+	if len(data) < 4 {
 		return fmt.Errorf("Error: Unknown SHA Hash line: '%s'", data)
 	}
 
