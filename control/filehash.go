@@ -28,6 +28,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"crypt/md5"
+	"crypt/sha1"
+	"crypt/sha256"
 )
 
 func hashFile(path string, algo hash.Hash) (string, error) {
@@ -54,7 +58,25 @@ type DebianFileHash struct {
 	Filename  string
 }
 
-func (d *DebianFileHash) Validate() error {
+func (d *DebianFileHash) Validate() (bool, error) {
+	var algo hash.Hash
+
+	switch d.Algorithm {
+	case "md5":
+		algo = md5.New()
+	case "sha1":
+		algo = sha1.New()
+	case "sha256":
+		algo = sha256.New()
+	default:
+		return false, fmt.Errorf("Unknown algorithm: %s", d.Algorithm)
+	}
+	fileHash, err := hashFile(d.Filename, algo)
+	if err != nil {
+		return false, err
+	}
+	// XXX: Validate size too
+	return fileHash == d.Hash, nil
 }
 
 // {{{ SHA DebianFileHash (both 1 and 256)
