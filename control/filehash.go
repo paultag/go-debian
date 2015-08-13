@@ -59,6 +59,13 @@ type DebianFileHash struct {
 func (d *DebianFileHash) Validate() (bool, error) {
 	var algo hash.Hash
 
+	if stat, err := os.Stat(file); err != nil {
+		return false, err
+	}
+	if size := stat.Size(); size != d.Size {
+		return false, fmt.Errorf("Error! Size mismatch! %d != %d", size, d.Size)
+	}
+
 	switch d.Algorithm {
 	case "md5":
 		algo = md5.New()
@@ -73,7 +80,6 @@ func (d *DebianFileHash) Validate() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	// XXX: Validate size too
 	return fileHash == d.Hash, nil
 }
 
