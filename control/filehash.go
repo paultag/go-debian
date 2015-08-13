@@ -48,8 +48,6 @@ func hashFile(path string, algo hash.Hash) (string, error) {
 	return hex.EncodeToString(algo.Sum(nil)), nil
 }
 
-// {{{ Changes File Hash line struct helpers (Files, SHA1, SHA256)
-
 type DebianFileHash struct {
 	// cb136f28a8c971d4299cc68e8fdad93a8ca7daf3 1131 dput-ng_1.9.dsc
 	Algorithm string
@@ -121,7 +119,7 @@ func (c *SHA256DebianFileHash) UnmarshalControl(data string) error {
 }
 
 // }}}
-// }}}
+
 // }}}
 
 // vim: foldmethod=marker
