@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"pault.ag/go/debian/dependency"
 )
