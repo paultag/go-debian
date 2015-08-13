@@ -41,6 +41,66 @@ type ChangesFileHash struct {
 	Filename  string
 }
 
+type FileListChangesFileHash struct {
+	ChangesFileHash
+
+	Component string
+	Priority  string
+}
+
+func (c *FileListChangesFileHash) UnmarshalControl(data string) error {
+	var err error
+	c.Algorithm = "md5"
+	vals := strings.Split(data, " ")
+	if len(data) < 2 {
+		return fmt.Errorf("Error: Unknown File List Hash line: '%s'", data)
+	}
+
+	c.Hash = vals[0]
+	c.Size, err = strconv.Atoi(vals[1])
+	if err != nil {
+		return err
+	}
+	c.Component = vals[2]
+	c.Priority = vals[3]
+
+	c.Filename = vals[4]
+	return nil
+}
+
+type SHAChangesFileHash struct {
+	ChangesFileHash
+}
+
+func (c *SHAChangesFileHash) unmarshalControl(algorithm, data string) error {
+	var err error
+	c.Algorithm = algorithm
+	vals := strings.Split(data, " ")
+	if len(data) < 2 {
+		return fmt.Errorf("Error: Unknown SHA Hash line: '%s'", data)
+	}
+
+	c.Hash = vals[0]
+	c.Size, err = strconv.Atoi(vals[1])
+	if err != nil {
+		return err
+	}
+	c.Filename = vals[2]
+	return nil
+}
+
+type SHA1ChangesFileHash struct{ SHAChangesFileHash }
+
+func (c *SHA1ChangesFileHash) UnmarshalControl(data string) error {
+	return c.unmarshalControl("SHA1", data)
+}
+
+type SHA256ChangesFileHash struct{ SHAChangesFileHash }
+
+func (c *SHA256ChangesFileHash) UnmarshalControl(data string) error {
+	return c.unmarshalControl("SHA256", data)
+}
+
 type Changes struct {
 	Paragraph
 
@@ -48,19 +108,19 @@ type Changes struct {
 
 	Format          string
 	Source          string
-	Binaries        []string
-	Architectures   []dependency.Arch
+	Binaries        []string          `control:"Binary" delim:" "`
+	Architectures   []dependency.Arch `control:"Architecture"`
 	Version         version.Version
 	Origin          string
 	Distribution    string
 	Urgency         string
 	Maintainer      string
-	ChangedBy       string
+	ChangedBy       string `control:"Changed-By"`
 	Closes          []string
 	Changes         string
-	ChecksumsSha1   []ChangesFileHash
-	ChecksumsSha256 []ChangesFileHash
-	Files           []ChangesFileHash
+	ChecksumsSha1   []SHA1ChangesFileHash     `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha256 []SHA256ChangesFileHash   `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
+	Files           []FileListChangesFileHash `control:"Files" delim:"\n" strip:"\n\r\t "`
 }
 
 func parseHashes(buf string, algorithm string) (ret []ChangesFileHash) {
@@ -114,49 +174,12 @@ func ParseChangesFile(path string) (ret *Changes, err error) {
 	return ret, nil
 }
 
-func ParseChanges(reader *bufio.Reader, path string) (ret *Changes, err error) {
-
-	/* a Changes is a Paragraph, with some stuff. So, let's first take
-	 * the bufio.Reader and produce a stock Paragraph. */
-	src, err := ParseParagraph(reader)
-	if err != nil {
+func ParseChanges(reader *bufio.Reader, path string) (*Changes, error) {
+	ret := &Changes{Filename: path}
+	if err := Unmarshal(ret, reader); err != nil {
 		return nil, err
 	}
-
-	arch, err := dependency.ParseArchitectures(src.Values["Architecture"])
-	if err != nil {
-		return nil, err
-	}
-
-	version, err := version.Parse(src.Values["Version"])
-	if err != nil {
-		return nil, err
-	}
-
-	ret = &Changes{
-		Paragraph: *src,
-		Filename:  path,
-
-		Format:     src.Values["Format"],
-		Source:     src.Values["Source"],
-		Origin:     src.Values["Origin"],
-		Urgency:    src.Values["Urgency"],
-		Maintainer: src.Values["Maintainer"],
-		ChangedBy:  src.Values["Changed-By"],
-		Changes:    src.Values["Changes"],
-
-		Architectures: arch,
-		Version:       version,
-		Distribution:  src.Values["Distribution"],
-
-		ChecksumsSha1:   parseHashes(src.Values["Checksums-Sha1"], "SHA1"),
-		ChecksumsSha256: parseHashes(src.Values["Checksums-Sha256"], "SHA256"),
-		Files:           parseHashes(src.Values["Files"], "MD5"),
-		Binaries:        strings.Split(src.Values["Binary"], " "),
-		Closes:          strings.Split(src.Values["Closes"], " "),
-	}
-
-	return
+	return ret, nil
 }
 
 func (changes *Changes) GetDSC() (*DSC, error) {

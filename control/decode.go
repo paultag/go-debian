@@ -43,6 +43,10 @@ func decodeCustomValues(incoming reflect.Value, incomingField reflect.StructFiel
 		strip = it
 	}
 
+	if strip != "" {
+		data = strings.Trim(data, strip)
+	}
+
 	for _, el := range strings.Split(data, delim) {
 		if strip != "" {
 			el = strings.Trim(el, strip)
