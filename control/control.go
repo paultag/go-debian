@@ -46,16 +46,16 @@ type SourceParagraph struct {
 	Paragraph
 
 	Maintainer  string
-	Uploaders   []string
+	Uploaders   []string `delim:","`
 	Source      string
 	Priority    string
 	Section     string
 	Description string
 
-	BuildDepends        dependency.Dependency
-	BuildDependsIndep   dependency.Dependency
-	BuildConflicts      dependency.Dependency
-	BuildConflictsIndep dependency.Dependency
+	BuildDepends        dependency.Dependency `control:"Build-Depends"`
+	BuildDependsIndep   dependency.Dependency `control:"Build-Depends-Indep"`
+	BuildConflicts      dependency.Dependency `control:"Build-Conflicts"`
+	BuildConflictsIndep dependency.Dependency `control:"Build-Conflicts-Indep"`
 }
 
 func (s *SourceParagraph) Maintainers() []string {
@@ -67,7 +67,7 @@ func (s *SourceParagraph) Maintainers() []string {
 // after it's built on a given Arch.
 type BinaryParagraph struct {
 	Paragraph
-	Architectures []dependency.Arch
+	Architectures []dependency.Arch `control:"Architecture"`
 	Package       string
 	Priority      string
 	Section       string
@@ -78,13 +78,13 @@ type BinaryParagraph struct {
 	Recommends dependency.Dependency
 	Suggests   dependency.Dependency
 	Enhances   dependency.Dependency
-	PreDepends dependency.Dependency
+	PreDepends dependency.Dependency `control:"Pre-Depends"`
 
 	Breaks    dependency.Dependency
 	Conflicts dependency.Dependency
 	Replaces  dependency.Dependency
 
-	BuiltUsing dependency.Dependency
+	BuiltUsing dependency.Dependency `control:"Built-Using"`
 }
 
 func (para *Paragraph) getDependencyField(field string) (*dependency.Dependency, error) {
@@ -131,67 +131,21 @@ func ParseControlFile(path string) (ret *Control, err error) {
 	return ret, nil
 }
 
-func ParseControl(reader *bufio.Reader, path string) (ret *Control, err error) {
-	ret = &Control{
+func ParseControl(reader *bufio.Reader, path string) (*Control, error) {
+	ret := Control{
 		Filename: path,
 		Binaries: []BinaryParagraph{},
+		Source:   SourceParagraph{},
 	}
 
-	src, err := ParseParagraph(reader)
-	if err != nil {
+	if err := Unmarshal(&ret.Source, reader); err != nil {
+		return nil, err
+	}
+	if err := Unmarshal(&ret.Binaries, reader); err != nil {
 		return nil, err
 	}
 
-	uploaders := splitList(src.Values["Uploaders"])
-
-	ret.Source = SourceParagraph{
-		Paragraph:  *src,
-		Maintainer: src.Values["Maintainer"],
-		Uploaders:  uploaders,
-		Source:     src.Values["Source"],
-		Section:    src.Values["Section"],
-		Priority:   src.Values["Priority"],
-
-		BuildDepends:        src.getOptionalDependencyField("Build-Depends"),
-		BuildDependsIndep:   src.getOptionalDependencyField("Build-Depends-Indep"),
-		BuildConflicts:      src.getOptionalDependencyField("Build-Conflicts"),
-		BuildConflictsIndep: src.getOptionalDependencyField("Build-Conflicts-Indep"),
-	}
-
-	for {
-		para, err := ParseParagraph(reader)
-		if err != nil {
-			return nil, err
-		}
-		if para == nil {
-			break
-		}
-
-		arch, err := dependency.ParseArchitectures(para.Values["Architecture"])
-		if err != nil {
-			return nil, err
-		}
-
-		ret.Binaries = append(ret.Binaries, BinaryParagraph{
-			Paragraph:     *para,
-			Architectures: arch,
-
-			Description: para.Values["Description"],
-			Package:     para.Values["Package"],
-
-			Depends:    para.getOptionalDependencyField("Depends"),
-			Recommends: para.getOptionalDependencyField("Recommends"),
-			Suggests:   para.getOptionalDependencyField("Suggests"),
-			Enhances:   para.getOptionalDependencyField("Enhances"),
-			Breaks:     para.getOptionalDependencyField("Breaks"),
-			Conflicts:  para.getOptionalDependencyField("Conflicts"),
-			Replaces:   para.getOptionalDependencyField("Replaces"),
-
-			PreDepends: para.getOptionalDependencyField("Pre-Depends"),
-			BuiltUsing: para.getOptionalDependencyField("Built-Using"),
-		})
-	}
-	return
+	return &ret, nil
 }
 
 // vim: foldmethod=marker
