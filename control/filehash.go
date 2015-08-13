@@ -21,10 +21,28 @@
 package control
 
 import (
+	"encoding/hex"
 	"fmt"
+	"hash"
+	"io"
+	"os"
 	"strconv"
 	"strings"
 )
+
+func hashFile(path string, algo hash.Hash) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	if _, err := io.Copy(algo, f); err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(algo.Sum(nil)), nil
+}
 
 // {{{ Changes File Hash line struct helpers (Files, SHA1, SHA256)
 
@@ -34,6 +52,9 @@ type DebianFileHash struct {
 	Hash      string
 	Size      int
 	Filename  string
+}
+
+func (d *DebianFileHash) Validate() error {
 }
 
 // {{{ SHA DebianFileHash (both 1 and 256)
