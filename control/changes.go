@@ -35,7 +35,7 @@ import (
 
 // {{{ Changes File Hash line struct helpers (Files, SHA1, SHA256)
 
-type ChangesFileHash struct {
+type DebianFileHash struct {
 	// cb136f28a8c971d4299cc68e8fdad93a8ca7daf3 1131 dput-ng_1.9.dsc
 	Algorithm string
 	Hash      string
@@ -43,16 +43,16 @@ type ChangesFileHash struct {
 	Filename  string
 }
 
-// {{{ ChangesFileHashs
+// {{{ DebianFileHashs
 
-type FileListChangesFileHash struct {
-	ChangesFileHash
+type FileListDebianFileHash struct {
+	DebianFileHash
 
 	Component string
 	Priority  string
 }
 
-func (c *FileListChangesFileHash) UnmarshalControl(data string) error {
+func (c *FileListDebianFileHash) UnmarshalControl(data string) error {
 	var err error
 	c.Algorithm = "md5"
 	vals := strings.Split(data, " ")
@@ -74,13 +74,13 @@ func (c *FileListChangesFileHash) UnmarshalControl(data string) error {
 
 // }}}
 
-// {{{ SHA ChangesFileHash (both 1 and 256)
+// {{{ SHA DebianFileHash (both 1 and 256)
 
-type SHAChangesFileHash struct {
-	ChangesFileHash
+type SHADebianFileHash struct {
+	DebianFileHash
 }
 
-func (c *SHAChangesFileHash) unmarshalControl(algorithm, data string) error {
+func (c *SHADebianFileHash) unmarshalControl(algorithm, data string) error {
 	var err error
 	c.Algorithm = algorithm
 	vals := strings.Split(data, " ")
@@ -97,21 +97,21 @@ func (c *SHAChangesFileHash) unmarshalControl(algorithm, data string) error {
 	return nil
 }
 
-// {{{ SHA1 ChangesFileHash
+// {{{ SHA1 DebianFileHash
 
-type SHA1ChangesFileHash struct{ SHAChangesFileHash }
+type SHA1DebianFileHash struct{ SHADebianFileHash }
 
-func (c *SHA1ChangesFileHash) UnmarshalControl(data string) error {
+func (c *SHA1DebianFileHash) UnmarshalControl(data string) error {
 	return c.unmarshalControl("SHA1", data)
 }
 
 // }}}
 
-// {{{ SHA256 ChangesFileHash
+// {{{ SHA256 DebianFileHash
 
-type SHA256ChangesFileHash struct{ SHAChangesFileHash }
+type SHA256DebianFileHash struct{ SHADebianFileHash }
 
-func (c *SHA256ChangesFileHash) UnmarshalControl(data string) error {
+func (c *SHA256DebianFileHash) UnmarshalControl(data string) error {
 	return c.unmarshalControl("SHA256", data)
 }
 
@@ -145,15 +145,15 @@ type Changes struct {
 	ChangedBy       string `control:"Changed-By"`
 	Closes          []string
 	Changes         string
-	ChecksumsSha1   []SHA1ChangesFileHash     `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
-	ChecksumsSha256 []SHA256ChangesFileHash   `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
-	Files           []FileListChangesFileHash `control:"Files" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha1   []SHA1DebianFileHash     `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha256 []SHA256DebianFileHash   `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
+	Files           []FileListDebianFileHash `control:"Files" delim:"\n" strip:"\n\r\t "`
 }
 
 // Given a path on the filesystem, Parse the file off the disk and return
 // a pointer to a brand new Changes struct, unless error is set to a value
 // other than nil.
-func ParseChangesFile(path string) (ret *Changes, err error) {
+func ParseDebianFile(path string) (ret *Changes, err error) {
 	path, err = filepath.Abs(path)
 	if err != nil {
 		return nil, err
