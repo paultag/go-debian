@@ -48,6 +48,8 @@ func hashFile(path string, algo hash.Hash) (string, error) {
 	return hex.EncodeToString(algo.Sum(nil)), nil
 }
 
+// A DebianFileHash is an entry as found in the Files, Checksum-Sha1, and
+// Checksum-Sha256 entry for the .dsc or .changes files.
 type DebianFileHash struct {
 	// cb136f28a8c971d4299cc68e8fdad93a8ca7daf3 1131 dput-ng_1.9.dsc
 	Algorithm string
@@ -56,6 +58,7 @@ type DebianFileHash struct {
 	Filename  string
 }
 
+// Validate the DebianFileHash by checking the target Filesize and Checksum.
 func (d *DebianFileHash) Validate() (bool, error) {
 	var algo hash.Hash
 
