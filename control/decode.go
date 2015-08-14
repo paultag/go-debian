@@ -62,10 +62,6 @@ func decodeCustomValues(incoming reflect.Value, incomingField reflect.StructFiel
 	return nil
 }
 
-type Unmarshalable interface {
-	UnmarshalControl(data string) error
-}
-
 func decodeCustomValue(incoming reflect.Value, incomingField reflect.StructField, data string) error {
 	/* Right, so, we've got a type we don't know what to do with. We should
 	 * grab the method, or throw a shitfit. */
@@ -154,6 +150,28 @@ func decodePointer(incoming reflect.Value, data Paragraph) error {
 	return nil
 }
 
+// Given a struct (or list of structs), read the io.Reader RFC822-alike
+// Debian control-file stream into the struct, unpacking keys into the
+// struct as needed. If a list of structs is given, unpack all RFC822
+// Paragraphs into the structs.
+//
+// This code will attempt to unpack it into the struct based on the
+// literal name of the key, compared byte-for-byte. If this is not
+// OK, the struct tag `control:""` can be used to define the key to use
+// in the RFC822 stream.
+//
+// If you're unpacking into a list of strings, you have the option of defining
+// a string to split tokens on (`delim:", "`), and things to strip off each
+// element (`strip:"\n\r\t "`).
+//
+// If you're unpacking into a struct, the struct will be walked acording to
+// the rules above. If you wish to override how this writes to the nested
+// struct, objects that implement the Unmarshalable interface will be
+// Unmarshaled via that method call only.
+//
+// Structs that contain Paragraph as an Anonymous member will have that
+// member populated with the parsed RFC822 block, to allow access to the
+// .Values and .Order members.
 func Unmarshal(incoming interface{}, data io.Reader) error {
 	/* Dispatch if incoming is a slice or not */
 	val := reflect.ValueOf(incoming)
@@ -174,6 +192,15 @@ func Unmarshal(incoming interface{}, data io.Reader) error {
 		)
 
 	}
+}
+
+// The Unmarshalable interface defines the interface that Unmarshal will use
+// to do custom unpacks into Structs.
+//
+// The argument passed in will be a string that contains the value of the
+// RFC822 key this object relates to.
+type Unmarshalable interface {
+	UnmarshalControl(data string) error
 }
 
 func unmarshalSlice(incoming interface{}, data io.Reader) error {
