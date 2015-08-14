@@ -27,6 +27,13 @@ import (
 	"pault.ag/go/debian/version"
 )
 
+// The BinaryIndex struct represents the exported APT Binary package index
+// file, as seen on Debian (and Debian derived) mirrors, as well as the
+// cached version in /var/lib/apt/lists/.
+//
+// This can be used to examine Binary packages contained in the Archive,
+// to examine things like Built-Using, Depends, Tags or Binary packages
+// present on an Architecture.
 type BinaryIndex struct {
 	Paragraph
 
@@ -50,26 +57,38 @@ type BinaryIndex struct {
 	SHA256         string
 }
 
+// Parse the Depends Dependency relation on this package.
 func (index *BinaryIndex) GetDepends() dependency.Dependency {
 	return index.getOptionalDependencyField("Depends")
 }
 
+// Parse the Depends Suggests relation on this package.
 func (index *BinaryIndex) GetSuggests() dependency.Dependency {
 	return index.getOptionalDependencyField("Suggests")
 }
 
+// Parse the Depends Breaks relation on this package.
 func (index *BinaryIndex) GetBreaks() dependency.Dependency {
 	return index.getOptionalDependencyField("Breaks")
 }
 
+// Parse the Depends Replaces relation on this package.
 func (index *BinaryIndex) GetReplaces() dependency.Dependency {
 	return index.getOptionalDependencyField("Replaces")
 }
 
+// Parse the Depends Pre-Depends relation on this package.
 func (index *BinaryIndex) GetPreDepends() dependency.Dependency {
 	return index.getOptionalDependencyField("Pre-Depends")
 }
 
+// The SourceIndex struct represents the exported APT Source index
+// file, as seen on Debian (and Debian derived) mirrors, as well as the
+// cached version in /var/lib/apt/lists/.
+//
+// This can be used to examine Source packages, to examine things like
+// Binary packages built by Source packages, who maintains a package,
+// or where to find the VCS repo for that package.
 type SourceIndex struct {
 	Paragraph
 
@@ -95,16 +114,19 @@ type SourceIndex struct {
 	Section          string
 }
 
+// Parse the Depends Build-Depends relation on this package.
 func (index *SourceIndex) GetBuildDepends() dependency.Dependency {
 	return index.getOptionalDependencyField("Build-Depends")
 }
 
+// Given a reader, parse out a list of BinaryIndex structs.
 func ParseBinaryIndex(reader *bufio.Reader) (ret []BinaryIndex, err error) {
 	ret = []BinaryIndex{}
 	err = Unmarshal(&ret, reader)
 	return ret, err
 }
 
+// Given a reader, parse out a list of SourceIndex structs.
 func ParseSourceIndex(reader *bufio.Reader) (ret []SourceIndex, err error) {
 	ret = []SourceIndex{}
 	err = Unmarshal(&ret, reader)
