@@ -128,7 +128,7 @@ func ParseParagraph(reader *bufio.Reader) (ret *Paragraph, ohshit error) {
 			ret.Order = append(ret.Order, key)
 			continue
 		default:
-			return nil, fmt.Errorf("The shit.")
+			return nil, fmt.Errorf("Line %q is not 'key: val'", line)
 		}
 	}
 
