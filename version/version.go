@@ -26,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. }}} */
 
-// dpkgversion is a pure-go implementation of dpkg version string functions
+// version is a pure-go implementation of dpkg version string functions
 // (parsing, comparison) which is compatible with dpkg(1).
 package version
 
