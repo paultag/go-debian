@@ -51,7 +51,7 @@ func (c *FileListChangesFileHash) UnmarshalControl(data string) error {
 	}
 
 	c.Hash = vals[0]
-	c.Size, err = strconv.Atoi(vals[1])
+	c.Size, err = strconv.ParseInt(vals[1], 10, 64)
 	if err != nil {
 		return err
 	}

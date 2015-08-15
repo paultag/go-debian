@@ -54,7 +54,7 @@ type DebianFileHash struct {
 	// cb136f28a8c971d4299cc68e8fdad93a8ca7daf3 1131 dput-ng_1.9.dsc
 	Algorithm string
 	Hash      string
-	Size      int
+	Size      int64
 	Filename  string
 }
 
@@ -66,8 +66,8 @@ func (d DebianFileHash) Validate() error {
 	if err != nil {
 		return err
 	}
-	if size := stat.Size(); size != int64(d.Size) {
-		return false, fmt.Errorf("Error! Size mismatch! %d != %d", size, d.Size)
+	if size := stat.Size(); size != d.Size {
+		return fmt.Errorf("Size mismatch: %d != %d", size, d.Size)
 	}
 
 	switch d.Algorithm {
@@ -105,7 +105,7 @@ func (c *SHADebianFileHash) unmarshalControl(algorithm, data string) error {
 	}
 
 	c.Hash = vals[0]
-	c.Size, err = strconv.Atoi(vals[1])
+	c.Size, err = strconv.ParseInt(vals[1], 10, 64)
 	if err != nil {
 		return err
 	}
