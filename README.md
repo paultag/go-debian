@@ -5,8 +5,8 @@ go-debian
 of helpful routines to help work with fun bits of Debian data.
 
 
-depdency
---------
+dependency
+----------
 
 This module contains bits to parse and work with Debian package relations.
 
