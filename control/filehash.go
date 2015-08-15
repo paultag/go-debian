@@ -59,12 +59,12 @@ type DebianFileHash struct {
 }
 
 // Validate the DebianFileHash by checking the target Filesize and Checksum.
-func (d *DebianFileHash) Validate() (bool, error) {
+func (d DebianFileHash) Validate() error {
 	var algo hash.Hash
 
 	stat, err := os.Stat(d.Filename)
 	if err != nil {
-		return false, err
+		return err
 	}
 	if size := stat.Size(); size != int64(d.Size) {
 		return false, fmt.Errorf("Error! Size mismatch! %d != %d", size, d.Size)
@@ -78,13 +78,16 @@ func (d *DebianFileHash) Validate() (bool, error) {
 	case "sha256":
 		algo = sha256.New()
 	default:
-		return false, fmt.Errorf("Unknown algorithm: %s", d.Algorithm)
+		return fmt.Errorf("Unknown algorithm: %s", d.Algorithm)
 	}
 	fileHash, err := hashFile(d.Filename, algo)
 	if err != nil {
-		return false, err
+		return fmt.Errorf("Hash failed: %v", err)
 	}
-	return fileHash == d.Hash, nil
+	if fileHash != d.Hash {
+		return fmt.Errorf("Incorrect hash: %q != %q", fileHash, d.Hash)
+	}
+	return nil
 }
 
 // {{{ SHA DebianFileHash (both 1 and 256)

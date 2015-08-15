@@ -22,7 +22,6 @@ package control
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -173,35 +172,25 @@ func (d *DSC) Maintainers() []string {
 	return append([]string{d.Maintainer}, d.Uploaders...)
 }
 
-func (d DSC) validateHash(hash DebianFileHash) (bool, error) {
-	hash.Filename = filepath.Join(filepath.Dir(d.Filename), hash.Filename)
-	if ok, err := hash.Validate(); err != nil {
-		return false, fmt.Errorf("Error: validating %s failed: %v", hash.Filename, err)
-	} else if !ok {
-		return false, fmt.Errorf("Error: %s is invalid", hash.Filename)
-	}
-	return true, nil
-}
-
 // Validate the attached files by checking the target Filesize and Checksum.
-func (d DSC) Validate() (bool, error) {
+func (d DSC) Validate() error {
 	for _, f := range d.ChecksumsSha1 {
-		if ok, err := d.validateHash(f.DebianFileHash); err != nil || !ok {
-			return ok, err
+		if err := f.Validate(); err != nil {
+			return err
 		}
 	}
 	for _, f := range d.ChecksumsSha256 {
-		if ok, err := d.validateHash(f.DebianFileHash); err != nil || !ok {
-			return ok, err
+		if err := f.Validate(); err != nil {
+			return err
 		}
 	}
 	for _, f := range d.Files {
-		if ok, err := d.validateHash(f.DebianFileHash); err != nil || !ok {
-			return ok, err
+		if err := f.Validate(); err != nil {
+			return err
 		}
 	}
 	// TODO also verify that all three lists contain the _same_ files (and the same filesizes)
-	return true, nil
+	return nil
 }
 
 // vim: foldmethod=marker
