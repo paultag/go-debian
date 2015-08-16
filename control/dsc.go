@@ -174,17 +174,21 @@ func (d *DSC) Maintainers() []string {
 
 // Validate the attached files by checking the target Filesize and Checksum.
 func (d DSC) Validate() error {
+	dscDir := filepath.Dir(d.Filename)
 	for _, f := range d.ChecksumsSha1 {
+		f.Filename = filepath.Join(dscDir, f.Filename)
 		if err := f.Validate(); err != nil {
 			return err
 		}
 	}
 	for _, f := range d.ChecksumsSha256 {
+		f.Filename = filepath.Join(dscDir, f.Filename)
 		if err := f.Validate(); err != nil {
 			return err
 		}
 	}
 	for _, f := range d.Files {
+		f.Filename = filepath.Join(dscDir, f.Filename)
 		if err := f.Validate(); err != nil {
 			return err
 		}
