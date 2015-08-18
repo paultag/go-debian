@@ -55,6 +55,8 @@ type BinaryIndex struct {
 	MD5sum         string
 	SHA1           string
 	SHA256         string
+
+	XDebugBuildIds []string `control:"X-Build-Ids" delim:" "`
 }
 
 // Parse the Depends Dependency relation on this package.
