@@ -26,77 +26,20 @@ import (
 	"pault.ag/go/debian/dependency"
 )
 
-/*
- *
- */
-
-func TestArchBasics(t *testing.T) {
-	arch, err := dependency.ParseArch("amd64")
-	isok(t, err)
-	assert(t, arch.CPU == "amd64")
-	assert(t, arch.ABI == "gnu")
-	assert(t, arch.OS == "linux")
-}
-
-/*
- */
-func TestArchCompareBasics(t *testing.T) {
-	arch, err := dependency.ParseArch("amd64")
-	isok(t, err)
-
-	equivs := []string{
-		"gnu-linux-amd64",
-		"linux-amd64",
-		"linux-any",
-		"any",
-		"gnu-linux-any",
+func TestArchString(t *testing.T) {
+	equivs := map[string]string{
+		"all":              "all",
+		"any":              "all",
+		"amd64":            "amd64",
+		"gnu-linux-amd64":  "amd64",
+		"bsd-windows-i386": "bsd-windows-i386",
 	}
 
 	for _, el := range equivs {
-		other, err := dependency.ParseArch(el)
+		arch, err := dependency.ParseArch(el)
 		isok(t, err)
-		assert(t, arch.Is(other))
-		assert(t, other.Is(arch))
+		assert(t, arch.String() == equivs[el])
 	}
-
-	unequivs := []string{
-		"gnu-linux-all",
-		"all",
-
-		"gnuu-linux-amd64",
-		"gnu-linuxx-amd64",
-		"gnu-linux-amd644",
-	}
-
-	for _, el := range unequivs {
-		other, err := dependency.ParseArch(el)
-		isok(t, err)
-
-		assert(t, !arch.Is(other))
-		assert(t, !other.Is(arch))
-	}
-}
-
-/*
- */
-func TestArchSetCompare(t *testing.T) {
-	dep, err := dependency.Parse("foo [amd64], bar [!sparc]")
-	isok(t, err)
-
-	iAm, err := dependency.ParseArch("amd64")
-	isok(t, err)
-
-	fooArch := dep.Relations[0].Possibilities[0].Architectures
-	barArch := dep.Relations[1].Possibilities[0].Architectures
-
-	assert(t, fooArch.Matches(iAm))
-	assert(t, barArch.Matches(iAm))
-
-	iAmNot, err := dependency.ParseArch("armhf")
-	isok(t, err)
-
-	assert(t, !fooArch.Matches(iAmNot))
-	assert(t, barArch.Matches(iAmNot))
 }
 
 // vim: foldmethod=marker

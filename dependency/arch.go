@@ -33,21 +33,6 @@ type Arch struct {
 	CPU string
 }
 
-func (a Arch) String() string {
-	/* ABI-OS-CPU -- gnu-linux-amd64 */
-	els := []string{}
-	if a.ABI != "any" && a.ABI != "all" && a.ABI != "gnu" {
-		els = append(els, a.ABI)
-	}
-
-	if a.OS != "any" && a.OS != "all" && a.OS != "linux" {
-		els = append(els, a.OS)
-	}
-
-	els = append(els, a.CPU)
-	return strings.Join(els, "-")
-}
-
 func ParseArchitectures(arch string) ([]Arch, error) {
 	ret := []Arch{}
 	arches := strings.Split(arch, " ")
