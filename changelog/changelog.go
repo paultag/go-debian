@@ -41,6 +41,8 @@ type ChangelogEntry struct {
 	When      string
 }
 
+type ChangelogEntries []ChangelogEntry
+
 func trim(line string) string {
 	return strings.Trim(line, "\n\r\t ")
 }
@@ -129,16 +131,16 @@ func ParseOne(reader *bufio.Reader) (*ChangelogEntry, error) {
 	return &changeLog, nil
 }
 
-func Parse(reader io.Reader) ([]ChangelogEntry, error) {
+func Parse(reader io.Reader) (ChangelogEntries, error) {
 	stream := bufio.NewReader(reader)
-	ret := []ChangelogEntry{}
+	ret := ChangelogEntries{}
 	for {
 		entry, err := ParseOne(stream)
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
-			return []ChangelogEntry{}, err
+			return ChangelogEntries{}, err
 		}
 		ret = append(ret, *entry)
 	}
