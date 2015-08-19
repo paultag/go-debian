@@ -1,3 +1,23 @@
+/* {{{ Copyright (c) Paul R. Tagliamonte <paultag@debian.org>, 2015
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE. }}} */
+
 package changelog
 
 import (
@@ -5,11 +25,15 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"pault.ag/go/debian/version"
 )
 
+// A ChangelogEntry is the encapsulation for each entry for a given version
+// in a series of uploads.
 type ChangelogEntry struct {
 	Source    string
-	Version   string
+	Version   version.Version
 	Target    string
 	Arguments map[string]string
 	Changelog string
@@ -59,10 +83,15 @@ func ParseOne(reader *bufio.Reader) (*ChangelogEntry, error) {
 	 * Options:   urgency=low, other=bar */
 
 	source, remainder := partition(arguments, "(")
-	version, suite := partition(remainder, ")")
+	versionString, suite := partition(remainder, ")")
+
+	var err error
 
 	changeLog.Source = trim(source)
-	changeLog.Version = trim(version)
+	changeLog.Version, err = version.Parse(trim(versionString))
+	if err != nil {
+		return nil, err
+	}
 	changeLog.Target = trim(suite)
 
 	changeLog.Arguments = map[string]string{}
@@ -116,12 +145,4 @@ func Parse(reader io.Reader) ([]ChangelogEntry, error) {
 	return ret, nil
 }
 
-// hello (2.10-1) unstable; urgency=low
-//
-//   * New upstream release.
-//   * debian/patches: Drop 01-fix-i18n-of-default-message, no longer needed.
-//   * debian/patches: Drop 99-config-guess-config-sub, no longer needed.
-//   * debian/rules: Drop override_dh_auto_build hack, no longer needed.
-//   * Standards-Version: 3.9.6 (no changes for this).
-//
-//  -- Santiago Vila <sanvila@debian.org>  Sun, 22 Mar 2015 11:56:00 +0100
+// vim: foldmethod=marker
