@@ -126,6 +126,7 @@ func ParseControlFile(path string) (ret *Control, err error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	ret, err = ParseControl(bufio.NewReader(f), path)
 	if err != nil {

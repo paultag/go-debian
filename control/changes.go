@@ -108,6 +108,7 @@ func ParseDebianFile(path string) (ret *Changes, err error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	ret, err = ParseChanges(bufio.NewReader(f), path)
 	if err != nil {
