@@ -24,6 +24,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"pault.ag/go/debian/version"
@@ -131,6 +132,16 @@ func ParseOne(reader *bufio.Reader) (*ChangelogEntry, error) {
 	return &changeLog, nil
 }
 
+func ParseFileOne(path string) (*ChangelogEntry, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	return ParseOne(bufio.NewReader(f))
+}
+
 func Parse(reader io.Reader) (ChangelogEntries, error) {
 	stream := bufio.NewReader(reader)
 	ret := ChangelogEntries{}
@@ -145,6 +156,16 @@ func Parse(reader io.Reader) (ChangelogEntries, error) {
 		ret = append(ret, *entry)
 	}
 	return ret, nil
+}
+
+func ParseFile(path string) (ChangelogEntries, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	return Parse(bufio.NewReader(f))
 }
 
 // vim: foldmethod=marker
