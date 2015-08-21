@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"pault.ag/go/debian/version"
 )
@@ -38,8 +39,10 @@ type ChangelogEntry struct {
 	Arguments map[string]string
 	Changelog string
 	ChangedBy string
-	When      string
+	When      time.Time
 }
+
+const whenLayout = time.RFC1123Z // "Mon, 02 Jan 2006 15:04:05 -0700"
 
 type ChangelogEntries []ChangelogEntry
 
@@ -126,7 +129,10 @@ func ParseOne(reader *bufio.Reader) (*ChangelogEntry, error) {
 	_, signoff = partition(signoff, "--")  /* Get rid of the leading " -- " */
 	whom, when := partition(signoff, "  ") /* Split on the "  " */
 	changeLog.ChangedBy = trim(whom)
-	changeLog.When = when
+	changeLog.When, err = time.Parse(whenLayout, when)
+	if err != nil {
+		return nil, fmt.Errorf("Failed parsing When %q: %v", when, err)
+	}
 
 	return &changeLog, nil
 }
