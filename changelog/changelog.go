@@ -130,7 +130,7 @@ func ParseOne(reader *bufio.Reader) (*ChangelogEntry, error) {
 	_, signoff = partition(signoff, "--")  /* Get rid of the leading " -- " */
 	whom, when := partition(signoff, "  ") /* Split on the "  " */
 	changeLog.ChangedBy = trim(whom)
-	changeLog.When, err = time.Parse(whenLayout, when)
+	changeLog.When, err = time.Parse(whenLayout, trim(when))
 	if err != nil {
 		return nil, fmt.Errorf("Failed parsing When %q: %v", when, err)
 	}
