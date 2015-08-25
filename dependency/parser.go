@@ -29,7 +29,7 @@ import (
 // like "foo, bar | baz".
 func Parse(in string) (*Dependency, error) {
 	ibuf := Input{Index: 0, Data: in}
-	dep := &Dependency{Relations: []*Relation{}}
+	dep := &Dependency{Relations: []Relation{}}
 	err := parseDependency(&ibuf, dep)
 	if err != nil {
 		return nil, err
@@ -113,13 +113,13 @@ func parseDependency(input *Input, ret *Dependency) error {
 func parseRelation(input *Input, dependency *Dependency) error {
 	eatWhitespace(input) /* Clean out leading whitespace */
 
-	ret := &Relation{Possibilities: []*Possibility{}}
+	ret := &Relation{Possibilities: []Possibility{}}
 
 	for {
 		peek := input.Peek()
 		switch peek {
 		case 0, ',': /* EOF, or done with this relation! yay */
-			dependency.Relations = append(dependency.Relations, ret)
+			dependency.Relations = append(dependency.Relations, *ret)
 			return nil
 		case '|': /* Next Possi */
 			input.Next()
@@ -176,7 +176,7 @@ func parsePossibility(input *Input, relation *Relation) error {
 			if ret.Name == "" {
 				return errors.New("No package name in Possibility")
 			}
-			relation.Possibilities = append(relation.Possibilities, ret)
+			relation.Possibilities = append(relation.Possibilities, *ret)
 			return nil
 		}
 		/* Not a control, let's append */
@@ -202,7 +202,7 @@ func parseSubstvar(input *Input, relation *Relation) error {
 			return errors.New("Oh no. Reached EOF before substvar finished")
 		case '}':
 			input.Next()
-			relation.Possibilities = append(relation.Possibilities, ret)
+			relation.Possibilities = append(relation.Possibilities, *ret)
 			return nil
 		}
 		ret.Name += string(input.Next())

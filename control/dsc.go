@@ -78,10 +78,10 @@ type DSC struct {
 // Given a bunch of DSC objects, sort the packages topologically by
 // build order by looking at the relationship between the Build-Depends
 // field.
-func OrderDSCForBuild(dscs []*DSC, arch dependency.Arch) ([]*DSC, error) {
+func OrderDSCForBuild(dscs []DSC, arch dependency.Arch) ([]DSC, error) {
 	sourceMapping := map[string]string{}
 	network := topsort.NewNetwork()
-	ret := []*DSC{}
+	ret := []DSC{}
 
 	/*
 	 * - Create binary -> source mapping.
@@ -116,7 +116,7 @@ func OrderDSCForBuild(dscs []*DSC, arch dependency.Arch) ([]*DSC, error) {
 	}
 
 	for _, node := range nodes {
-		ret = append(ret, node.Value.(*DSC))
+		ret = append(ret, node.Value.(DSC))
 	}
 
 	return ret, nil

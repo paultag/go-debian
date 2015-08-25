@@ -31,7 +31,7 @@ func (dep *Dependency) GetPossibilities(arch Arch) []Possibility {
 			}
 
 			if possibility.Architectures.Matches(&arch) {
-				possies = append(possies, *possibility)
+				possies = append(possies, possibility)
 				break
 			}
 		}
@@ -49,7 +49,7 @@ func (dep *Dependency) GetAllPossibilities() []Possibility {
 			if possibility.Substvar {
 				continue
 			}
-			possies = append(possies, *possibility)
+			possies = append(possies, possibility)
 		}
 	}
 
@@ -63,7 +63,7 @@ func (dep *Dependency) GetSubstvars() []Possibility {
 	for _, relation := range dep.Relations {
 		for _, possibility := range relation.Possibilities {
 			if possibility.Substvar {
-				possies = append(possies, *possibility)
+				possies = append(possies, possibility)
 			}
 		}
 	}
