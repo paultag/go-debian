@@ -81,14 +81,18 @@ func (possi Possibility) String() string {
 	if possi.Arch != nil {
 		str += ":" + possi.Arch.String()
 	}
-	if arch := possi.Architectures.String(); arch != "" {
-		str += " " + arch
+	if possi.Architectures != nil {
+		if arch := possi.Architectures.String(); arch != "" {
+			str += " " + arch
+		}
 	}
 	if possi.Version != nil {
 		str += " " + possi.Version.String()
 	}
-	if stages := possi.Stages.String(); stages != "" {
-		str += " " + stages
+	if possi.Stages != nil {
+		if stages := possi.Stages.String(); stages != "" {
+			str += " " + stages
+		}
 	}
 	return str
 }
