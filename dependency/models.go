@@ -80,17 +80,17 @@ type Possibility struct {
 // There are two Relations, one composed of foo, and another composed of
 // bar and baz.
 type Relation struct {
-	Possibilities []*Possibility
+	Possibilities []Possibility
 }
 
 // A Dependency is the top level type that models a full Dependency relation.
 type Dependency struct {
-	Relations []*Relation
+	Relations []Relation
 }
 
 func (dep *Dependency) UnmarshalControl(data string) error {
 	ibuf := Input{Index: 0, Data: data}
-	dep.Relations = []*Relation{}
+	dep.Relations = []Relation{}
 	err := parseDependency(&ibuf, dep)
 	return err
 }
