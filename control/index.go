@@ -56,7 +56,7 @@ type BinaryIndex struct {
 	SHA1           string
 	SHA256         string
 
-	XDebugBuildIds []string `control:"X-Build-Ids" delim:" "`
+	DebugBuildIds []string `control:"Build-Ids" delim:" "`
 }
 
 // Parse the Depends Dependency relation on this package.
