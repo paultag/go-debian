@@ -98,7 +98,7 @@ type Changes struct {
 // Given a path on the filesystem, Parse the file off the disk and return
 // a pointer to a brand new Changes struct, unless error is set to a value
 // other than nil.
-func ParseDebianFile(path string) (ret *Changes, err error) {
+func ParseChangesFile(path string) (ret *Changes, err error) {
 	path, err = filepath.Abs(path)
 	if err != nil {
 		return nil, err
