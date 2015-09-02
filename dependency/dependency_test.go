@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/version"
 )
 
 /*
@@ -84,6 +85,37 @@ func TestSliceSubParse(t *testing.T) {
 
 	assert(t, els[0].Name == "foo:Depends")
 	assert(t, els[1].Name == "bar:Depends")
+}
+
+func TestVersionRelationSatisfiedBy(t *testing.T) {
+	for _, test := range []struct {
+		Operator string
+		Number   string
+		Version  string
+		Match    bool
+	}{
+		{"=", "1.0.0", "1.0.0", true},
+		{"=", "1.0.1", "1.0.0", false},
+		{"=", "1.0.0", "1.0.1", false},
+		{"<<", "2.0", "1.0", true},
+		{">>", "2.0", "1.0", false},
+		{">>", "2.0", "3.0", true},
+		{"<<", "2.0", "3.0", false},
+		{">=", "1.0~", "1.0", true},
+		{">=", "1.0~", "1.0.2", true},
+		{">=", "1.0~", "1.0.2.3", true},
+		{"<=", "1.0~", "1.0", false},
+		{"<=", "1.0~", "1.0.2", false},
+		{"<=", "1.0~", "1.0.2.3", false},
+	} {
+		vr := dependency.VersionRelation{
+			Operator: test.Operator,
+			Number:   test.Number,
+		}
+		v, err := version.Parse(test.Version)
+		assert(t, err == nil)
+		assert(t, vr.SatisfiedBy(v) == test.Match)
+	}
 }
 
 // vim: foldmethod=marker

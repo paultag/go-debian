@@ -20,6 +20,10 @@
 
 package dependency
 
+import (
+	"pault.ag/go/debian/version"
+)
+
 //
 func (dep *Dependency) GetPossibilities(arch Arch) []Possibility {
 	possies := []Possibility{}
@@ -69,6 +73,30 @@ func (dep *Dependency) GetSubstvars() []Possibility {
 	}
 
 	return possies
+}
+
+func (v VersionRelation) SatisfiedBy(ver version.Version) bool {
+	vVer, err := version.Parse(v.Number)
+	if err != nil {
+		return false
+	}
+
+	q := version.Compare(ver, vVer)
+	switch v.Operator {
+	case ">=":
+		return q >= 0
+	case "<=":
+		return q <= 0
+	case ">>":
+		return q > 0
+	case "<<":
+		return q < 0
+	case "=":
+		return q == 0
+	}
+
+	// XXX: WHAT THE SHIT
+	return false
 }
 
 // vim: foldmethod=marker
