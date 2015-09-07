@@ -110,6 +110,10 @@ func ParseParagraph(reader *bufio.Reader) (*Paragraph, error) {
 		if line == "\n" {
 			break
 		}
+		if trimmed := strings.TrimLeft(line, noop); len(trimmed) > 0 && trimmed[0] == '#' {
+			// skip comments
+			continue
+		}
 
 		if line[0] == ' ' {
 			line = line[1:]
