@@ -22,6 +22,7 @@ package dependency_test
 
 import (
 	"log"
+	"runtime/debug"
 	"testing"
 
 	"pault.ag/go/debian/dependency"
@@ -34,6 +35,7 @@ import (
 func isok(t *testing.T, err error) {
 	if err != nil {
 		log.Printf("Error! Error is not nil! %s\n", err)
+		debug.PrintStack()
 		t.FailNow()
 	}
 }
@@ -41,6 +43,7 @@ func isok(t *testing.T, err error) {
 func notok(t *testing.T, err error) {
 	if err == nil {
 		log.Printf("Error! Error is nil!\n")
+		debug.PrintStack()
 		t.FailNow()
 	}
 }
@@ -48,6 +51,7 @@ func notok(t *testing.T, err error) {
 func assert(t *testing.T, expr bool) {
 	if !expr {
 		log.Printf("Assertion failed!")
+		debug.PrintStack()
 		t.FailNow()
 	}
 }
