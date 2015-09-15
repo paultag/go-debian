@@ -153,7 +153,7 @@ func parsePossibility(input *Input, relation *Relation) error {
 		Name:          "",
 		Version:       nil,
 		Architectures: &ArchSet{Architectures: []Arch{}},
-		Stages:        &StageSet{Stages: []Stage{}},
+		StageSets:     []StageSet{},
 		Substvar:      false,
 	}
 
@@ -256,6 +256,12 @@ func parsePossibilityControllers(input *Input, possi *Possibility) error {
 				)
 			}
 			err := parsePossibilityArchs(input, possi)
+			if err != nil {
+				return err
+			}
+			continue
+		case '<':
+			err := parsePossibilityStageSet(input, possi)
 			if err != nil {
 				return err
 			}
@@ -392,6 +398,54 @@ func parsePossibilityArch(input *Input, possi *Possibility) error {
 			return nil
 		}
 		arch += string(input.Next())
+	}
+}
+
+/* */
+func parsePossibilityStageSet(input *Input, possi *Possibility) error {
+	eatWhitespace(input)
+	input.Next() /* Assert ch == '<' */
+
+	stageSet := StageSet{}
+	for {
+		peek := input.Peek()
+		switch peek {
+		case 0:
+			return errors.New("Oh no. Reached EOF before StageSet finished")
+		case '>':
+			input.Next()
+			possi.StageSets = append(possi.StageSets, stageSet)
+			return nil
+		}
+
+		err := parsePossibilityStage(input, &stageSet)
+		if err != nil {
+			return err
+		}
+	}
+}
+
+/* */
+func parsePossibilityStage(input *Input, stageSet *StageSet) error {
+	eatWhitespace(input)
+
+	stage := Stage{}
+	for {
+		peek := input.Peek()
+		switch peek {
+		case 0:
+			return errors.New("Oh no. Reached EOF before Stage finished")
+		case '!':
+			input.Next()
+			if stage.Not {
+				return errors.New("Double-negation (!!) of a single Stage is not permitted :(")
+			}
+			stage.Not = !stage.Not
+		case '>', ' ': /* Let our parent deal with both of these */
+			stageSet.Stages = append(stageSet.Stages, stage)
+			return nil
+		}
+		stage.Name += string(input.Next())
 	}
 }
 

@@ -65,7 +65,7 @@ type Possibility struct {
 	Name          string
 	Arch          *Arch
 	Architectures *ArchSet
-	Stages        *StageSet
+	StageSets     []StageSet
 	Version       *VersionRelation
 	Substvar      bool
 }

@@ -89,8 +89,8 @@ func (possi Possibility) String() string {
 	if possi.Version != nil {
 		str += " " + possi.Version.String()
 	}
-	if possi.Stages != nil {
-		if stages := possi.Stages.String(); stages != "" {
+	for _, stageSet := range possi.StageSets {
+		if stages := stageSet.String(); stages != "" {
 			str += " " + stages
 		}
 	}

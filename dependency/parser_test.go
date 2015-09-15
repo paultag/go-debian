@@ -197,6 +197,29 @@ func TestTwoArchitectures(t *testing.T) {
 	notok(t, err)
 }
 
+func TestTwoStages(t *testing.T) {
+	dep, err := dependency.Parse("foo <stage1 !cross> <!stage1 cross>")
+	isok(t, err)
+
+	possi := dep.Relations[0].Possibilities[0]
+
+	assert(t, len(possi.StageSets) == 2)
+
+	// <stage1 !cross>
+	assert(t, len(possi.StageSets[0].Stages) == 2)
+	assert(t, !possi.StageSets[0].Stages[0].Not)
+	assert(t, possi.StageSets[0].Stages[0].Name == "stage1")
+	assert(t, possi.StageSets[0].Stages[1].Not)
+	assert(t, possi.StageSets[0].Stages[1].Name == "cross")
+
+	// <!stage1 cross>
+	assert(t, len(possi.StageSets[1].Stages) == 2)
+	assert(t, possi.StageSets[1].Stages[0].Not)
+	assert(t, possi.StageSets[1].Stages[0].Name == "stage1")
+	assert(t, !possi.StageSets[1].Stages[1].Not)
+	assert(t, possi.StageSets[1].Stages[1].Name == "cross")
+}
+
 func TestBadVersion(t *testing.T) {
 	vers := []string{
 		"foo (>= 1.0",
@@ -229,6 +252,29 @@ func TestBadArch(t *testing.T) {
 	}
 }
 
+func TestBadStages(t *testing.T) {
+	vers := []string{
+		"foo <stage1> <!cross",
+		"foo <stage1> <!cros",
+		"foo <stage1> <!cro",
+		"foo <stage1> <!cr",
+		"foo <stage1> <!c",
+		"foo <stage1> <!",
+		"foo <stage1> <",
+		"foo <stage1",
+		"foo <stag",
+		"foo <sta",
+		"foo <st",
+		"foo <s",
+		"foo <",
+	}
+
+	for _, ver := range vers {
+		_, err := dependency.Parse(ver)
+		notok(t, err)
+	}
+}
+
 func TestSingleSubstvar(t *testing.T) {
 	dep, err := dependency.Parse("${foo:Depends}, bar, baz")
 	isok(t, err)
@@ -242,6 +288,12 @@ func TestSingleSubstvar(t *testing.T) {
 
 	assert(t, !dep.Relations[1].Possibilities[0].Substvar)
 	assert(t, !dep.Relations[2].Possibilities[0].Substvar)
+}
+
+func TestInsaneRoundTrip(t *testing.T) {
+	dep, err := dependency.Parse("foo:armhf <stage1 !cross> [amd64 i386] (>= 1.2:3.4~5.6-7.8~9.0) <!stage1 cross>")
+	isok(t, err)
+	assert(t, dep.String() == "foo:armhf [amd64 i386] (>= 1.2:3.4~5.6-7.8~9.0) <stage1 !cross> <!stage1 cross>")
 }
 
 // vim: foldmethod=marker
