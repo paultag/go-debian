@@ -349,14 +349,6 @@ func parsePossibilityArchs(input *Input, possi *Possibility) error {
 	eatWhitespace(input)
 	input.Next() /* Assert ch == '[' */
 
-	/* So the first line of each guy can be a not (!), so let's check for
-	 * that with a Peek :) */
-	peek := input.Peek()
-	if peek == '!' {
-		input.Next() /* Omnom */
-		possi.Architectures.Not = true
-	}
-
 	for {
 		peek := input.Peek()
 		switch peek {
@@ -378,6 +370,19 @@ func parsePossibilityArchs(input *Input, possi *Possibility) error {
 func parsePossibilityArch(input *Input, possi *Possibility) error {
 	eatWhitespace(input)
 	arch := ""
+
+	// Exclamation marks may be prepended to each of the names. (It is not
+	// permitted for some names to be prepended with exclamation marks while
+	// others aren't.)
+	hasNot := input.Peek() == '!'
+	if hasNot {
+		input.Next() // '!'
+	}
+	if len(possi.Architectures.Architectures) == 0 {
+		possi.Architectures.Not = hasNot
+	} else if possi.Architectures.Not != hasNot {
+		return errors.New("Either the entire arch list needs negations, or none of it does -- no mix and match :/")
+	}
 
 	for {
 		peek := input.Peek()

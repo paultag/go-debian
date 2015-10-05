@@ -145,21 +145,34 @@ func TestDoubleInvalidNotArch(t *testing.T) {
 	_, err := dependency.Parse("foo [arch !foo]")
 	notok(t, err)
 
+	_, err = dependency.Parse("foo [!arch foo]")
+	notok(t, err)
+
 	_, err = dependency.Parse("foo [arch!foo]")
+	notok(t, err)
+
+	_, err = dependency.Parse("foo [arch!]")
 	notok(t, err)
 }
 
 func TestDoubleArch(t *testing.T) {
-	dep, err := dependency.Parse("foo [arch arch2]")
-	isok(t, err)
-	assert(t, len(dep.Relations) == 1)
+	for depStr, not := range map[string]bool{
+		"foo [arch arch2]":   false,
+		"foo [!arch !arch2]": true,
+	} {
+		dep, err := dependency.Parse(depStr)
+		isok(t, err)
+		assert(t, len(dep.Relations) == 1)
 
-	possi := dep.Relations[0].Possibilities[0]
-	arches := possi.Architectures.Architectures
+		possi := dep.Relations[0].Possibilities[0]
+		arches := possi.Architectures.Architectures
 
-	assert(t, len(arches) == 2)
-	assert(t, arches[0].CPU == "arch")
-	assert(t, arches[1].CPU == "arch2")
+		assert(t, possi.Architectures.Not == not)
+
+		assert(t, len(arches) == 2)
+		assert(t, arches[0].CPU == "arch")
+		assert(t, arches[1].CPU == "arch2")
+	}
 }
 
 func TestVersioningOperators(t *testing.T) {
@@ -293,7 +306,19 @@ func TestSingleSubstvar(t *testing.T) {
 func TestInsaneRoundTrip(t *testing.T) {
 	dep, err := dependency.Parse("foo:armhf <stage1 !cross> [amd64 i386] (>= 1.2:3.4~5.6-7.8~9.0) <!stage1 cross>")
 	isok(t, err)
+
 	assert(t, dep.String() == "foo:armhf [amd64 i386] (>= 1.2:3.4~5.6-7.8~9.0) <stage1 !cross> <!stage1 cross>")
+
+	rtDep, err := dependency.Parse(dep.String())
+	isok(t, err)
+	assert(t, dep.String() == rtDep.String())
+
+	dep.Relations[0].Possibilities[0].Architectures.Not = true
+	assert(t, dep.String() == "foo:armhf [!amd64 !i386] (>= 1.2:3.4~5.6-7.8~9.0) <stage1 !cross> <!stage1 cross>")
+
+	rtDep, err = dependency.Parse(dep.String())
+	isok(t, err)
+	assert(t, dep.String() == rtDep.String())
 }
 
 // vim: foldmethod=marker
