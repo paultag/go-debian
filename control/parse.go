@@ -103,9 +103,9 @@ func ParseParagraph(reader *bufio.Reader) (*Paragraph, error) {
 		line, err := reader.ReadString('\n')
 		if err == io.EOF {
 			if len(ret.Order) == 0 {
-				return nil, nil
+				return nil, err
 			}
-			return ret, nil
+			return ret, err
 		}
 		if line == "\n" {
 			break
