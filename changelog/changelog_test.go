@@ -22,6 +22,7 @@ package changelog_test
 
 import (
 	"bufio"
+	"io"
 	"log"
 	"strings"
 	"testing"
@@ -34,7 +35,7 @@ import (
  */
 
 func isok(t *testing.T, err error) {
-	if err != nil {
+	if err != nil && err != io.EOF {
 		log.Printf("Error! Error is not nil! %s\n", err)
 		t.FailNow()
 	}

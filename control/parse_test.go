@@ -22,6 +22,7 @@ package control_test
 
 import (
 	"bufio"
+	"io"
 	"log"
 	"strings"
 	"testing"
@@ -34,7 +35,7 @@ import (
  */
 
 func isok(t *testing.T, err error) {
-	if err != nil {
+	if err != nil && err != io.EOF {
 		log.Printf("Error! Error is not nil! - %s\n", err)
 		t.FailNow()
 	}
@@ -72,7 +73,7 @@ func TestBasicControlParse(t *testing.T) {
 	reader = bufio.NewReader(strings.NewReader(`Foo: bar`))
 	deb822, err = control.ParseParagraph(reader)
 	assert(t, deb822 == nil)
-	assert(t, err == nil)
+	assert(t, err == io.EOF)
 }
 
 func TestMultilineControlParse(t *testing.T) {

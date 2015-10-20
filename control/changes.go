@@ -110,11 +110,7 @@ func ParseChangesFile(path string) (ret *Changes, err error) {
 	}
 	defer f.Close()
 
-	ret, err = ParseChanges(bufio.NewReader(f), path)
-	if err != nil {
-		return nil, err
-	}
-	return ret, nil
+	return ParseChanges(bufio.NewReader(f), path)
 }
 
 // Given a bufio.Reader, consume the Reader, and return a Changes object
@@ -124,10 +120,7 @@ func ParseChangesFile(path string) (ret *Changes, err error) {
 // to something invalid if you're not using those functions.
 func ParseChanges(reader *bufio.Reader, path string) (*Changes, error) {
 	ret := &Changes{Filename: path}
-	if err := Unmarshal(ret, reader); err != nil {
-		return nil, err
-	}
-	return ret, nil
+	return ret, Unmarshal(ret, reader)
 }
 
 // Return a DSC struct for the DSC listed in the .changes file. This requires
@@ -176,12 +169,7 @@ func (changes *Changes) Copy(dest string) error {
 	dirname := filepath.Base(changes.Filename)
 	err := internal.Copy(changes.Filename, dest+"/"+dirname)
 	changes.Filename = dest + "/" + dirname
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // Move the .changes file and all refrenced files to the directory
@@ -207,12 +195,7 @@ func (changes *Changes) Move(dest string) error {
 	dirname := filepath.Base(changes.Filename)
 	err := os.Rename(changes.Filename, dest+"/"+dirname)
 	changes.Filename = dest + "/" + dirname
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // Remove the .changes file and any associated files. This function will
@@ -225,11 +208,7 @@ func (changes *Changes) Remove() error {
 			return err
 		}
 	}
-	err := os.Remove(changes.Filename)
-	if err != nil {
-		return err
-	}
-	return nil
+	return os.Remove(changes.Filename)
 }
 
 // vim: foldmethod=marker
