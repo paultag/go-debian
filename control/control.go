@@ -52,12 +52,11 @@ type Control struct {
 type SourceParagraph struct {
 	Paragraph
 
-	Maintainer  string
-	Uploaders   []string `delim:","`
-	Source      string
-	Priority    string
-	Section     string
-	Description string
+	Maintainer string
+	Uploaders  []string `delim:"," strip:"\t\n\r "`
+	Source     string
+	Priority   string
+	Section    string
 
 	BuildDepends        dependency.Dependency `control:"Build-Depends"`
 	BuildDependsIndep   dependency.Dependency `control:"Build-Depends-Indep"`

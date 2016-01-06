@@ -24,28 +24,122 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"strconv"
+	"strings"
 )
 
 func marshalStruct(incoming reflect.Value, output io.Writer) error {
-    return nil
+	if incoming.Type().Kind() == reflect.Ptr {
+		/* If we have a pointer, let's follow it */
+		return marshalStruct(incoming.Elem(), output)
+	}
+
+	/* Check to make sure the struct is sane, and try the following things:
+	 *
+	 * Iterate over all fields in the struct, skipping any Anonymous
+	 * members.
+	 */
+	for i := 0; i < incoming.NumField(); i++ {
+		field := incoming.Field(i)
+		fieldType := incoming.Type().Field(i)
+
+		paragraphKey := fieldType.Name
+		if it := fieldType.Tag.Get("control"); it != "" {
+			paragraphKey = it
+		}
+
+		if paragraphKey == "-" || fieldType.Anonymous {
+			continue
+		}
+
+		val, err := marshalStructValue(field, fieldType)
+		if err != nil {
+			return err
+		}
+
+		if val == "" {
+			continue
+		}
+
+		output.Write([]byte(paragraphKey))
+		output.Write([]byte(": "))
+		output.Write([]byte(dotEncode(val)))
+		output.Write([]byte("\n"))
+	}
+	return nil
+}
+
+func dotEncode(input string) string {
+	el := strings.Replace(input, "\n", "\n ", -1)
+	return strings.Replace(el, "\n \n", "\n .\n", -1)
+}
+
+func marshalStructValue(field reflect.Value, fieldType reflect.StructField) (string, error) {
+	/*
+	 *   - If the type's a builtin, do the right thing with it.
+	 *   - If the type's a struct, decode the struct value.
+	 *   - If the type's a list, decode and concat the values.
+	 *
+	 *     If the value is empty-string, skip that Key entirely unless
+	 *     it's marked as Required.
+	 */
+	switch field.Type().Kind() {
+	case reflect.String:
+		return field.String(), nil
+	case reflect.Int:
+		return strconv.Itoa(int(field.Int())), nil
+	case reflect.Slice:
+		return marshalStructValueSlice(field, fieldType)
+	case reflect.Struct:
+		return marshalStructValueStruct(field, fieldType)
+	}
+	return "", fmt.Errorf("Unknown type of field: %s", field.Type())
+}
+
+func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField) (string, error) {
+	vals := []string{}
+	for i := 0; i < field.Len(); i++ {
+		value := field.Index(i)
+
+		str, err := marshalStructValue(value, fieldType)
+		if err != nil {
+			return "", err
+		}
+		vals = append(vals, str)
+	}
+	return strings.Join(vals, ","), nil
+}
+
+func marshalStructValueStruct(field reflect.Value, fieldType reflect.StructField) (string, error) {
+	elem := field.Addr()
+
+	if unmarshal, ok := elem.Interface().(Marshalable); ok {
+		return unmarshal.MarshalControl()
+	}
+
+	return "", fmt.Errorf(
+		"Type '%s' does not implement control.Marshalable",
+		field.Type().Name(),
+	)
 }
 
 func marshalSlice(incoming reflect.Value, output io.Writer) error {
-    length := incoming.Len()
-    for i := 0; i < length; i++ {
-        data := incoming.Index(i)
-        if err := marshal(data, output); err != nil {
-            return err
-        }
-        output.Write([]byte("\n")) /* \n\n delim */
-    }
-    return nil
+	/* For top-level slices, where we have paragraphs delim'd by
+	 * newlines */
+	length := incoming.Len()
+	for i := 0; i < length; i++ {
+		data := incoming.Index(i)
+		if err := marshal(data, output); err != nil {
+			return err
+		}
+		output.Write([]byte("\n")) /* \n\n delim */
+	}
+	return nil
 }
 
-
 func Marshal(incoming interface{}, output io.Writer) error {
-    val := reflect.ValueOf(incoming)
-    return marshal(val, output)
+	val := reflect.ValueOf(incoming)
+	return marshal(val, output)
 }
 
 func marshal(incoming reflect.Value, output io.Writer) error {
