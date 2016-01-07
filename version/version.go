@@ -66,6 +66,10 @@ func (version *Version) UnmarshalControl(data string) error {
 	return parseInto(version, data)
 }
 
+func (version *Version) MarshalControl() error {
+	return version.String()
+}
+
 func (v Version) String() string {
 	var result string
 	if v.Epoch > 0 {
