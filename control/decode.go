@@ -213,6 +213,8 @@ func unmarshalSlice(incoming interface{}, data io.Reader) error {
 		target := targetValue.Interface()
 		err := unmarshalStruct(target, data)
 
+		fmt.Printf("%s %s %s\n", "unmarshalSlice", targetValue.Elem(), err)
+
 		if err == io.EOF {
 			break
 		} else if err != nil {

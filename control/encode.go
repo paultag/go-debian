@@ -132,10 +132,14 @@ func marshalStructValueStruct(field reflect.Value, fieldType reflect.StructField
 func marshalSlice(incoming reflect.Value, output io.Writer) error {
 	/* For top-level slices, where we have paragraphs delim'd by
 	 * newlines */
+	if incoming.Type().Kind() == reflect.Ptr {
+		return marshalSlice(incoming.Elem(), output)
+	}
+
 	length := incoming.Len()
 	for i := 0; i < length; i++ {
 		data := incoming.Index(i)
-		if err := marshal(data, output); err != nil {
+		if err := marshal(data.Addr(), output); err != nil {
 			return err
 		}
 		output.Write([]byte("\n")) /* \n\n delim */
@@ -152,7 +156,6 @@ func marshal(incoming reflect.Value, output io.Writer) error {
 	if incoming.Type().Kind() != reflect.Ptr {
 		return fmt.Errorf("Ouchie! Please give me a pointer!")
 	}
-
 	switch incoming.Elem().Type().Kind() {
 	case reflect.Struct:
 		return marshalStruct(incoming, output)
