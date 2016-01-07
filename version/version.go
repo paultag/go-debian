@@ -66,8 +66,8 @@ func (version *Version) UnmarshalControl(data string) error {
 	return parseInto(version, data)
 }
 
-func (version *Version) MarshalControl() error {
-	return version.String()
+func (version *Version) MarshalControl() (string, error) {
+	return version.String(), nil
 }
 
 func (v Version) String() string {
