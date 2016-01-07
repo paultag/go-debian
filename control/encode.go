@@ -107,7 +107,13 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 		}
 		vals = append(vals, str)
 	}
-	return strings.Join(vals, ","), nil
+
+	delim := " "
+	if it := fieldType.Tag.Get("delim"); it != "" {
+		delim = it
+	}
+
+	return strings.Join(vals, delim), nil
 }
 
 func marshalStructValueStruct(field reflect.Value, fieldType reflect.StructField) (string, error) {

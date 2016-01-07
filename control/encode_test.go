@@ -9,9 +9,9 @@ import (
 )
 
 type AnotherTestStruct struct {
-	Value      string `required:"true"`
-	ValueTwo   string `control:"Value-Two"`
-	ValueThree []string
+	Value      string   `required:"true"`
+	ValueTwo   string   `control:"Value-Two"`
+	ValueThree []string `delim:","`
 	Depends    dependency.Dependency
 }
 
@@ -19,7 +19,10 @@ func TestMarshalRoundTrip(t *testing.T) {
 	foo := AnotherTestStruct{}
 	foo.Value = "true"
 	foo.ValueTwo = "bar"
-	foo.ValueThree = []string{"three"}
+	foo.ValueThree = []string{"three", "four", "five"}
+	dep, err := dependency.Parse("foo, bar, baz")
+	isok(t, err)
+	foo.Depends = *dep
 
 	data := bytes.Buffer{}
 
@@ -29,4 +32,6 @@ func TestMarshalRoundTrip(t *testing.T) {
 	isok(t, control.Unmarshal(&newFoo, &data))
 
 	assert(t, foo.Value == newFoo.Value)
+	assert(t, foo.Depends.Relations[0].Possibilities[0].Name == "foo")
+	assert(t, newFoo.ValueThree[1] == "four")
 }

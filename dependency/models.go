@@ -96,7 +96,7 @@ func (dep *Dependency) UnmarshalControl(data string) error {
 }
 
 func (dep *Dependency) MarshalControl() (string, error) {
-    return dep.String(), nil
+	return dep.String(), nil
 }
 
 // vim: foldmethod=marker
