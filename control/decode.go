@@ -30,6 +30,15 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
+// The Unmarshalable interface defines the interface that Unmarshal will use
+// to do custom unpacks into Structs.
+//
+// The argument passed in will be a string that contains the value of the
+// RFC822 key this object relates to.
+type Unmarshalable interface {
+	UnmarshalControl(data string) error
+}
+
 func Unmarshal(data interface{}, foo io.Reader) error {
 	return nil
 }
@@ -165,7 +174,7 @@ func decodeStructValue(field reflect.Value, fieldType reflect.StructField, value
 	case reflect.Slice:
 		return decodeStructValueSlice(field, fieldType, value)
 	case reflect.Struct:
-		return nil
+		return decodeStructValueStruct(field, fieldType, value)
 	}
 
 	return fmt.Errorf("Unknown type of field: %s", field.Type())
@@ -174,7 +183,26 @@ func decodeStructValue(field reflect.Value, fieldType reflect.StructField, value
 
 // }}}
 
-// set a struct field value {{{
+// set a struct field value of type struct {{{
+
+func decodeStructValueStruct(incoming reflect.Value, incomingField reflect.StructField, data string) error {
+	/* Right, so, we've got a type we don't know what to do with. We should
+	 * grab the method, or throw a shitfit. */
+	elem := incoming.Addr()
+
+	if unmarshal, ok := elem.Interface().(Unmarshalable); ok {
+		return unmarshal.UnmarshalControl(data)
+	}
+
+	return fmt.Errorf(
+		"Type '%s' does not implement control.Unmarshalable",
+		incomingField.Type.Name(),
+	)
+}
+
+// }}}
+
+// set a struct field value of type slice {{{
 
 func decodeStructValueSlice(field reflect.Value, fieldType reflect.StructField, value string) error {
 	underlyingType := field.Type().Elem()
