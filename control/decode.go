@@ -30,6 +30,8 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
+// Unmarshalable {{{
+
 // The Unmarshalable interface defines the interface that Unmarshal will use
 // to do custom unpacks into Structs.
 //
@@ -38,6 +40,10 @@ import (
 type Unmarshalable interface {
 	UnmarshalControl(data string) error
 }
+
+// }}}
+
+// Unmarshal {{{
 
 // Given a struct (or list of structs), read the io.Reader RFC822-alike
 // Debian control-file stream into the struct, unpacking keys into the
@@ -68,6 +74,8 @@ func Unmarshal(data interface{}, reader io.Reader) error {
 	}
 	return decoder.Decode(data)
 }
+
+// }}}
 
 // Decoder {{{
 
@@ -168,10 +176,6 @@ func decodeStruct(p Paragraph, into reflect.Value) error {
 				/* Otherwise, we're going to avoid doing more maths on it */
 				continue
 			}
-		}
-
-		if it := fieldType.Tag.Get("control"); it != "" {
-			paragraphKey = it
 		}
 
 		if value, ok := p.Values[paragraphKey]; ok {
