@@ -120,7 +120,7 @@ func decode(p *ParagraphReader, into reflect.Value) error {
 	case reflect.Slice:
 		return decodeSlice(p, into)
 	default:
-		return fmt.Errorf("Can't Decode into a %s", into.Elem().Type().Name)
+		return fmt.Errorf("Can't Decode into a %s", into.Elem().Type().Name())
 	}
 
 	return nil
