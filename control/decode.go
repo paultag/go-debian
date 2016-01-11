@@ -39,6 +39,28 @@ type Unmarshalable interface {
 	UnmarshalControl(data string) error
 }
 
+// Given a struct (or list of structs), read the io.Reader RFC822-alike
+// Debian control-file stream into the struct, unpacking keys into the
+// struct as needed. If a list of structs is given, unpack all RFC822
+// Paragraphs into the structs.
+//
+// This code will attempt to unpack it into the struct based on the
+// literal name of the key, compared byte-for-byte. If this is not
+// OK, the struct tag `control:""` can be used to define the key to use
+// in the RFC822 stream.
+//
+// If you're unpacking into a list of strings, you have the option of defining
+// a string to split tokens on (`delim:", "`), and things to strip off each
+// element (`strip:"\n\r\t "`).
+//
+// If you're unpacking into a struct, the struct will be walked acording to
+// the rules above. If you wish to override how this writes to the nested
+// struct, objects that implement the Unmarshalable interface will be
+// Unmarshaled via that method call only.
+//
+// Structs that contain Paragraph as an Anonymous member will have that
+// member populated with the parsed RFC822 block, to allow access to the
+// .Values and .Order members.
 func Unmarshal(data interface{}, reader io.Reader) error {
 	decoder, err := NewDecoder(reader, nil)
 	if err != nil {
