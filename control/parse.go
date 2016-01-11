@@ -41,6 +41,8 @@ type Paragraph struct {
 	Order  []string
 }
 
+// ParagraphReader {{{
+
 // Wrapper to allow iteration on a set of Paragraphs without consuming them
 // all into memory at one time. This is also the level in which data is
 // signed, so information such as the entity that signed these documents
@@ -52,7 +54,14 @@ type ParagraphReader struct {
 	signer *openpgp.Entity
 }
 
+// {{{ NewParagraphReader
+
+// Create a new ParagraphReader from the given `io.Reader`, and `keyring`.
+// if `keyring` is set to `nil`, this will result in all OpenPGP signature
+// checking being disabled. *including* that the contents match!
 //
+// Also keep in mind, `reader` may be consumed 100% in memory due to
+// the underlying OpenPGP API being hella fiddly.
 func NewParagraphReader(reader io.Reader, keyring *openpgp.EntityList) (*ParagraphReader, error) {
 	bufioReader := bufio.NewReader(reader)
 	ret := ParagraphReader{
@@ -60,10 +69,9 @@ func NewParagraphReader(reader io.Reader, keyring *openpgp.EntityList) (*Paragra
 		signer: nil,
 	}
 
-	// OK. We have a Paragraph. Now, let's peek ahead and see if we've got an
+	// OK. We have a document. Now, let's peek ahead and see if we've got an
 	// OpenPGP Clearsigned set of Paragraphs. If we do, we're going to go ahead
 	// and do the decode dance.
-
 	line, _ := bufioReader.Peek(15)
 	if string(line) != "-----BEGIN PGP " {
 		return &ret, nil
@@ -75,10 +83,18 @@ func NewParagraphReader(reader io.Reader, keyring *openpgp.EntityList) (*Paragra
 	return &ret, nil
 }
 
+// }}}
+
+// Signer {{{
+
 // Return the Entity (if one exists) that signed this set of Paragraphs.
 func (p *ParagraphReader) Signer() *openpgp.Entity {
 	return p.signer
 }
+
+// }}}
+
+// All {{{
 
 func (p *ParagraphReader) All() ([]Paragraph, error) {
 	ret := []Paragraph{}
@@ -93,56 +109,12 @@ func (p *ParagraphReader) All() ([]Paragraph, error) {
 	}
 }
 
-// Internal method to read an OpenPGP Clearsigned document, store related
-// OpenPGP information onto the shell Struct, and return any errors that
-// we encounter along the way, such as an invalid signature, unknown
-// signer, or incomplete document. If `keyring` is `nil`, checking of the
-// signed data is *not* preformed.
-func (p *ParagraphReader) decodeClearsig(keyring *openpgp.EntityList) error {
-	// One *massive* downside here is that the OpenPGP module in Go operates
-	// on byte arrays in memory, and *not* on Readers and Writers. This is a
-	// huge PITA because it doens't need to be that way, and this forces
-	// clearsigned documents into memory. Which fucking sucks. But here
-	// we are. It's likely worth a bug or two on this.
+// }}}
 
-	signedData, err := ioutil.ReadAll(p.reader)
-	if err != nil {
-		return err
-	}
+// Next {{{
 
-	block, _ := clearsign.Decode(signedData)
-	/* We're only interested in the first block. This may change in the
-	 * future, in which case, we should likely set reader back to
-	 * the remainder, and return that out to put through another
-	 * ParagraphReader, since it may have a different signer. */
-
-	if keyring == nil {
-		/* As a special case, if the keyring is nil, we can go ahead
-		 * and assume this data isn't intended to be checked against the
-		 * keyring. So, we'll just pass on through. */
-		p.reader = bufio.NewReader(bytes.NewBuffer(block.Bytes))
-		return nil
-	}
-
-	/* Now, we have to go ahead and check that the signature is valid and
-	 * relates to an entity we have in our keyring */
-	signer, err := openpgp.CheckDetachedSignature(
-		keyring,
-		bytes.NewReader(block.Bytes),
-		block.ArmoredSignature.Body,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	p.signer = signer
-	p.reader = bufio.NewReader(bytes.NewBuffer(block.Bytes))
-
-	return nil
-}
-
-//
+// Consume the io.Reader and return the next parsed Paragraph, modulo
+// garbage lines causing us to return an error.
 func (p *ParagraphReader) Next() (*Paragraph, error) {
 	paragraph := Paragraph{
 		Order:  []string{},
@@ -213,5 +185,62 @@ func (p *ParagraphReader) Next() (*Paragraph, error) {
 		paragraph.Values[lastKey] = value
 	}
 }
+
+// }}}
+
+// decodeClearsig {{{
+
+// Internal method to read an OpenPGP Clearsigned document, store related
+// OpenPGP information onto the shell Struct, and return any errors that
+// we encounter along the way, such as an invalid signature, unknown
+// signer, or incomplete document. If `keyring` is `nil`, checking of the
+// signed data is *not* preformed.
+func (p *ParagraphReader) decodeClearsig(keyring *openpgp.EntityList) error {
+	// One *massive* downside here is that the OpenPGP module in Go operates
+	// on byte arrays in memory, and *not* on Readers and Writers. This is a
+	// huge PITA because it doens't need to be that way, and this forces
+	// clearsigned documents into memory. Which fucking sucks. But here
+	// we are. It's likely worth a bug or two on this.
+
+	signedData, err := ioutil.ReadAll(p.reader)
+	if err != nil {
+		return err
+	}
+
+	block, _ := clearsign.Decode(signedData)
+	/* We're only interested in the first block. This may change in the
+	 * future, in which case, we should likely set reader back to
+	 * the remainder, and return that out to put through another
+	 * ParagraphReader, since it may have a different signer. */
+
+	if keyring == nil {
+		/* As a special case, if the keyring is nil, we can go ahead
+		 * and assume this data isn't intended to be checked against the
+		 * keyring. So, we'll just pass on through. */
+		p.reader = bufio.NewReader(bytes.NewBuffer(block.Bytes))
+		return nil
+	}
+
+	/* Now, we have to go ahead and check that the signature is valid and
+	 * relates to an entity we have in our keyring */
+	signer, err := openpgp.CheckDetachedSignature(
+		keyring,
+		bytes.NewReader(block.Bytes),
+		block.ArmoredSignature.Body,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	p.signer = signer
+	p.reader = bufio.NewReader(bytes.NewBuffer(block.Bytes))
+
+	return nil
+}
+
+// }}}
+
+// }}}
 
 // vim: foldmethod=marker
