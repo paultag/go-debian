@@ -25,6 +25,7 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"golang.org/x/crypto/openpgp"
 )
@@ -59,8 +60,6 @@ func (d *Decoder) Decode(into interface{}) error {
 	return decode(&d.paragraphReader, reflect.ValueOf(into))
 }
 
-// Decode Helpers {{{
-
 // Top-level decode dispatch {{{
 func decode(p *ParagraphReader, into reflect.Value) error {
 	if into.Type().Kind() != reflect.Ptr {
@@ -76,7 +75,7 @@ func decode(p *ParagraphReader, into reflect.Value) error {
 		return decodeStruct(*paragraph, into)
 	case reflect.Slice:
 		return nil
-		//		return decodeSlice(p, into)
+		return decodeSlice(p, into)
 	default:
 		return fmt.Errorf("Can't Decode into a %s", into.Elem().Type().Name)
 	}
@@ -164,7 +163,7 @@ func decodeStructValue(field reflect.Value, fieldType reflect.StructField, value
 		field.SetInt(int64(value))
 		return nil
 	case reflect.Slice:
-		return nil
+		return decodeStructValueSlice(field, fieldType, value)
 	case reflect.Struct:
 		return nil
 	}
@@ -175,13 +174,44 @@ func decodeStructValue(field reflect.Value, fieldType reflect.StructField, value
 
 // }}}
 
+// set a struct field value {{{
+
+func decodeStructValueSlice(field reflect.Value, fieldType reflect.StructField, value string) error {
+	underlyingType := field.Type().Elem()
+
+	var delim = " "
+	if it := fieldType.Tag.Get("delim"); it != "" {
+		delim = it
+	}
+
+	var strip = ""
+	if it := fieldType.Tag.Get("strip"); it != "" {
+		strip = it
+	}
+
+	value = strings.Trim(value, strip)
+
+	for _, el := range strings.Split(value, delim) {
+		el = strings.Trim(el, strip)
+
+		targetValue := reflect.New(underlyingType)
+		err := decodeStructValue(targetValue.Elem(), fieldType, el)
+		if err != nil {
+			return err
+		}
+		field.Set(reflect.Append(field, targetValue.Elem()))
+	}
+
+	return nil
+}
+
+// }}}
+
 // Top-level slice dispatch {{{
 
 func decodeSlice(p *ParagraphReader, into reflect.Value) error {
 	return nil
 }
-
-// }}}
 
 // }}}
 
