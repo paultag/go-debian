@@ -37,8 +37,9 @@ Foo-Bar: baz
 
 Value: Bar
 
-Value Baz
+Value: Baz
 `)))
+	assert(t, len(foo) == 3)
 	assert(t, foo[0].Value == "foo")
 }
 

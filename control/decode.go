@@ -39,8 +39,12 @@ type Unmarshalable interface {
 	UnmarshalControl(data string) error
 }
 
-func Unmarshal(data interface{}, foo io.Reader) error {
-	return nil
+func Unmarshal(data interface{}, reader io.Reader) error {
+	decoder, err := NewDecoder(reader, nil)
+	if err != nil {
+		return err
+	}
+	return decoder.Decode(data)
 }
 
 // Decoder {{{
@@ -70,6 +74,7 @@ func (d *Decoder) Decode(into interface{}) error {
 }
 
 // Top-level decode dispatch {{{
+
 func decode(p *ParagraphReader, into reflect.Value) error {
 	if into.Type().Kind() != reflect.Ptr {
 		return fmt.Errorf("Decode can only decode into a pointer!")
@@ -83,7 +88,6 @@ func decode(p *ParagraphReader, into reflect.Value) error {
 		}
 		return decodeStruct(*paragraph, into)
 	case reflect.Slice:
-		return nil
 		return decodeSlice(p, into)
 	default:
 		return fmt.Errorf("Can't Decode into a %s", into.Elem().Type().Name)
@@ -112,6 +116,13 @@ func decodeStruct(p Paragraph, into reflect.Value) error {
 		field := into.Field(i)
 		fieldType := into.Type().Field(i)
 
+		if field.Type().Kind() == reflect.Struct {
+			err := decodeStruct(p, field)
+			if err != nil {
+				return err
+			}
+		}
+
 		/* First, let's get the name of the field as we'd index into the
 		 * map[string]string. */
 		paragraphKey := fieldType.Name
@@ -137,13 +148,22 @@ func decodeStruct(p Paragraph, into reflect.Value) error {
 			}
 		}
 
+		if it := fieldType.Tag.Get("control"); it != "" {
+			paragraphKey = it
+		}
+
 		if value, ok := p.Values[paragraphKey]; ok {
 			if err := decodeStructValue(field, fieldType, value); err != nil {
 				return err
 			}
 			continue
 		} else {
-			/* XXX: Handle required fields here */
+			if fieldType.Tag.Get("required") == "true" {
+				return fmt.Errorf(
+					"Required field '%s' is missing!",
+					fieldType.Name,
+				)
+			}
 			continue
 		}
 	}
@@ -238,7 +258,26 @@ func decodeStructValueSlice(field reflect.Value, fieldType reflect.StructField, 
 // Top-level slice dispatch {{{
 
 func decodeSlice(p *ParagraphReader, into reflect.Value) error {
+	flavor := into.Elem().Type().Elem()
+
+	for {
+		targetValue := reflect.New(flavor)
+
+		/* Get a Paragraph */
+		para, err := p.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+
+		if err := decodeStruct(*para, targetValue); err != nil {
+			return err
+		}
+		into.Elem().Set(reflect.Append(into.Elem(), targetValue.Elem()))
+	}
 	return nil
+
 }
 
 // }}}
