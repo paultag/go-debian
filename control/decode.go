@@ -21,7 +21,7 @@
 package control
 
 import (
-	"bufio"
+	// "bufio"
 	"fmt"
 	"io"
 	"reflect"
@@ -237,24 +237,26 @@ func isParagraph(incoming reflect.Value) (int, bool) {
 }
 
 func unmarshalStruct(incoming interface{}, data io.Reader) error {
-	reader := bufio.NewReader(data)
-	para, err := ParseParagraph(reader)
-	if err != nil && err != io.EOF {
-		return err
-	}
-	if para == nil {
-		return io.EOF
-	}
+	return nil
 
-	val := reflect.ValueOf(incoming).Elem()
-	/* Before we dump it back, we should give the Paragraph back to
-	 * the object */
-	if index, is := isParagraph(val); is {
-		/* If we're a Paragraph, let's go ahead and set the index. */
-		val.Field(index).Set(reflect.ValueOf(*para))
-	}
-
-	return decodePointer(reflect.ValueOf(incoming), *para)
+	// 	reader := bufio.NewReader(data)
+	// 	para, err := ParseParagraph(reader)
+	// 	if err != nil && err != io.EOF {
+	// 		return err
+	// 	}
+	// 	if para == nil {
+	// 		return io.EOF
+	// 	}
+	//
+	// 	val := reflect.ValueOf(incoming).Elem()
+	// 	/* Before we dump it back, we should give the Paragraph back to
+	// 	 * the object */
+	// 	if index, is := isParagraph(val); is {
+	// 		/* If we're a Paragraph, let's go ahead and set the index. */
+	// 		val.Field(index).Set(reflect.ValueOf(*para))
+	// 	}
+	//
+	// 	return decodePointer(reflect.ValueOf(incoming), *para)
 }
 
 // vim: foldmethod=marker
