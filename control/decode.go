@@ -21,134 +21,29 @@
 package control
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"golang.org/x/crypto/openpgp"
 )
 
-func decodeCustomValues(incoming reflect.Value, incomingField reflect.StructField, data string) error {
-	/* Incoming is a slice */
-	underlyingType := incoming.Type().Elem()
+// Unmarshalable {{{
 
-	var delim = " "
-	if it := incomingField.Tag.Get("delim"); it != "" {
-		delim = it
-	}
-
-	var strip = ""
-	if it := incomingField.Tag.Get("strip"); it != "" {
-		strip = it
-	}
-
-	if strip != "" {
-		data = strings.Trim(data, strip)
-	}
-
-	for _, el := range strings.Split(data, delim) {
-		if strip != "" {
-			el = strings.Trim(el, strip)
-		}
-
-		targetValue := reflect.New(underlyingType)
-		err := decodeValue(targetValue.Elem(), incomingField, el)
-		if err != nil {
-			return err
-		}
-		incoming.Set(reflect.Append(incoming, targetValue.Elem()))
-	}
-	return nil
+// The Unmarshalable interface defines the interface that Unmarshal will use
+// to do custom unpacks into Structs.
+//
+// The argument passed in will be a string that contains the value of the
+// RFC822 key this object relates to.
+type Unmarshalable interface {
+	UnmarshalControl(data string) error
 }
 
-func decodeCustomValue(incoming reflect.Value, incomingField reflect.StructField, data string) error {
-	/* Right, so, we've got a type we don't know what to do with. We should
-	 * grab the method, or throw a shitfit. */
-	elem := incoming.Addr()
+// }}}
 
-	if unmarshal, ok := elem.Interface().(Unmarshalable); ok {
-		return unmarshal.UnmarshalControl(data)
-	}
-
-	return fmt.Errorf(
-		"Type '%s' does not implement control.Unmarshalable",
-		incomingField.Type.Name(),
-	)
-}
-
-func decodeValue(incoming reflect.Value, incomingField reflect.StructField, data string) error {
-	switch incoming.Type().Kind() {
-	case reflect.String:
-		incoming.SetString(data)
-		return nil
-	case reflect.Int:
-		if data == "" {
-			incoming.SetInt(0)
-			return nil
-		}
-		value, err := strconv.Atoi(data)
-		if err != nil {
-			return err
-		}
-		incoming.SetInt(int64(value))
-		return nil
-	case reflect.Slice:
-		return decodeCustomValues(incoming, incomingField, data)
-	case reflect.Struct:
-		return decodeCustomValue(incoming, incomingField, data)
-	}
-	return fmt.Errorf("Unknown type of field: %s", incoming.Type())
-}
-
-func decodePointer(incoming reflect.Value, data Paragraph) error {
-	if incoming.Type().Kind() == reflect.Ptr {
-		/* If we have a pointer, let's follow it */
-		return decodePointer(incoming.Elem(), data)
-	}
-
-	for i := 0; i < incoming.NumField(); i++ {
-		field := incoming.Field(i)
-		fieldType := incoming.Type().Field(i)
-
-		if field.Type().Kind() == reflect.Struct {
-			err := decodePointer(field, data)
-			if err != nil {
-				return err
-			}
-		}
-
-		paragraphKey := fieldType.Name
-		if it := fieldType.Tag.Get("control"); it != "" {
-			paragraphKey = it
-		}
-
-		if paragraphKey == "-" {
-			continue
-		}
-
-		required := fieldType.Tag.Get("required") == "true"
-
-		if val, ok := data.Values[paragraphKey]; ok {
-			err := decodeValue(field, fieldType, val)
-			if err != nil {
-				return fmt.Errorf(
-					"pault.ag/go/debian/control: failed to set %s: %s",
-					fieldType.Name,
-					err,
-				)
-			}
-		} else if required {
-			return fmt.Errorf(
-				"pault.ag/go/debian/control: required field %s missing",
-				fieldType.Name,
-			)
-
-		}
-	}
-
-	return nil
-}
+// Unmarshal {{{
 
 // Given a struct (or list of structs), read the io.Reader RFC822-alike
 // Debian control-file stream into the struct, unpacking keys into the
@@ -172,89 +67,257 @@ func decodePointer(incoming reflect.Value, data Paragraph) error {
 // Structs that contain Paragraph as an Anonymous member will have that
 // member populated with the parsed RFC822 block, to allow access to the
 // .Values and .Order members.
-func Unmarshal(incoming interface{}, data io.Reader) error {
-	/* Dispatch if incoming is a slice or not */
-	val := reflect.ValueOf(incoming)
+func Unmarshal(data interface{}, reader io.Reader) error {
+	decoder, err := NewDecoder(reader, nil)
+	if err != nil {
+		return err
+	}
+	return decoder.Decode(data)
+}
 
-	if val.Type().Kind() != reflect.Ptr {
-		return fmt.Errorf("Ouchie! Please give me a pointer!")
+// }}}
+
+// Decoder {{{
+
+type Decoder struct {
+	paragraphReader ParagraphReader
+}
+
+// NewDecoder {{{
+
+func NewDecoder(reader io.Reader, keyring *openpgp.EntityList) (*Decoder, error) {
+	ret := Decoder{}
+	pr, err := NewParagraphReader(reader, keyring)
+	if err != nil {
+		return nil, err
+	}
+	ret.paragraphReader = *pr
+	return &ret, nil
+}
+
+// }}}
+
+// Decode {{{
+
+func (d *Decoder) Decode(into interface{}) error {
+	return decode(&d.paragraphReader, reflect.ValueOf(into))
+}
+
+// Top-level decode dispatch {{{
+
+func decode(p *ParagraphReader, into reflect.Value) error {
+	if into.Type().Kind() != reflect.Ptr {
+		return fmt.Errorf("Decode can only decode into a pointer!")
 	}
 
-	switch val.Elem().Type().Kind() {
+	switch into.Elem().Type().Kind() {
 	case reflect.Struct:
-		return unmarshalStruct(incoming, data)
+		paragraph, err := p.Next()
+		if err != nil {
+			return err
+		}
+		return decodeStruct(*paragraph, into)
 	case reflect.Slice:
-		return unmarshalSlice(incoming, data)
+		return decodeSlice(p, into)
 	default:
-		return fmt.Errorf(
-			"Ouchie! I don't know how to deal with a %s",
-			val.Elem().Type().Name,
-		)
-
+		return fmt.Errorf("Can't Decode into a %s", into.Elem().Type().Name())
 	}
+
+	return nil
 }
 
-// The Unmarshalable interface defines the interface that Unmarshal will use
-// to do custom unpacks into Structs.
-//
-// The argument passed in will be a string that contains the value of the
-// RFC822 key this object relates to.
-type Unmarshalable interface {
-	UnmarshalControl(data string) error
+// }}}
+
+// Top-level struct dispatch {{{
+
+func decodeStruct(p Paragraph, into reflect.Value) error {
+	/* If we have a pointer, let's follow it */
+	if into.Type().Kind() == reflect.Ptr {
+		return decodeStruct(p, into.Elem())
+	}
+
+	/* Store the Paragraph type for later use when checking Anonymous
+	 * values. */
+	paragraphType := reflect.TypeOf(Paragraph{})
+
+	/* Right, now, we're going to decode a Paragraph into the struct */
+
+	for i := 0; i < into.NumField(); i++ {
+		field := into.Field(i)
+		fieldType := into.Type().Field(i)
+
+		if field.Type().Kind() == reflect.Struct {
+			err := decodeStruct(p, field)
+			if err != nil {
+				return err
+			}
+		}
+
+		/* First, let's get the name of the field as we'd index into the
+		 * map[string]string. */
+		paragraphKey := fieldType.Name
+		if it := fieldType.Tag.Get("control"); it != "" {
+			paragraphKey = it
+		}
+
+		if paragraphKey == "-" {
+			/* If the key is "-", lets go ahead and skip it */
+			continue
+		}
+
+		/* Now, if we have an Anonymous field, we're either going to
+		 * set it to the Paragraph if it's the Paragraph Anonymous member,
+		 * or, more likely, continue through */
+		if fieldType.Anonymous {
+			if fieldType.Type == paragraphType {
+				/* Neat! Let's give the struct this data */
+				field.Set(reflect.ValueOf(p))
+			} else {
+				/* Otherwise, we're going to avoid doing more maths on it */
+				continue
+			}
+		}
+
+		if value, ok := p.Values[paragraphKey]; ok {
+			if err := decodeStructValue(field, fieldType, value); err != nil {
+				return err
+			}
+			continue
+		} else {
+			if fieldType.Tag.Get("required") == "true" {
+				return fmt.Errorf(
+					"Required field '%s' is missing!",
+					fieldType.Name,
+				)
+			}
+			continue
+		}
+	}
+
+	return nil
 }
 
-func unmarshalSlice(incoming interface{}, data io.Reader) error {
-	/* Good holy hot damn this code is ugly */
+// }}}
+
+// set a struct field value {{{
+
+func decodeStructValue(field reflect.Value, fieldType reflect.StructField, value string) error {
+	switch field.Type().Kind() {
+	case reflect.String:
+		field.SetString(value)
+		return nil
+	case reflect.Int:
+		if value == "" {
+			field.SetInt(0)
+			return nil
+		}
+		value, err := strconv.Atoi(value)
+		if err != nil {
+			return err
+		}
+		field.SetInt(int64(value))
+		return nil
+	case reflect.Slice:
+		return decodeStructValueSlice(field, fieldType, value)
+	case reflect.Struct:
+		return decodeStructValueStruct(field, fieldType, value)
+	}
+
+	return fmt.Errorf("Unknown type of field: %s", field.Type())
+
+}
+
+// }}}
+
+// set a struct field value of type struct {{{
+
+func decodeStructValueStruct(incoming reflect.Value, incomingField reflect.StructField, data string) error {
+	/* Right, so, we've got a type we don't know what to do with. We should
+	 * grab the method, or throw a shitfit. */
+	elem := incoming.Addr()
+
+	if unmarshal, ok := elem.Interface().(Unmarshalable); ok {
+		return unmarshal.UnmarshalControl(data)
+	}
+
+	return fmt.Errorf(
+		"Type '%s' does not implement control.Unmarshalable",
+		incomingField.Type.Name(),
+	)
+}
+
+// }}}
+
+// set a struct field value of type slice {{{
+
+func decodeStructValueSlice(field reflect.Value, fieldType reflect.StructField, value string) error {
+	underlyingType := field.Type().Elem()
+
+	var delim = " "
+	if it := fieldType.Tag.Get("delim"); it != "" {
+		delim = it
+	}
+
+	var strip = ""
+	if it := fieldType.Tag.Get("strip"); it != "" {
+		strip = it
+	}
+
+	value = strings.Trim(value, strip)
+
+	for _, el := range strings.Split(value, delim) {
+		el = strings.Trim(el, strip)
+
+		targetValue := reflect.New(underlyingType)
+		err := decodeStructValue(targetValue.Elem(), fieldType, el)
+		if err != nil {
+			return err
+		}
+		field.Set(reflect.Append(field, targetValue.Elem()))
+	}
+
+	return nil
+}
+
+// }}}
+
+// Top-level slice dispatch {{{
+
+func decodeSlice(p *ParagraphReader, into reflect.Value) error {
+	flavor := into.Elem().Type().Elem()
+
 	for {
-		val := reflect.ValueOf(incoming)
-		flavor := val.Elem().Type().Elem()
-
 		targetValue := reflect.New(flavor)
-		target := targetValue.Interface()
-		err := unmarshalStruct(target, data)
 
+		/* Get a Paragraph */
+		para, err := p.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
 			return err
 		}
 
-		val.Elem().Set(reflect.Append(val.Elem(), targetValue.Elem()))
+		if err := decodeStruct(*para, targetValue); err != nil {
+			return err
+		}
+		into.Elem().Set(reflect.Append(into.Elem(), targetValue.Elem()))
 	}
 	return nil
+
 }
 
-func isParagraph(incoming reflect.Value) (int, bool) {
-	paragraphType := reflect.TypeOf(Paragraph{})
-	val := incoming.Type()
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-		if field.Anonymous && field.Type == paragraphType {
-			return i, true
-		}
-	}
-	return -1, false
+// }}}
+
+// }}}
+
+// Signer {{{
+
+func (d *Decoder) Signer() *openpgp.Entity {
+	return d.paragraphReader.Signer()
 }
 
-func unmarshalStruct(incoming interface{}, data io.Reader) error {
-	reader := bufio.NewReader(data)
-	para, err := ParseParagraph(reader)
-	if err != nil && err != io.EOF {
-		return err
-	}
-	if para == nil {
-		return io.EOF
-	}
+// }}}
 
-	val := reflect.ValueOf(incoming).Elem()
-	/* Before we dump it back, we should give the Paragraph back to
-	 * the object */
-	if index, is := isParagraph(val); is {
-		/* If we're a Paragraph, let's go ahead and set the index. */
-		val.Field(index).Set(reflect.ValueOf(*para))
-	}
-
-	return decodePointer(reflect.ValueOf(incoming), *para)
-}
+// }}}
 
 // vim: foldmethod=marker
