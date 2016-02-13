@@ -27,13 +27,21 @@ import (
 	"strings"
 )
 
-func Marshal(data interface{}) (*Paragraph, error) {
-	return marshalStruct(reflect.ValueOf(data))
-}
+// Marshalable {{{
 
 type Marshalable interface {
 	MarshalControl() (string, error)
 }
+
+// }}}
+
+// Marshal {{{
+
+func Marshal(data interface{}) (*Paragraph, error) {
+	return marshalStruct(reflect.ValueOf(data))
+}
+
+// Top-level Struct dispatch {{{
 
 func marshalStruct(data reflect.Value) (*Paragraph, error) {
 	if data.Type().Kind() == reflect.Ptr {
@@ -76,6 +84,10 @@ func marshalStruct(data reflect.Value) (*Paragraph, error) {
 	}, nil
 }
 
+// }}}
+
+// Encode a struct value {{{
+
 func marshalStructValue(field reflect.Value, fieldType reflect.StructField) (string, error) {
 	switch field.Type().Kind() {
 	case reflect.String:
@@ -89,6 +101,10 @@ func marshalStructValue(field reflect.Value, fieldType reflect.StructField) (str
 	}
 	return "", fmt.Errorf("Unknown type")
 }
+
+// }}}
+
+// Encode a struct value of type struct {{{
 
 func marshalStructValueStruct(field reflect.Value, fieldType reflect.StructField) (string, error) {
 	/* Right, so, we've got a type we don't know what to do with. We should
@@ -104,6 +120,10 @@ func marshalStructValueStruct(field reflect.Value, fieldType reflect.StructField
 		field.Type().Name(),
 	)
 }
+
+// }}}
+
+// Encode a struct value of type slice {{{
 
 func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField) (string, error) {
 	var delim = " "
@@ -123,5 +143,9 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 
 	return strings.Join(data, delim), nil
 }
+
+// }}}
+
+// }}}
 
 // vim: foldmethod=marker
