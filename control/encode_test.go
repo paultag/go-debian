@@ -34,7 +34,6 @@ X-A-Test: Foo
 X-A-Test: Foo
 
 `)
-
 }
 
 func TestBasicMarshal(t *testing.T) {
