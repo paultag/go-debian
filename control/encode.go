@@ -116,9 +116,7 @@ func marshalStructValue(field reflect.Value, fieldType reflect.StructField) (str
 func marshalStructValueStruct(field reflect.Value, fieldType reflect.StructField) (string, error) {
 	/* Right, so, we've got a type we don't know what to do with. We should
 	 * grab the method, or throw a shitfit. */
-	elem := field.Addr()
-
-	if marshal, ok := elem.Interface().(Marshalable); ok {
+	if marshal, ok := field.Interface().(Marshalable); ok {
 		return marshal.MarshalControl()
 	}
 
@@ -165,6 +163,13 @@ func NewEncoder(writer io.Writer) (*Encoder, error) {
 
 func (e *Encoder) Encode(incoming interface{}) error {
 	data := reflect.ValueOf(incoming)
+	return e.encode(data)
+}
+
+func (e *Encoder) encode(data reflect.Value) error {
+	if data.Type().Kind() == reflect.Ptr {
+		return e.encode(data.Elem())
+	}
 
 	switch data.Type().Kind() {
 	case reflect.Slice:
