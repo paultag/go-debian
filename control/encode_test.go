@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"pault.ag/go/debian/control"
-	// "pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/dependency"
 	"pault.ag/go/debian/version"
 )
 
@@ -14,8 +14,9 @@ type TestMarshalStruct struct {
 	Foo string
 }
 
-type SomeVersionStruct struct {
-	Version version.Version
+type SomeComplexStruct struct {
+	Version    version.Version
+	Dependency dependency.Dependency
 }
 
 type TestParaMarshalStruct struct {
@@ -54,8 +55,10 @@ func TestBasicMarshal(t *testing.T) {
 }
 
 func TestExternalMarshal(t *testing.T) {
-	testStruct := SomeVersionStruct{}
+	testStruct := SomeComplexStruct{}
 	isok(t, control.Unmarshal(&testStruct, strings.NewReader(`Version: 1.0-1
+Dependency: foo, bar
+
 `)))
 	writer := bytes.Buffer{}
 
@@ -63,6 +66,7 @@ func TestExternalMarshal(t *testing.T) {
 	isok(t, err)
 
 	assert(t, writer.String() == `Version: 1.0-1
+Dependency: foo, bar
 
 `)
 }
