@@ -2,6 +2,7 @@ package control_test
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"pault.ag/go/debian/control"
@@ -11,6 +12,27 @@ import (
 
 type TestMarshalStruct struct {
 	Foo string
+}
+
+type TestParaMarshalStruct struct {
+	control.Paragraph
+	Foo string
+}
+
+func TestExtraMarshal(t *testing.T) {
+	el := TestParaMarshalStruct{}
+
+	isok(t, control.Unmarshal(&el, strings.NewReader(`Foo: test
+X-A-Test: Foo
+`)))
+
+	writer := bytes.Buffer{}
+	isok(t, control.Marshal(&writer, el))
+	assert(t, writer.String() == `Foo: test
+X-A-Test: Foo
+
+`)
+
 }
 
 func TestBasicMarshal(t *testing.T) {

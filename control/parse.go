@@ -66,11 +66,13 @@ func (p Paragraph) Update(other Paragraph) Paragraph {
 	for _, el := range p.Order {
 		ret.Order = append(ret.Order, el)
 		ret.Values[el] = p.Values[el]
+		seen[el] = true
 	}
 
 	for _, el := range other.Order {
 		if _, ok := seen[el]; !ok {
 			ret.Order = append(ret.Order, el)
+			seen[el] = true
 		}
 		ret.Values[el] = other.Values[el]
 	}
