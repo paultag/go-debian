@@ -52,6 +52,10 @@ func convertToParagraph(data reflect.Value) (*Paragraph, error) {
 	order := []string{}
 	values := map[string]string{}
 
+	if data.Type().Kind() != reflect.Struct {
+		return nil, fmt.Errorf("Can only Decode a Struct")
+	}
+
 	for i := 0; i < data.NumField(); i++ {
 		field := data.Field(i)
 		fieldType := data.Type().Field(i)
