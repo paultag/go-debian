@@ -69,7 +69,7 @@ func (p Paragraph) Update(other Paragraph) Paragraph {
 	}
 
 	for _, el := range other.Order {
-		if _, ok := seen[el]; ok {
+		if _, ok := seen[el]; !ok {
 			ret.Order = append(ret.Order, el)
 		}
 		ret.Values[el] = other.Values[el]

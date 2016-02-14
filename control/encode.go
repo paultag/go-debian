@@ -88,7 +88,6 @@ func convertToParagraph(data reflect.Value) (*Paragraph, error) {
 		order = append(order, paragraphKey)
 		values[paragraphKey] = data
 	}
-
 	para := foundParagraph.Update(Paragraph{Order: order, Values: values})
 	return &para, nil
 }
