@@ -26,6 +26,8 @@ func TestExtraMarshal(t *testing.T) {
 X-A-Test: Foo
 `)))
 
+	assert(t, el.Foo == "test")
+
 	writer := bytes.Buffer{}
 	isok(t, control.Marshal(&writer, el))
 	assert(t, writer.String() == `Foo: test
