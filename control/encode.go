@@ -38,17 +38,17 @@ type Marshalable interface {
 
 // ConvertToParagraph {{{
 
-func ConvertToParagraph(data interface{}) (*Paragraph, error) {
-	return marshalStruct(reflect.ValueOf(data))
+func ConvertToParagraph(incoming interface{}) (*Paragraph, error) {
+	data := reflect.ValueOf(incoming)
+	if data.Type().Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("Can only Decode a pointer to a Struct")
+	}
+	return convertToParagraph(data.Elem())
 }
 
 // Top-level Struct dispatch {{{
 
-func marshalStruct(data reflect.Value) (*Paragraph, error) {
-	if data.Type().Kind() == reflect.Ptr {
-		return marshalStruct(data.Elem())
-	}
-
+func convertToParagraph(data reflect.Value) (*Paragraph, error) {
 	order := []string{}
 	values := map[string]string{}
 
@@ -95,6 +95,8 @@ func marshalStructValue(field reflect.Value, fieldType reflect.StructField) (str
 		return field.String(), nil
 	case reflect.Uint:
 		return strconv.Itoa(int(field.Uint())), nil
+	case reflect.Ptr:
+		return marshalStructValue(field.Elem(), fieldType)
 	case reflect.Slice:
 		return marshalStructValueSlice(field, fieldType)
 	case reflect.Struct:
@@ -157,8 +159,29 @@ func NewEncoder(writer io.Writer) (*Encoder, error) {
 	return &Encoder{writer: writer}, nil
 }
 
-func (e *Encoder) Encode(data interface{}) error {
-	paragraph, err := ConvertToParagraph(data)
+func (e *Encoder) Encode(incoming interface{}) error {
+	data := reflect.ValueOf(incoming)
+
+	switch data.Type().Kind() {
+	case reflect.Slice:
+		return e.encodeSlice(data)
+	case reflect.Struct:
+		return e.encodeStruct(data)
+	}
+	return fmt.Errorf("Unknown type")
+}
+
+func (e *Encoder) encodeSlice(data reflect.Value) error {
+	for i := 0; i < data.Len(); i++ {
+		if err := e.encodeStruct(data.Index(i)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (e *Encoder) encodeStruct(data reflect.Value) error {
+	paragraph, err := convertToParagraph(data)
 	if err != nil {
 		return err
 	}
