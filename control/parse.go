@@ -41,6 +41,8 @@ type Paragraph struct {
 	Order  []string
 }
 
+// Paragraph Helpers {{{
+
 func (p Paragraph) WriteTo(out io.Writer) error {
 	for _, key := range p.Order {
 		if _, err := out.Write(
@@ -75,6 +77,8 @@ func (p Paragraph) Update(other Paragraph) Paragraph {
 
 	return ret
 }
+
+// }}}
 
 // ParagraphReader {{{
 
