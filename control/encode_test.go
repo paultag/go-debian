@@ -15,6 +15,8 @@ type TestMarshalStruct struct {
 }
 
 type SomeComplexStruct struct {
+	control.Paragraph
+
 	Version    version.Version
 	Dependency dependency.Dependency
 }
@@ -58,6 +60,7 @@ func TestExternalMarshal(t *testing.T) {
 	testStruct := SomeComplexStruct{}
 	isok(t, control.Unmarshal(&testStruct, strings.NewReader(`Version: 1.0-1
 Dependency: foo, bar
+X-Foo: bar
 
 `)))
 	writer := bytes.Buffer{}
@@ -67,6 +70,7 @@ Dependency: foo, bar
 
 	assert(t, writer.String() == `Version: 1.0-1
 Dependency: foo, bar
+X-Foo: bar
 
 `)
 }
