@@ -41,6 +41,18 @@ type Paragraph struct {
 	Order  []string
 }
 
+func (p *Paragraph) WriteTo(out io.Writer) error {
+	for _, key := range p.Order {
+		if _, err := out.Write(
+			[]byte(fmt.Sprintf("%s: %s\n", key, p.Values[key])),
+		); err != nil {
+			return err
+		}
+	}
+	_, err := out.Write([]byte("\n"))
+	return err
+}
+
 // ParagraphReader {{{
 
 // Wrapper to allow iteration on a set of Paragraphs without consuming them

@@ -22,6 +22,7 @@ package control
 
 import (
 	"fmt"
+	"io"
 	"reflect"
 	"strconv"
 	"strings"
@@ -35,9 +36,9 @@ type Marshalable interface {
 
 // }}}
 
-// Marshal {{{
+// ConvertToParagraph {{{
 
-func Marshal(data interface{}) (*Paragraph, error) {
+func ConvertToParagraph(data interface{}) (*Paragraph, error) {
 	return marshalStruct(reflect.ValueOf(data))
 }
 
@@ -147,5 +148,21 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 // }}}
 
 // }}}
+
+type Encoder struct {
+	writer io.Writer
+}
+
+func NewEncoder(writer io.Writer) (*Encoder, error) {
+	return &Encoder{writer: writer}, nil
+}
+
+func (e *Encoder) Encode(data interface{}) error {
+	paragraph, err := ConvertToParagraph(data)
+	if err != nil {
+		return err
+	}
+	return paragraph.WriteTo(e.writer)
+}
 
 // vim: foldmethod=marker
