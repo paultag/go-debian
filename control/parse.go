@@ -45,8 +45,13 @@ type Paragraph struct {
 
 func (p Paragraph) WriteTo(out io.Writer) error {
 	for _, key := range p.Order {
+		value := p.Values[key]
+
+		value = strings.Replace(value, "\n", "\n ", -1)
+		value = strings.Replace(value, "\n \n", "\n .\n", -1)
+
 		if _, err := out.Write(
-			[]byte(fmt.Sprintf("%s: %s\n", key, p.Values[key])),
+			[]byte(fmt.Sprintf("%s: %s\n", key, value)),
 		); err != nil {
 			return err
 		}

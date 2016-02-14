@@ -77,4 +77,24 @@ X-Foo: bar
 `)
 }
 
+func TestMultilineMarshal(t *testing.T) {
+	testStruct := TestMarshalStruct{Foo: `Hello
+This
+Is
+
+A Test`}
+	writer := bytes.Buffer{}
+
+	err := control.Marshal(&writer, testStruct)
+	isok(t, err)
+
+	assert(t, writer.String() == `Foo: Hello
+ This
+ Is
+ .
+ A Test
+
+`)
+}
+
 // vim: foldmethod=marker
