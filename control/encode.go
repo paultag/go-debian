@@ -157,6 +157,14 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 
 // }}}
 
+func Marshal(writer io.Writer, data interface{}) error {
+	encoder, err := NewEncoder(writer)
+	if err != nil {
+		return err
+	}
+	return encoder.Encode(data)
+}
+
 type Encoder struct {
 	writer io.Writer
 }
