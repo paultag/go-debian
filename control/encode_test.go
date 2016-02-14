@@ -68,6 +68,8 @@ X-Foo: bar
 	err := control.Marshal(&writer, testStruct)
 	isok(t, err)
 
+	assert(t, testStruct.Dependency.Relations[0].Possibilities[0].Name == "foo")
+
 	assert(t, writer.String() == `Version: 1.0-1
 Dependency: foo, bar
 X-Foo: bar
