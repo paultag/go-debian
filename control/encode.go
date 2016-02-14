@@ -46,7 +46,7 @@ func ConvertToParagraph(incoming interface{}) (*Paragraph, error) {
 	return convertToParagraph(data.Elem())
 }
 
-// Top-level Struct dispatch {{{
+// Top-level conversaion dispatch {{{
 
 func convertToParagraph(data reflect.Value) (*Paragraph, error) {
 	order := []string{}
@@ -95,7 +95,7 @@ func convertToParagraph(data reflect.Value) (*Paragraph, error) {
 
 // }}}
 
-// Encode a struct value {{{
+// convert a struct value {{{
 
 func marshalStructValue(field reflect.Value, fieldType reflect.StructField) (string, error) {
 	switch field.Type().Kind() {
@@ -115,7 +115,7 @@ func marshalStructValue(field reflect.Value, fieldType reflect.StructField) (str
 
 // }}}
 
-// Encode a struct value of type struct {{{
+// convert a struct value of type struct {{{
 
 func marshalStructValueStruct(field reflect.Value, fieldType reflect.StructField) (string, error) {
 	/* Right, so, we've got a type we don't know what to do with. We should
@@ -132,7 +132,7 @@ func marshalStructValueStruct(field reflect.Value, fieldType reflect.StructField
 
 // }}}
 
-// Encode a struct value of type slice {{{
+// convert a struct value of type slice {{{
 
 func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField) (string, error) {
 	var delim = " "
@@ -157,6 +157,8 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 
 // }}}
 
+// Marshal {{{
+
 func Marshal(writer io.Writer, data interface{}) error {
 	encoder, err := NewEncoder(writer)
 	if err != nil {
@@ -165,18 +167,30 @@ func Marshal(writer io.Writer, data interface{}) error {
 	return encoder.Encode(data)
 }
 
+// }}}
+
+// Encoder {{{
+
 type Encoder struct {
 	writer io.Writer
 }
+
+// NewEncoder {{{
 
 func NewEncoder(writer io.Writer) (*Encoder, error) {
 	return &Encoder{writer: writer}, nil
 }
 
+// }}}
+
+// Encode {{{
+
 func (e *Encoder) Encode(incoming interface{}) error {
 	data := reflect.ValueOf(incoming)
 	return e.encode(data)
 }
+
+// Top-level Encode reflect dispatch {{{
 
 func (e *Encoder) encode(data reflect.Value) error {
 	if data.Type().Kind() == reflect.Ptr {
@@ -192,6 +206,10 @@ func (e *Encoder) encode(data reflect.Value) error {
 	return fmt.Errorf("Unknown type")
 }
 
+// }}}
+
+// Encode a Slice {{{
+
 func (e *Encoder) encodeSlice(data reflect.Value) error {
 	for i := 0; i < data.Len(); i++ {
 		if err := e.encodeStruct(data.Index(i)); err != nil {
@@ -201,6 +219,10 @@ func (e *Encoder) encodeSlice(data reflect.Value) error {
 	return nil
 }
 
+// }}}
+
+// Encode a Struct {{{
+
 func (e *Encoder) encodeStruct(data reflect.Value) error {
 	paragraph, err := convertToParagraph(data)
 	if err != nil {
@@ -208,5 +230,11 @@ func (e *Encoder) encodeStruct(data reflect.Value) error {
 	}
 	return paragraph.WriteTo(e.writer)
 }
+
+// }}}
+
+// }}}
+
+// }}}
 
 // vim: foldmethod=marker
