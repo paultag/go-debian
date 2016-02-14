@@ -56,11 +56,17 @@ func convertToParagraph(data reflect.Value) (*Paragraph, error) {
 		return nil, fmt.Errorf("Can only Decode a Struct")
 	}
 
+	paragraphType := reflect.TypeOf(Paragraph{})
+	var foundParagraph Paragraph = Paragraph{}
+
 	for i := 0; i < data.NumField(); i++ {
 		field := data.Field(i)
 		fieldType := data.Type().Field(i)
 
 		if fieldType.Anonymous {
+			if fieldType.Type == paragraphType {
+				foundParagraph = field.Interface().(Paragraph)
+			}
 			continue
 		}
 
@@ -83,10 +89,8 @@ func convertToParagraph(data reflect.Value) (*Paragraph, error) {
 		values[paragraphKey] = data
 	}
 
-	return &Paragraph{
-		Order:  order,
-		Values: values,
-	}, nil
+	para := foundParagraph.Update(Paragraph{Order: order, Values: values})
+	return &para, nil
 }
 
 // }}}
