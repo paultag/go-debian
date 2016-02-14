@@ -30,6 +30,8 @@ import (
 
 // Marshalable {{{
 
+// The Marshalable interface defines the interface that Marshal will use
+// to do custom dehydration of the Struct back into the Debian 822 format.
 type Marshalable interface {
 	MarshalControl() (string, error)
 }
@@ -38,6 +40,13 @@ type Marshalable interface {
 
 // ConvertToParagraph {{{
 
+// Given a Struct, convert that Struct back into a control.Paragraph.
+// This is not exactly useful as part of the external API, but may be
+// useful in some funny circumstances where you need to treat a Struct
+// you Unmarshaled into as a control.Paragraph again.
+//
+// In most cases, the Marshal API should be sufficient. Use of this API
+// is mildly discouraged.
 func ConvertToParagraph(incoming interface{}) (*Paragraph, error) {
 	data := reflect.ValueOf(incoming)
 	if data.Type().Kind() != reflect.Ptr {
@@ -158,6 +167,20 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 
 // Marshal {{{
 
+// Given a struct (or list of structs), write to the io.Writer stream
+// in the RFC822-alike Debian control-file format
+//
+// This code will attempt to unpack it into the struct based on the
+// literal name of the key, This can be overriden by the struct tag
+// `control:""`.
+//
+// If you're dehydrating a list of strings, you have the option of defining
+// a string to join the tokens with (`delim:", "`).
+//
+// In order to Marshal a custom Struct, you are required to implement the
+// Marshalable interface. It's highly encouraged to put this interface on
+// the struct without a pointer reciever, so that pass-by-value works
+// when you call Marshal.
 func Marshal(writer io.Writer, data interface{}) error {
 	encoder, err := NewEncoder(writer)
 	if err != nil {
