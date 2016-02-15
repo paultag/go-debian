@@ -32,6 +32,8 @@ import (
 	"xi2.org/x/xz"
 )
 
+// known compression types {{{
+
 type compressionReader func(io.Reader) (io.Reader, error)
 
 func gzipNewReader(r io.Reader) (io.Reader, error) {
@@ -52,19 +54,26 @@ var knownCompressionAlgorithms = map[string]compressionReader{
 	".tar.xz":  xzNewReader,
 }
 
+// }}}
+
+// IsTarfile {{{
+
+// Check to see if the given DebEntry is, in fact, a Tarfile. This method
+// will return `true` for `control.tar.*` and `data.tar.*` files.
+//
+// This will return `false` for the `debian-binary` file. If this method
+// returns `true`, the `.Tarfile()` method will be around to give you a
+// tar.Reader back.
 func (e *DebEntry) IsTarfile() bool {
 	return e.getCompressionReader() != nil
 }
 
-func (e *DebEntry) getCompressionReader() *compressionReader {
-	for key, decompressor := range knownCompressionAlgorithms {
-		if strings.HasSuffix(e.Name, key) {
-			return &decompressor
-		}
-	}
-	return nil
-}
+// }}}
 
+// Tarfile {{{
+
+// `.Tarfile()` will return a `tar.Reader` created from the DebEntry member
+// to allow further inspection of the contents of the `.deb`.
 func (e *DebEntry) Tarfile() (*tar.Reader, error) {
 	decompressor := e.getCompressionReader()
 	if decompressor == nil {
@@ -76,5 +85,21 @@ func (e *DebEntry) Tarfile() (*tar.Reader, error) {
 	}
 	return tar.NewReader(reader), nil
 }
+
+// }}}
+
+// getCompressionReader {{{
+
+// Get a compressionReader that we can use to unpack the member.
+func (e *DebEntry) getCompressionReader() *compressionReader {
+	for key, decompressor := range knownCompressionAlgorithms {
+		if strings.HasSuffix(e.Name, key) {
+			return &decompressor
+		}
+	}
+	return nil
+}
+
+// }}}
 
 // vim: foldmethod=marker
