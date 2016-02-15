@@ -76,15 +76,6 @@ func toDecimal(input []byte) (int64, error) {
 }
 
 func parseDebEntry(line []byte) (*DebEntry, error) {
-	// 	Offset    Length  Name           			Format
-	// 	0        16     File name                   ASCII
-	// 	16       12     File modification timestamp Decimal
-	// 	28       6      Owner ID                    Decimal
-	// 	34       6		Group ID                    Decimal
-	// 	40       8		File mode                   Octal
-	// 	48       10		File size in bytes          Decimal
-	// 	58       2		File magic                  0x60 0x0A
-
 	if len(line) != 60 {
 		return nil, fmt.Errorf("Malformed file entry line length")
 	}
