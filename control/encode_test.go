@@ -39,20 +39,37 @@ X-A-Test: Foo
 	isok(t, control.Marshal(&writer, el))
 	assert(t, writer.String() == `Foo: test
 X-A-Test: Foo
-
 `)
 }
 
 func TestBasicMarshal(t *testing.T) {
 	testStruct := TestMarshalStruct{Foo: "Hello"}
-	writer := bytes.Buffer{}
 
+	writer := bytes.Buffer{}
 	err := control.Marshal(&writer, testStruct)
 	isok(t, err)
 
-	assert(t, testStruct.Foo == "Hello")
+	assert(t, writer.String() == `Foo: Hello
+`)
+
+	writer = bytes.Buffer{}
+	err = control.Marshal(&writer, []TestMarshalStruct{
+		testStruct,
+	})
+	isok(t, err)
+	assert(t, writer.String() == `Foo: Hello
+`)
+
+	writer = bytes.Buffer{}
+	err = control.Marshal(&writer, []TestMarshalStruct{
+		testStruct,
+		testStruct,
+	})
+	isok(t, err)
+
 	assert(t, writer.String() == `Foo: Hello
 
+Foo: Hello
 `)
 }
 
@@ -73,7 +90,6 @@ X-Foo: bar
 	assert(t, writer.String() == `Version: 1.0-1
 Dependency: foo, bar
 X-Foo: bar
-
 `)
 }
 
@@ -93,7 +109,6 @@ A Test`}
  Is
  .
  A Test
-
 `)
 }
 

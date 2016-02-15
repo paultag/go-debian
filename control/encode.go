@@ -194,13 +194,17 @@ func Marshal(writer io.Writer, data interface{}) error {
 // Encoder {{{
 
 type Encoder struct {
-	writer io.Writer
+	writer         io.Writer
+	alreadyWritten bool
 }
 
 // NewEncoder {{{
 
 func NewEncoder(writer io.Writer) (*Encoder, error) {
-	return &Encoder{writer: writer}, nil
+	return &Encoder{
+		writer:         writer,
+		alreadyWritten: false,
+	}, nil
 }
 
 // }}}
@@ -246,10 +250,17 @@ func (e *Encoder) encodeSlice(data reflect.Value) error {
 // Encode a Struct {{{
 
 func (e *Encoder) encodeStruct(data reflect.Value) error {
+	if e.alreadyWritten {
+		_, err := e.writer.Write([]byte("\n"))
+		if err != nil {
+			return err
+		}
+	}
 	paragraph, err := convertToParagraph(data)
 	if err != nil {
 		return err
 	}
+	e.alreadyWritten = true
 	return paragraph.WriteTo(e.writer)
 }
 

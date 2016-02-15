@@ -56,8 +56,7 @@ func (p Paragraph) WriteTo(out io.Writer) error {
 			return err
 		}
 	}
-	_, err := out.Write([]byte("\n"))
-	return err
+	return nil
 }
 
 func (p Paragraph) Update(other Paragraph) Paragraph {
