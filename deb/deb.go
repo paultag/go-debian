@@ -203,7 +203,7 @@ func checkAr(reader *os.File) error {
 		return err
 	}
 	if string(header) != "!<arch>\n" {
-		return fmt.Errorf("Header doens't look right!")
+		return fmt.Errorf("Header does't look right!")
 	}
 	return nil
 }

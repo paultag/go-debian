@@ -146,7 +146,7 @@ func (changes *Changes) GetDSC() (*DSC, error) {
 	return nil, fmt.Errorf("No .dsc file in .changes")
 }
 
-// Copy the .changes file and all refrenced files to the directory
+// Copy the .changes file and all referenced files to the directory
 // listed by the dest argument. This function will error out if the dest
 // argument is not a directory, or if there is an IO operation in transfer.
 //
@@ -172,7 +172,7 @@ func (changes *Changes) Copy(dest string) error {
 	return err
 }
 
-// Move the .changes file and all refrenced files to the directory
+// Move the .changes file and all referenced files to the directory
 // listed by the dest argument. This function will error out if the dest
 // argument is not a directory, or if there is an IO operation in transfer.
 //

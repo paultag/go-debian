@@ -59,7 +59,7 @@ type Unmarshalable interface {
 // a string to split tokens on (`delim:", "`), and things to strip off each
 // element (`strip:"\n\r\t "`).
 //
-// If you're unpacking into a struct, the struct will be walked acording to
+// If you're unpacking into a struct, the struct will be walked according to
 // the rules above. If you wish to override how this writes to the nested
 // struct, objects that implement the Unmarshalable interface will be
 // Unmarshaled via that method call only.

@@ -169,7 +169,7 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 
 // Marshal is a one-off interface to serialize a single object to a writer.
 //
-// Most notibly, this will *not* seperate Paragraphs with a newline as is
+// Most notably, this will *not* separate Paragraphs with a newline as is
 // expected upon repeated calls, please use the Encoder streaming interface
 // for that.
 //
@@ -184,7 +184,7 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 // in the RFC822-alike Debian control-file format
 //
 // This code will attempt to unpack it into the struct based on the
-// literal name of the key, This can be overriden by the struct tag
+// literal name of the key, This can be overridden by the struct tag
 // `control:""`.
 //
 // If you're dehydrating a list of strings, you have the option of defining
@@ -192,7 +192,7 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 //
 // In order to Marshal a custom Struct, you are required to implement the
 // Marshalable interface. It's highly encouraged to put this interface on
-// the struct without a pointer reciever, so that pass-by-value works
+// the struct without a pointer receiver, so that pass-by-value works
 // when you call Marshal.
 func Marshal(writer io.Writer, data interface{}) error {
 	encoder, err := NewEncoder(writer)
@@ -207,7 +207,7 @@ func Marshal(writer io.Writer, data interface{}) error {
 // Encoder {{{
 
 // Encoder is a struct that allows for the streaming Encoding of data
-// back out to an `io.Writer`. Most notibly, this will seperate
+// back out to an `io.Writer`. Most notably, this will separate
 // subsequent `Encode` calls of a Struct with a newline.
 //
 // It's also worth noting that this *will* also write out elements that
@@ -221,7 +221,7 @@ func Marshal(writer io.Writer, data interface{}) error {
 // in the RFC822-alike Debian control-file format
 //
 // This code will attempt to unpack it into the struct based on the
-// literal name of the key, This can be overriden by the struct tag
+// literal name of the key, This can be overridden by the struct tag
 // `control:""`.
 //
 // If you're dehydrating a list of strings, you have the option of defining
@@ -229,7 +229,7 @@ func Marshal(writer io.Writer, data interface{}) error {
 //
 // In order to Marshal a custom Struct, you are required to implement the
 // Marshalable interface. It's highly encouraged to put this interface on
-// the struct without a pointer reciever, so that pass-by-value works
+// the struct without a pointer receiver, so that pass-by-value works
 // when you call Marshal.
 type Encoder struct {
 	writer         io.Writer
