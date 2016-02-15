@@ -59,6 +59,8 @@ type Deb struct {
 	jumpTarget int64
 }
 
+// Given a path on the filesystem (`path`), return a `Deb` struct to allow
+// for programatic access to its contents.
 func Load(path string) (*Deb, error) {
 	fd, err := os.Open(path)
 	if err != nil {
