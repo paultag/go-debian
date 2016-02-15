@@ -94,8 +94,8 @@ func parseDebEntry(line []byte) (*DebEntry, error) {
 	}
 
 	entry := DebEntry{
-		Name:     string(line[0:16]),
-		FileMode: string(line[48:58]),
+		Name:     strings.TrimSpace(string(line[0:16])),
+		FileMode: strings.TrimSpace(string(line[48:58])),
 	}
 
 	for target, value := range map[*int64][]byte{
