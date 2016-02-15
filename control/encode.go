@@ -173,6 +173,13 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 // expected upon repeated calls, please use the Encoder streaming interface
 // for that.
 //
+// It's also worth noting that this *will* also write out elements that
+// were Unmarshaled into a Struct without a member of that name if (and only
+// if) the target Struct contains a `control.Paragraph` anonymous member.
+//
+// This is handy if the Unmarshaler was given any `X-*` keys that were not
+// present on your Struct.
+//
 // Given a struct (or list of structs), write to the io.Writer stream
 // in the RFC822-alike Debian control-file format
 //
@@ -199,6 +206,31 @@ func Marshal(writer io.Writer, data interface{}) error {
 
 // Encoder {{{
 
+// Encoder is a struct that allows for the streaming Encoding of data
+// back out to an `io.Writer`. Most notibly, this will seperate
+// subsequent `Encode` calls of a Struct with a newline.
+//
+// It's also worth noting that this *will* also write out elements that
+// were Unmarshaled into a Struct without a member of that name if (and only
+// if) the target Struct contains a `control.Paragraph` anonymous member.
+//
+// This is handy if the Unmarshaler was given any `X-*` keys that were not
+// present on your Struct.
+//
+// Given a struct (or list of structs), write to the io.Writer stream
+// in the RFC822-alike Debian control-file format
+//
+// This code will attempt to unpack it into the struct based on the
+// literal name of the key, This can be overriden by the struct tag
+// `control:""`.
+//
+// If you're dehydrating a list of strings, you have the option of defining
+// a string to join the tokens with (`delim:", "`).
+//
+// In order to Marshal a custom Struct, you are required to implement the
+// Marshalable interface. It's highly encouraged to put this interface on
+// the struct without a pointer reciever, so that pass-by-value works
+// when you call Marshal.
 type Encoder struct {
 	writer         io.Writer
 	alreadyWritten bool
@@ -206,6 +238,7 @@ type Encoder struct {
 
 // NewEncoder {{{
 
+// Create a new Encoder, which is configured to write to the given `io.Writer`.
 func NewEncoder(writer io.Writer) (*Encoder, error) {
 	return &Encoder{
 		writer:         writer,
@@ -217,6 +250,8 @@ func NewEncoder(writer io.Writer) (*Encoder, error) {
 
 // Encode {{{
 
+// Take a Struct, Encode it into a Paragraph, and write that out to the
+// io.Writer set up when the Encoder was configured.
 func (e *Encoder) Encode(incoming interface{}) error {
 	data := reflect.ValueOf(incoming)
 	return e.encode(data)
