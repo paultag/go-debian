@@ -59,6 +59,11 @@ type Deb struct {
 	jumpTarget int64
 }
 
+// Close the underlying os.File object.
+func (d *Deb) Close() error {
+	return d.file.Close()
+}
+
 // Given a path on the filesystem (`path`), return a `Deb` struct to allow
 // for programatic access to its contents.
 func Load(path string) (*Deb, error) {
