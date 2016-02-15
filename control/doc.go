@@ -1,6 +1,6 @@
 /*
 
-Parse control files
+Parse the Debian control file format.
 
 */
 package control
