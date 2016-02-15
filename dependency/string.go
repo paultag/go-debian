@@ -49,7 +49,7 @@ func (set ArchSet) String() string {
 	}
 	arches := []string{}
 	for _, arch := range set.Architectures {
-		arches = append(arches, not + arch.String())
+		arches = append(arches, not+arch.String())
 	}
 	return "[" + strings.Join(arches, " ") + "]"
 }

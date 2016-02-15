@@ -41,6 +41,51 @@ type Paragraph struct {
 	Order  []string
 }
 
+// Paragraph Helpers {{{
+
+func (p Paragraph) WriteTo(out io.Writer) error {
+	for _, key := range p.Order {
+		value := p.Values[key]
+
+		value = strings.Replace(value, "\n", "\n ", -1)
+		value = strings.Replace(value, "\n \n", "\n .\n", -1)
+
+		if _, err := out.Write(
+			[]byte(fmt.Sprintf("%s: %s\n", key, value)),
+		); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p Paragraph) Update(other Paragraph) Paragraph {
+	ret := Paragraph{
+		Order:  []string{},
+		Values: map[string]string{},
+	}
+
+	seen := map[string]bool{}
+
+	for _, el := range p.Order {
+		ret.Order = append(ret.Order, el)
+		ret.Values[el] = p.Values[el]
+		seen[el] = true
+	}
+
+	for _, el := range other.Order {
+		if _, ok := seen[el]; !ok {
+			ret.Order = append(ret.Order, el)
+			seen[el] = true
+		}
+		ret.Values[el] = other.Values[el]
+	}
+
+	return ret
+}
+
+// }}}
+
 // ParagraphReader {{{
 
 // Wrapper to allow iteration on a set of Paragraphs without consuming them
