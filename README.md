@@ -5,18 +5,4 @@ go-debian
 of helpful routines to help work with fun bits of Debian data.
 
 
-dependency
-----------
-
-This module contains bits to parse and work with Debian package relations.
-
-version
--------
-
-This module contains bits to work with package versions
-
-
-control
--------
-
-This module contains bits to work with control files
+[godoc](https://godoc.org/pault.ag/go/debian)
