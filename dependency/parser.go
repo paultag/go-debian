@@ -28,7 +28,7 @@ import (
 // Parse a string into a Dependency object. The input should look something
 // like "foo, bar | baz".
 func Parse(in string) (*Dependency, error) {
-	ibuf := Input{Index: 0, Data: in}
+	ibuf := input{Index: 0, Data: in}
 	dep := &Dependency{Relations: []Relation{}}
 	err := parseDependency(&ibuf, dep)
 	if err != nil {
@@ -37,18 +37,18 @@ func Parse(in string) (*Dependency, error) {
 	return dep, nil
 }
 
-// Input Model {{{
+// input Model {{{
 
 /*
  */
-type Input struct {
+type input struct {
 	Data  string
 	Index int
 }
 
 /*
  */
-func (i *Input) Peek() byte {
+func (i *input) Peek() byte {
 	if (i.Index) >= len(i.Data) {
 		return 0
 	}
@@ -57,7 +57,7 @@ func (i *Input) Peek() byte {
 
 /*
  */
-func (i *Input) Next() byte {
+func (i *input) Next() byte {
 	chr := i.Peek()
 	i.Index++
 	return chr
@@ -68,7 +68,7 @@ func (i *Input) Next() byte {
 // Parse Helpers {{{
 
 /* */
-func eatWhitespace(input *Input) {
+func eatWhitespace(input *input) {
 	for {
 		peek := input.Peek()
 		switch peek {
@@ -85,7 +85,7 @@ func eatWhitespace(input *Input) {
 // Dependency Parser {{{
 
 /* */
-func parseDependency(input *Input, ret *Dependency) error {
+func parseDependency(input *input, ret *Dependency) error {
 	eatWhitespace(input)
 
 	for {
@@ -110,7 +110,7 @@ func parseDependency(input *Input, ret *Dependency) error {
 // Relation Parser {{{
 
 /* */
-func parseRelation(input *Input, dependency *Dependency) error {
+func parseRelation(input *input, dependency *Dependency) error {
 	eatWhitespace(input) /* Clean out leading whitespace */
 
 	ret := &Relation{Possibilities: []Possibility{}}
@@ -138,7 +138,7 @@ func parseRelation(input *Input, dependency *Dependency) error {
 // Possibility Parser {{{
 
 /* */
-func parsePossibility(input *Input, relation *Relation) error {
+func parsePossibility(input *input, relation *Relation) error {
 	eatWhitespace(input) /* Clean out leading whitespace */
 
 	peek := input.Peek()
@@ -184,7 +184,7 @@ func parsePossibility(input *Input, relation *Relation) error {
 	}
 }
 
-func parseSubstvar(input *Input, relation *Relation) error {
+func parseSubstvar(input *input, relation *Relation) error {
 	eatWhitespace(input)
 	input.Next() /* Assert ch == '$' */
 	input.Next() /* Assert ch == '{' */
@@ -210,7 +210,7 @@ func parseSubstvar(input *Input, relation *Relation) error {
 }
 
 /* */
-func parseMultiarch(input *Input, possi *Possibility) error {
+func parseMultiarch(input *input, possi *Possibility) error {
 	input.Next() /* mandated to be a : */
 	name := ""
 	for {
@@ -231,7 +231,7 @@ func parseMultiarch(input *Input, possi *Possibility) error {
 }
 
 /* */
-func parsePossibilityControllers(input *Input, possi *Possibility) error {
+func parsePossibilityControllers(input *input, possi *Possibility) error {
 	for {
 		eatWhitespace(input) /* Clean out leading whitespace */
 		peek := input.Peek()
@@ -273,7 +273,7 @@ func parsePossibilityControllers(input *Input, possi *Possibility) error {
 }
 
 /* */
-func parsePossibilityVersion(input *Input, possi *Possibility) error {
+func parsePossibilityVersion(input *input, possi *Possibility) error {
 	eatWhitespace(input)
 	input.Next() /* mandated to be ( */
 	// assert ch == '('
@@ -297,7 +297,7 @@ func parsePossibilityVersion(input *Input, possi *Possibility) error {
 }
 
 /* */
-func parsePossibilityOperator(input *Input, version *VersionRelation) error {
+func parsePossibilityOperator(input *input, version *VersionRelation) error {
 	eatWhitespace(input)
 	leader := input.Next() /* may be 0 */
 
@@ -330,7 +330,7 @@ func parsePossibilityOperator(input *Input, version *VersionRelation) error {
 }
 
 /* */
-func parsePossibilityNumber(input *Input, version *VersionRelation) error {
+func parsePossibilityNumber(input *input, version *VersionRelation) error {
 	eatWhitespace(input)
 	for {
 		peek := input.Peek()
@@ -345,7 +345,7 @@ func parsePossibilityNumber(input *Input, version *VersionRelation) error {
 }
 
 /* */
-func parsePossibilityArchs(input *Input, possi *Possibility) error {
+func parsePossibilityArchs(input *input, possi *Possibility) error {
 	eatWhitespace(input)
 	input.Next() /* Assert ch == '[' */
 
@@ -367,7 +367,7 @@ func parsePossibilityArchs(input *Input, possi *Possibility) error {
 }
 
 /* */
-func parsePossibilityArch(input *Input, possi *Possibility) error {
+func parsePossibilityArch(input *input, possi *Possibility) error {
 	eatWhitespace(input)
 	arch := ""
 
@@ -407,7 +407,7 @@ func parsePossibilityArch(input *Input, possi *Possibility) error {
 }
 
 /* */
-func parsePossibilityStageSet(input *Input, possi *Possibility) error {
+func parsePossibilityStageSet(input *input, possi *Possibility) error {
 	eatWhitespace(input)
 	input.Next() /* Assert ch == '<' */
 
@@ -431,7 +431,7 @@ func parsePossibilityStageSet(input *Input, possi *Possibility) error {
 }
 
 /* */
-func parsePossibilityStage(input *Input, stageSet *StageSet) error {
+func parsePossibilityStage(input *input, stageSet *StageSet) error {
 	eatWhitespace(input)
 
 	stage := Stage{}

@@ -89,7 +89,7 @@ type Dependency struct {
 }
 
 func (dep *Dependency) UnmarshalControl(data string) error {
-	ibuf := Input{Index: 0, Data: data}
+	ibuf := input{Index: 0, Data: data}
 	dep.Relations = []Relation{}
 	err := parseDependency(&ibuf, dep)
 	return err
