@@ -167,6 +167,12 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 
 // Marshal {{{
 
+// Marshal is a one-off interface to serialize a single object to a writer.
+//
+// Most notibly, this will *not* seperate Paragraphs with a newline as is
+// expected upon repeated calls, please use the Encoder streaming interface
+// for that.
+//
 // Given a struct (or list of structs), write to the io.Writer stream
 // in the RFC822-alike Debian control-file format
 //
