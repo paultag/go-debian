@@ -94,6 +94,11 @@ func convertToParagraph(data reflect.Value) (*Paragraph, error) {
 			return nil, err
 		}
 
+		required := fieldType.Tag.Get("required") == "true"
+		if data == "" && !required {
+			continue
+		}
+
 		order = append(order, paragraphKey)
 		values[paragraphKey] = data
 	}
