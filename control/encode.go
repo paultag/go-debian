@@ -111,6 +111,8 @@ func marshalStructValue(field reflect.Value, fieldType reflect.StructField) (str
 		return field.String(), nil
 	case reflect.Uint:
 		return strconv.Itoa(int(field.Uint())), nil
+	case reflect.Int:
+		return strconv.Itoa(int(field.Int())), nil
 	case reflect.Ptr:
 		return marshalStructValue(field.Elem(), fieldType)
 	case reflect.Slice:
@@ -118,7 +120,7 @@ func marshalStructValue(field reflect.Value, fieldType reflect.StructField) (str
 	case reflect.Struct:
 		return marshalStructValueStruct(field, fieldType)
 	}
-	return "", fmt.Errorf("Unknown type")
+	return "", fmt.Errorf("Unknown type: %s", field.Type().Kind())
 }
 
 // }}}
