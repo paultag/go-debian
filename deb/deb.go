@@ -32,14 +32,17 @@ import (
 
 // Control {{{
 
+// Binary Control format, as exists in the Control section of the `.deb`
+// archive, as defined in Debian Policy, section 5.3, entitiled "Binary
+// package control files -- DEBIAN/control".
 type Control struct {
 	control.Paragraph
 
-	Package       string
-	Version       version.Version
-	Architecture  dependency.Arch
-	Maintainer    string
-	InstalledSize int `control:"Installed-Size"`
+	Package       string          `required:"true"`
+	Version       version.Version `required:"true"`
+	Architecture  dependency.Arch `required:"true"`
+	Maintainer    string          `required:"true"`
+	InstalledSize int             `control:"Installed-Size"`
 	Depends       dependency.Dependency
 	Recommends    dependency.Dependency
 	Suggests      dependency.Dependency
@@ -49,19 +52,24 @@ type Control struct {
 	Section       string
 	Priority      string
 	Homepage      string
-	Description   string
+	Description   string `required:"true"`
 }
 
 // }}}
 
 // Deb {{{
 
+// Container struct to encapsulate a `.deb` file on disk. This contains
+// information about what exactly we're looking at. When loaded. information
+// regarding the Control file is read from the control section of the .deb,
+// and Unmarshaled into the `Control` member of the Struct.
 type Deb struct {
 	Control Control
 }
 
 // Load {{{
 
+// Load a given `.deb` off disk and into a `Deb` container struct.
 func Load(pathname string) (*Deb, error) {
 	ar, err := LoadAr(pathname)
 	if err != nil {
