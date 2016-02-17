@@ -33,6 +33,8 @@ import (
 // Control {{{
 
 type Control struct {
+	control.Paragraph
+
 	Package       string
 	Version       version.Version
 	Architecture  dependency.Arch
