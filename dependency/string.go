@@ -24,6 +24,10 @@ import (
 	"strings"
 )
 
+func (a Arch) MarshalControl() (string, error) {
+	return a.String(), nil
+}
+
 func (a Arch) String() string {
 	/* ABI-OS-CPU -- gnu-linux-amd64 */
 	els := []string{}
