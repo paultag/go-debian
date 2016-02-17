@@ -64,11 +64,11 @@ type Deb struct {
 
 func Load(pathname string) (*Deb, error) {
 	ar, err := LoadAr(pathname)
-	defer ar.Close()
-
 	if err != nil {
 		return nil, err
 	}
+
+	defer ar.Close()
 
 	var controlEntry *ArEntry
 
