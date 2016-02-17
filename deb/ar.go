@@ -28,15 +28,15 @@ import (
 	"strings"
 )
 
-// DebEntry {{{
+// ArEntry {{{
 
-// Container type to access the different parts of a Debian binary package.
+// Container type to access the different parts of a Debian `ar(1)` Archive.
 //
 // The most interesting parts of this are the `Name` attribute, Data
 // `io.Reader`, and the Tarfile helpers. This will allow the developer to
 // programatically inspect the information inside without forcing her to
 // unpack the .deb to the filesystem.
-type DebEntry struct {
+type ArEntry struct {
 	Name      string
 	Timestamp int64
 	OwnerID   int64
@@ -48,30 +48,27 @@ type DebEntry struct {
 
 // }}}
 
-// Deb {{{
+// Ar {{{
 
-// A Debian .deb file is, at a high level, an `ar(1)` archive, which contains
-// (typically 3) members. A file to note which format is being used
-// (`debian-binary`), related Debian control files `control.tar.*`, and the
-// actual contents of the Binary distribution `data.tar.*`.
-type Deb struct {
+// This struct encapsulates a Debian .deb flavored `ar(1)` archive.
+type Ar struct {
 	file       *os.File
 	jumpTarget int64
 }
 
 // Close the underlying os.File object.
-func (d *Deb) Close() error {
+func (d *Ar) Close() error {
 	return d.file.Close()
 }
 
-// Given a path on the filesystem (`path`), return a `Deb` struct to allow
+// Given a path on the filesystem (`path`), return a `Ar` struct to allow
 // for programatic access to its contents.
-func Load(path string) (*Deb, error) {
+func LoadAr(path string) (*Ar, error) {
 	fd, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
-	return createDeb(fd)
+	return createAr(fd)
 }
 
 // Helpers {{{
@@ -79,14 +76,14 @@ func Load(path string) (*Deb, error) {
 // This will reset the underlying File offset back to the next Entry,
 // without having to worry about how much data the user read off
 // the Data attribute.
-func (d *Deb) jumpAround() error {
+func (d *Ar) jumpAround() error {
 	_, err := d.file.Seek(d.jumpTarget, 0)
 	return err
 }
 
 // This will calculate the next jump target to be used after we regain
 // control, and need to give the user the next entry.
-func (d *Deb) setJumpTarget(e *DebEntry) error {
+func (d *Ar) setJumpTarget(e *ArEntry) error {
 	place, err := d.file.Seek(0, 1)
 	target := place + e.Size
 	if target%1 == 1 {
@@ -102,7 +99,7 @@ func (d *Deb) setJumpTarget(e *DebEntry) error {
 
 // Function to jump to the next file in the Debian `ar(1)` archive, and
 // return the next member.
-func (d *Deb) Next() (*DebEntry, error) {
+func (d *Ar) Next() (*ArEntry, error) {
 	line := make([]byte, 60)
 
 	if err := d.jumpAround(); err != nil {
@@ -119,7 +116,7 @@ func (d *Deb) Next() (*DebEntry, error) {
 	if count != 60 {
 		return nil, fmt.Errorf("Caught a short read at the end")
 	}
-	entry, err := parseDebEntry(line)
+	entry, err := parseArEntry(line)
 	if err != nil {
 		return nil, err
 	}
@@ -150,9 +147,9 @@ func toDecimal(input []byte) (int64, error) {
 
 // AR Format Hackery {{{
 
-// parseDebEntry {{{
+// parseArEntry {{{
 
-// Take the AR format line, and create a DebEntry (without .Data set)
+// Take the AR format line, and create a ArEntry (without .Data set)
 // to be returned to the user later.
 //
 // +-------------------------------------------------------
@@ -166,7 +163,7 @@ func toDecimal(input []byte) (int64, error) {
 // | 48      10      File size in bytes           Decimal
 // | 58      2       File magic                   0x60 0x0A
 //
-func parseDebEntry(line []byte) (*DebEntry, error) {
+func parseArEntry(line []byte) (*ArEntry, error) {
 	if len(line) != 60 {
 		return nil, fmt.Errorf("Malformed file entry line length")
 	}
@@ -175,7 +172,7 @@ func parseDebEntry(line []byte) (*DebEntry, error) {
 		return nil, fmt.Errorf("Malformed file entry line endings")
 	}
 
-	entry := DebEntry{
+	entry := ArEntry{
 		Name:     strings.TrimSpace(string(line[0:16])),
 		FileMode: strings.TrimSpace(string(line[48:58])),
 	}
@@ -215,15 +212,16 @@ func checkAr(reader *os.File) error {
 
 // }}}
 
-// createDeb {{{
+// createAr {{{
 
 // Given a brand spank'n new os.File entry, go ahead and check that it
-// looks authentic, and create a Deb. This is basically what `Load` does.
-func createDeb(reader *os.File) (*Deb, error) {
+// looks authentic, and create an Ar struct. This is basically what `Load`
+// does.
+func createAr(reader *os.File) (*Ar, error) {
 	if err := checkAr(reader); err != nil {
 		return nil, err
 	}
-	debFile := Deb{
+	debFile := Ar{
 		file:       reader,
 		jumpTarget: 8, /* See the !<arch>\n header above */
 	}

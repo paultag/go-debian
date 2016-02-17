@@ -58,13 +58,13 @@ var knownCompressionAlgorithms = map[string]compressionReader{
 
 // IsTarfile {{{
 
-// Check to see if the given DebEntry is, in fact, a Tarfile. This method
+// Check to see if the given ArEntry is, in fact, a Tarfile. This method
 // will return `true` for `control.tar.*` and `data.tar.*` files.
 //
 // This will return `false` for the `debian-binary` file. If this method
 // returns `true`, the `.Tarfile()` method will be around to give you a
 // tar.Reader back.
-func (e *DebEntry) IsTarfile() bool {
+func (e *ArEntry) IsTarfile() bool {
 	return e.getCompressionReader() != nil
 }
 
@@ -72,9 +72,9 @@ func (e *DebEntry) IsTarfile() bool {
 
 // Tarfile {{{
 
-// `.Tarfile()` will return a `tar.Reader` created from the DebEntry member
+// `.Tarfile()` will return a `tar.Reader` created from the ArEntry member
 // to allow further inspection of the contents of the `.deb`.
-func (e *DebEntry) Tarfile() (*tar.Reader, error) {
+func (e *ArEntry) Tarfile() (*tar.Reader, error) {
 	decompressor := e.getCompressionReader()
 	if decompressor == nil {
 		return nil, fmt.Errorf("%s appears to not be a tarfile", e.Name)
@@ -91,7 +91,7 @@ func (e *DebEntry) Tarfile() (*tar.Reader, error) {
 // getCompressionReader {{{
 
 // Get a compressionReader that we can use to unpack the member.
-func (e *DebEntry) getCompressionReader() *compressionReader {
+func (e *ArEntry) getCompressionReader() *compressionReader {
 	for key, decompressor := range knownCompressionAlgorithms {
 		if strings.HasSuffix(e.Name, key) {
 			return &decompressor
