@@ -205,13 +205,20 @@ func (p *ParagraphReader) Next() (*Paragraph, error) {
 
 			/* TrimFunc(line[1:], unicode.IsSpace) is identical to calling
 			 * TrimSpace. */
-			line = strings.TrimRightFunc(line[1:], unicode.IsSpace) + "\n"
+			line = strings.TrimRightFunc(line[1:], unicode.IsSpace)
 
-			if line == ".\n" {
-				line = "\n"
+			if line == "." {
+				line = ""
 			}
 
-			paragraph.Values[lastKey] = paragraph.Values[lastKey] + line
+			if paragraph.Values[lastKey] == "" {
+				paragraph.Values[lastKey] = line + "\n"
+			} else {
+				if !strings.HasSuffix(paragraph.Values[lastKey], "\n") {
+					paragraph.Values[lastKey] = paragraph.Values[lastKey] + "\n"
+				}
+				paragraph.Values[lastKey] = paragraph.Values[lastKey] + line + "\n"
+			}
 			continue
 		}
 
