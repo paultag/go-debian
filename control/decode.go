@@ -30,14 +30,14 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
-// Unmarshalable {{{
+// Unmarshallable {{{
 
-// The Unmarshalable interface defines the interface that Unmarshal will use
+// The Unmarshallable interface defines the interface that Unmarshal will use
 // to do custom unpacks into Structs.
 //
 // The argument passed in will be a string that contains the value of the
 // RFC822 key this object relates to.
-type Unmarshalable interface {
+type Unmarshallable interface {
 	UnmarshalControl(data string) error
 }
 
@@ -61,7 +61,7 @@ type Unmarshalable interface {
 //
 // If you're unpacking into a struct, the struct will be walked according to
 // the rules above. If you wish to override how this writes to the nested
-// struct, objects that implement the Unmarshalable interface will be
+// struct, objects that implement the Unmarshallable interface will be
 // Unmarshaled via that method call only.
 //
 // Structs that contain Paragraph as an Anonymous member will have that
@@ -236,12 +236,12 @@ func decodeStructValueStruct(incoming reflect.Value, incomingField reflect.Struc
 	 * grab the method, or throw a shitfit. */
 	elem := incoming.Addr()
 
-	if unmarshal, ok := elem.Interface().(Unmarshalable); ok {
+	if unmarshal, ok := elem.Interface().(Unmarshallable); ok {
 		return unmarshal.UnmarshalControl(data)
 	}
 
 	return fmt.Errorf(
-		"Type '%s' does not implement control.Unmarshalable",
+		"Type '%s' does not implement control.Unmarshallable",
 		incomingField.Type.Name(),
 	)
 }
