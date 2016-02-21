@@ -322,6 +322,12 @@ func (d *Decoder) Signer() *openpgp.Entity {
 
 // UnpackFromParagraph {{{
 
+// Unpack a Paragraph into a Struct, as if that data had been unpacked into
+// that struct to begin with. The normal rules from running the Unmarshal
+// API directly apply when unpacking a Paragraph using UnpackFromParagraph.
+//
+// In most cases, the Unmarshal API should be sufficient. Use of this API
+// is mildly discouraged.
 func UnpackFromParagraph(para Paragraph, incoming interface{}) error {
 	data := reflect.ValueOf(incoming)
 	if data.Type().Kind() != reflect.Ptr {
