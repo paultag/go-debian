@@ -149,7 +149,7 @@ func toDecimal(input []byte) (int64, error) {
 
 // parseArEntry {{{
 
-// Take the AR format line, and create a ArEntry (without .Data set)
+// Take the AR format line, and create an ArEntry (without .Data set)
 // to be returned to the user later.
 //
 // +-------------------------------------------------------
