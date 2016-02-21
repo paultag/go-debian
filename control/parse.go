@@ -43,6 +43,18 @@ type Paragraph struct {
 
 // Paragraph Helpers {{{
 
+func (p Paragraph) Set(key, value string) {
+	if _, found := p.Values[key]; found {
+		/* We've got the key */
+		p.Values[key] = value
+		return
+	}
+	/* Otherwise, go ahead and set it in the order and dict,
+	 * and call it a day */
+	p.Order = append(p.Order, key)
+	p.Values[key] = value
+}
+
 func (p Paragraph) WriteTo(out io.Writer) error {
 	for _, key := range p.Order {
 		value := p.Values[key]
