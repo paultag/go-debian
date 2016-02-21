@@ -113,6 +113,16 @@ func (c *SHADebianFileHash) unmarshalControl(algorithm, data string) error {
 	return nil
 }
 
+// {{{ MD5 DebianFileHash
+
+type MD5DebianFileHash struct{ SHADebianFileHash }
+
+func (c *MD5DebianFileHash) UnmarshalControl(data string) error {
+	return c.unmarshalControl("md5", data)
+}
+
+// }}}
+
 // {{{ SHA1 DebianFileHash
 
 type SHA1DebianFileHash struct{ SHADebianFileHash }
