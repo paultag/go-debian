@@ -65,6 +65,7 @@ type Control struct {
 // and Unmarshaled into the `Control` member of the Struct.
 type Deb struct {
 	Control Control
+	Path    string
 }
 
 // Load {{{
@@ -116,7 +117,10 @@ func Load(pathname string) (*Deb, error) {
 	if err := control.Unmarshal(&debControl, tarFile); err != nil {
 		return nil, err
 	}
-	deb := Deb{Control: debControl}
+	deb := Deb{
+		Control: debControl,
+		Path:    pathname,
+	}
 	return &deb, nil
 }
 
