@@ -26,7 +26,7 @@ Here's a trivial example, which will print out the Package name for a
 		if err != nil {
 			panic(err)
 		}
-		log.Printf("Package: %s\n", deb.Control.Package)
+		log.Printf("Package: %s\n", debFile.Control.Package)
 	}
 
 */
