@@ -320,4 +320,16 @@ func (d *Decoder) Signer() *openpgp.Entity {
 
 // }}}
 
+// UnpackFromParagraph {{{
+
+func UnpackFromParagraph(para Paragraph, incoming interface{}) error {
+	data := reflect.ValueOf(incoming)
+	if data.Type().Kind() != reflect.Ptr {
+		return fmt.Errorf("Can only Decode a pointer to a Struct")
+	}
+	return decodeStruct(para, data.Elem())
+}
+
+// }}}
+
 // vim: foldmethod=marker
