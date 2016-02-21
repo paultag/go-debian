@@ -28,11 +28,11 @@ import (
 	"strings"
 )
 
-// Marshalable {{{
+// Marshallable {{{
 
-// The Marshalable interface defines the interface that Marshal will use
+// The Marshallable interface defines the interface that Marshal will use
 // to do custom dehydration of the Struct back into the Debian 822 format.
-type Marshalable interface {
+type Marshallable interface {
 	MarshalControl() (string, error)
 }
 
@@ -135,12 +135,12 @@ func marshalStructValue(field reflect.Value, fieldType reflect.StructField) (str
 func marshalStructValueStruct(field reflect.Value, fieldType reflect.StructField) (string, error) {
 	/* Right, so, we've got a type we don't know what to do with. We should
 	 * grab the method, or throw a shitfit. */
-	if marshal, ok := field.Interface().(Marshalable); ok {
+	if marshal, ok := field.Interface().(Marshallable); ok {
 		return marshal.MarshalControl()
 	}
 
 	return "", fmt.Errorf(
-		"Type '%s' does not implement control.Marshalable",
+		"Type '%s' does not implement control.Marshallable",
 		field.Type().Name(),
 	)
 }
@@ -198,7 +198,7 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 // a string to join the tokens with (`delim:", "`).
 //
 // In order to Marshal a custom Struct, you are required to implement the
-// Marshalable interface. It's highly encouraged to put this interface on
+// Marshallable interface. It's highly encouraged to put this interface on
 // the struct without a pointer receiver, so that pass-by-value works
 // when you call Marshal.
 func Marshal(writer io.Writer, data interface{}) error {
@@ -235,7 +235,7 @@ func Marshal(writer io.Writer, data interface{}) error {
 // a string to join the tokens with (`delim:", "`).
 //
 // In order to Marshal a custom Struct, you are required to implement the
-// Marshalable interface. It's highly encouraged to put this interface on
+// Marshallable interface. It's highly encouraged to put this interface on
 // the struct without a pointer receiver, so that pass-by-value works
 // when you call Marshal.
 type Encoder struct {
