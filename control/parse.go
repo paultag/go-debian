@@ -181,6 +181,11 @@ func (p *ParagraphReader) Next() (*Paragraph, error) {
 
 	for {
 		line, err := p.reader.ReadString('\n')
+		if err == io.EOF && line != "" {
+			err = nil
+			line = line + "\n"
+			/* We'll clean up the last of the buffer. */
+		}
 		if err == io.EOF {
 			/* Let's return the parsed paragraph if we have it */
 			if len(paragraph.Order) > 0 {
