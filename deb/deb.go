@@ -157,6 +157,9 @@ func loadDeb2(archive *Ar) (*Deb, error) {
 func loadDeb2Control(archive *Ar, deb *Deb) error {
 	for {
 		member, err := archive.Next()
+		if err == io.EOF {
+			return fmt.Errorf("Missing or out of order .deb member 'control'")
+		}
 		if err != nil {
 			return err
 		}
@@ -185,6 +188,9 @@ func loadDeb2Control(archive *Ar, deb *Deb) error {
 func loadDeb2Data(archive *Ar, deb *Deb) error {
 	for {
 		member, err := archive.Next()
+		if err == io.EOF {
+			return fmt.Errorf("Missing or out of order .deb member 'data'")
+		}
 		if err != nil {
 			return err
 		}
