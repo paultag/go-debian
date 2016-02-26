@@ -78,6 +78,9 @@ func (d *Ar) Next() (*ArEntry, error) {
 			return nil, err
 		}
 		if d.offset {
+			/* .ar archives align on 2 byte boundries, so if we're odd, go
+			 * ahead and read another byte. If we get an io.EOF, it's fine
+			 * to return it. */
 			_, err := d.in.Read(make([]byte, 1))
 			if err != nil {
 				return nil, err

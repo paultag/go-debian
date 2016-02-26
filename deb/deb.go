@@ -21,6 +21,8 @@
 package deb
 
 import (
+	"archive/tar"
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -68,6 +70,7 @@ type Control struct {
 type Deb struct {
 	Control Control
 	Path    string
+	Data    *tar.Reader
 }
 
 // Load {{{
@@ -80,56 +83,99 @@ func LoadFile(path string) (*Deb, error) {
 	return Load(fd, path)
 }
 
+//
+func loadDeb(archive *Ar) (*Deb, error) {
+	for {
+		member, err := archive.Next()
+		if err == io.EOF {
+			return nil, fmt.Errorf("Archive contains no binary version member!")
+		}
+		if err != nil {
+			return nil, err
+		}
+		if member.Name == "debian-binary" {
+			reader := bufio.NewReader(member.Data)
+			version, err := reader.ReadString('\n')
+			if err != nil {
+				return nil, err
+			}
+			switch version {
+			case "2.0\n":
+				return loadDeb2(archive)
+			default:
+				return nil, fmt.Errorf("Unknown binary version: '%s'", version)
+			}
+		}
+	}
+}
+
+func loadDeb2(archive *Ar) (*Deb, error) {
+	ret := Deb{}
+
+	if err := loadDeb2Control(archive, &ret); err != nil {
+		return nil, err
+	}
+
+	if err := loadDeb2Data(archive, &ret); err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
+}
+
+func loadDeb2Control(archive *Ar, deb *Deb) error {
+	for {
+		member, err := archive.Next()
+		if err != nil {
+			return err
+		}
+		if strings.HasPrefix(member.Name, "control.") {
+			archive, err := member.Tarfile()
+			if err != nil {
+				return err
+			}
+			for {
+				member, err := archive.Next()
+				if err != nil {
+					return err
+				}
+				if path.Clean(member.Name) == "control" {
+					return control.Unmarshal(&deb.Control, archive)
+				}
+			}
+		}
+	}
+}
+
+func loadDeb2Data(archive *Ar, deb *Deb) error {
+	for {
+		member, err := archive.Next()
+		if err != nil {
+			return err
+		}
+		if strings.HasPrefix(member.Name, "data.") {
+			archive, err := member.Tarfile()
+			if err != nil {
+				return err
+			}
+			deb.Data = archive
+			return nil
+		}
+	}
+}
+
 // Load a given `.deb` off disk and into a `Deb` container struct.
 func Load(in io.Reader, pathname string) (*Deb, error) {
 	ar, err := LoadAr(in)
 	if err != nil {
 		return nil, err
 	}
-
-	var controlEntry *ArEntry
-
-	for {
-		entry, err := ar.Next()
-		if err != nil {
-			return nil, err
-		}
-
-		if strings.HasPrefix(entry.Name, "control.") && entry.IsTarfile() {
-			controlEntry = entry
-			break
-		}
-	}
-
-	if controlEntry == nil {
-		return nil, fmt.Errorf("No control blob found!")
-	}
-
-	tarFile, err := controlEntry.Tarfile()
+	deb, err := loadDeb(ar)
 	if err != nil {
 		return nil, err
 	}
-
-	/* Now, scan for control */
-	for {
-		tfEntry, err := tarFile.Next()
-		if err != nil {
-			return nil, err
-		}
-		if path.Clean(tfEntry.Name) == "control" {
-			break
-		}
-	}
-
-	var debControl = Control{}
-	if err := control.Unmarshal(&debControl, tarFile); err != nil {
-		return nil, err
-	}
-	deb := Deb{
-		Control: debControl,
-		Path:    pathname,
-	}
-	return &deb, nil
+	deb.Path = pathname
+	return deb, nil
 }
 
 // }}}
