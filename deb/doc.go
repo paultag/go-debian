@@ -22,13 +22,14 @@ Here's a trivial example, which will print out the Package name for a
 	)
 
 	func main() {
-		fd, err := os.Open(os.Args[1])
+		path := os.Args[1]
+		fd, err := os.Open(path)
 		if err != nil {
 			panic(err)
 		}
 		defer fd.Close()
 
-		debFile, err := deb.Load(fd)
+		debFile, err := deb.Load(fd, path)
 		if err != nil {
 			panic(err)
 		}
