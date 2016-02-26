@@ -57,6 +57,9 @@ type Ar struct {
 	offset     bool
 }
 
+// LoadAr {{{
+
+// Load an Ar archive reader from a io.Reader
 func LoadAr(in io.Reader) (*Ar, error) {
 	if err := checkAr(in); err != nil {
 		return nil, err
@@ -64,6 +67,8 @@ func LoadAr(in io.Reader) (*Ar, error) {
 	debFile := Ar{in: in}
 	return &debFile, nil
 }
+
+// }}}
 
 // Next {{{
 
