@@ -217,12 +217,6 @@ func loadDeb2Data(archive *Ar, deb *Deb) error {
 
 // }}}
 
-// }}}
-
-// }}}
-
-// }}}
-
-// }}}
+// }}} }}} }}} }}}
 
 // vim: foldmethod=marker
