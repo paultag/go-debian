@@ -75,6 +75,22 @@ type Deb struct {
 
 // Load {{{
 
+// LoadFile {{{
+
+// Load a given `.deb` off disk and into a `Deb` container struct.
+func Load(in io.Reader, pathname string) (*Deb, error) {
+	ar, err := LoadAr(in)
+	if err != nil {
+		return nil, err
+	}
+	deb, err := loadDeb(ar)
+	if err != nil {
+		return nil, err
+	}
+	deb.Path = pathname
+	return deb, nil
+}
+
 func LoadFile(path string) (*Deb, error) {
 	fd, err := os.Open(path)
 	if err != nil {
@@ -83,7 +99,12 @@ func LoadFile(path string) (*Deb, error) {
 	return Load(fd, path)
 }
 
-//
+// }}}
+
+// Debian .deb Loader Internals {{{
+
+// Top-level .deb loader dispatch on Version {{{
+
 func loadDeb(archive *Ar) (*Deb, error) {
 	for {
 		member, err := archive.Next()
@@ -109,6 +130,12 @@ func loadDeb(archive *Ar) (*Deb, error) {
 	}
 }
 
+// }}}
+
+// Debian .deb format 2.0 {{{
+
+// Top-level .deb loader dispatch for 2.0 {{{
+
 func loadDeb2(archive *Ar) (*Deb, error) {
 	ret := Deb{}
 
@@ -122,6 +149,10 @@ func loadDeb2(archive *Ar) (*Deb, error) {
 
 	return &ret, nil
 }
+
+// }}}
+
+// Decode .deb 2.0 control data into the struct {{{
 
 func loadDeb2Control(archive *Ar, deb *Deb) error {
 	for {
@@ -147,6 +178,10 @@ func loadDeb2Control(archive *Ar, deb *Deb) error {
 	}
 }
 
+// }}}
+
+// Decode .deb 2.0 package data into the struct {{{
+
 func loadDeb2Data(archive *Ar, deb *Deb) error {
 	for {
 		member, err := archive.Next()
@@ -164,19 +199,11 @@ func loadDeb2Data(archive *Ar, deb *Deb) error {
 	}
 }
 
-// Load a given `.deb` off disk and into a `Deb` container struct.
-func Load(in io.Reader, pathname string) (*Deb, error) {
-	ar, err := LoadAr(in)
-	if err != nil {
-		return nil, err
-	}
-	deb, err := loadDeb(ar)
-	if err != nil {
-		return nil, err
-	}
-	deb.Path = pathname
-	return deb, nil
-}
+// }}}
+
+// }}}
+
+// }}}
 
 // }}}
 
