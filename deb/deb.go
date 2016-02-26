@@ -77,7 +77,8 @@ type Deb struct {
 
 // LoadFile {{{
 
-// Load a given `.deb` off disk and into a `Deb` container struct.
+// Given a reader, and the file path to the file (for use in the Deb later)
+// create a deb.Deb object, and populate the Control and Data members.
 func Load(in io.Reader, pathname string) (*Deb, error) {
 	ar, err := LoadAr(in)
 	if err != nil {
@@ -91,6 +92,8 @@ func Load(in io.Reader, pathname string) (*Deb, error) {
 	return deb, nil
 }
 
+// Given a path to a file on the filesystem, load the file as a Debian .deb
+// struct, and populate the Control and Data members.
 func LoadFile(path string) (*Deb, error) {
 	fd, err := os.Open(path)
 	if err != nil {
@@ -105,6 +108,8 @@ func LoadFile(path string) (*Deb, error) {
 
 // Top-level .deb loader dispatch on Version {{{
 
+// Look for the debian-binary member and figure out which version to read
+// it as. Return the newly created .deb struct.
 func loadDeb(archive *Ar) (*Deb, error) {
 	for {
 		member, err := archive.Next()
@@ -136,6 +141,7 @@ func loadDeb(archive *Ar) (*Deb, error) {
 
 // Top-level .deb loader dispatch for 2.0 {{{
 
+// Load a Debian 2.x series .deb - track down the control and data members.
 func loadDeb2(archive *Ar) (*Deb, error) {
 	ret := Deb{}
 
@@ -154,6 +160,8 @@ func loadDeb2(archive *Ar) (*Deb, error) {
 
 // Decode .deb 2.0 control data into the struct {{{
 
+// Load a Debian 2.x series .deb control file and write it out to
+// the deb.Deb.Control member.
 func loadDeb2Control(archive *Ar, deb *Deb) error {
 	for {
 		member, err := archive.Next()
@@ -185,6 +193,8 @@ func loadDeb2Control(archive *Ar, deb *Deb) error {
 
 // Decode .deb 2.0 package data into the struct {{{
 
+// Load a Debian 2.x series .deb data file and write it out to
+// the deb.Deb.Data member.
 func loadDeb2Data(archive *Ar, deb *Deb) error {
 	for {
 		member, err := archive.Next()
