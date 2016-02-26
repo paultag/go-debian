@@ -23,7 +23,7 @@ package deb
 import (
 	"fmt"
 	"io"
-	"os"
+	"io/ioutil"
 	"strconv"
 	"strings"
 )
@@ -52,61 +52,42 @@ type ArEntry struct {
 
 // This struct encapsulates a Debian .deb flavored `ar(1)` archive.
 type Ar struct {
-	file       *os.File
-	jumpTarget int64
+	in         io.Reader
+	lastReader *io.Reader
+	offset     bool
 }
 
-// Close the underlying os.File object.
-func (d *Ar) Close() error {
-	return d.file.Close()
-}
-
-// Given a path on the filesystem (`path`), return a `Ar` struct to allow
-// for programatic access to its contents.
-func LoadAr(path string) (*Ar, error) {
-	fd, err := os.Open(path)
-	if err != nil {
+func LoadAr(in io.Reader) (*Ar, error) {
+	if err := checkAr(in); err != nil {
 		return nil, err
 	}
-	return createAr(fd)
+	debFile := Ar{in: in}
+	return &debFile, nil
 }
-
-// Helpers {{{
-
-// This will reset the underlying File offset back to the next Entry,
-// without having to worry about how much data the user read off
-// the Data attribute.
-func (d *Ar) jumpAround() error {
-	_, err := d.file.Seek(d.jumpTarget, 0)
-	return err
-}
-
-// This will calculate the next jump target to be used after we regain
-// control, and need to give the user the next entry.
-func (d *Ar) setJumpTarget(e *ArEntry) error {
-	place, err := d.file.Seek(0, 1)
-	target := place + e.Size
-	if target%1 == 1 {
-		target += 1
-	}
-	d.jumpTarget = target
-	return err
-}
-
-// }}}
 
 // Next {{{
 
 // Function to jump to the next file in the Debian `ar(1)` archive, and
 // return the next member.
 func (d *Ar) Next() (*ArEntry, error) {
-	line := make([]byte, 60)
-
-	if err := d.jumpAround(); err != nil {
-		return nil, err
+	if d.lastReader != nil {
+		/* Before we do much more, let's empty out the reader, since we
+		 * can't be sure of our position in the reader until the LimitReader
+		 * is empty */
+		if _, err := io.Copy(ioutil.Discard, *d.lastReader); err != nil {
+			return nil, err
+		}
+		if d.offset {
+			_, err := d.in.Read(make([]byte, 1))
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
-	count, err := d.file.Read(line)
+	line := make([]byte, 60)
+
+	count, err := d.in.Read(line)
 	if err != nil {
 		return nil, err
 	}
@@ -121,11 +102,9 @@ func (d *Ar) Next() (*ArEntry, error) {
 		return nil, err
 	}
 
-	if err := d.setJumpTarget(entry); err != nil {
-		return nil, err
-	}
-
-	entry.Data = io.LimitReader(d.file, entry.Size)
+	entry.Data = io.LimitReader(d.in, entry.Size)
+	d.lastReader = &entry.Data
+	d.offset = (entry.Size % 2) == 1
 
 	return entry, nil
 }
@@ -199,7 +178,7 @@ func parseArEntry(line []byte) (*ArEntry, error) {
 
 // Given a brand spank'n new os.File entry, go ahead and make sure it looks
 // like an `ar(1)` archive, and not some rando file.
-func checkAr(reader *os.File) error {
+func checkAr(reader io.Reader) error {
 	header := make([]byte, 8)
 	if _, err := reader.Read(header); err != nil {
 		return err
@@ -208,24 +187,6 @@ func checkAr(reader *os.File) error {
 		return fmt.Errorf("Header does't look right!")
 	}
 	return nil
-}
-
-// }}}
-
-// createAr {{{
-
-// Given a brand spank'n new os.File entry, go ahead and check that it
-// looks authentic, and create an Ar struct. This is basically what `Load`
-// does.
-func createAr(reader *os.File) (*Ar, error) {
-	if err := checkAr(reader); err != nil {
-		return nil, err
-	}
-	debFile := Ar{
-		file:       reader,
-		jumpTarget: 8, /* See the !<arch>\n header above */
-	}
-	return &debFile, nil
 }
 
 // }}}

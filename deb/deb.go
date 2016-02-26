@@ -22,6 +22,8 @@ package deb
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"path"
 	"strings"
 
@@ -70,14 +72,20 @@ type Deb struct {
 
 // Load {{{
 
-// Load a given `.deb` off disk and into a `Deb` container struct.
-func Load(pathname string) (*Deb, error) {
-	ar, err := LoadAr(pathname)
+func LoadFile(path string) (*Deb, error) {
+	fd, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
+	return Load(fd, path)
+}
 
-	defer ar.Close()
+// Load a given `.deb` off disk and into a `Deb` container struct.
+func Load(in io.Reader, pathname string) (*Deb, error) {
+	ar, err := LoadAr(in)
+	if err != nil {
+		return nil, err
+	}
 
 	var controlEntry *ArEntry
 
