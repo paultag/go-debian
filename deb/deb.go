@@ -25,7 +25,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"os"
 	"path"
 	"strings"
 
