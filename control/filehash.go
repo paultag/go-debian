@@ -99,7 +99,7 @@ type SHADebianFileHash struct {
 func (c *SHADebianFileHash) unmarshalControl(algorithm, data string) error {
 	var err error
 	c.Algorithm = algorithm
-	vals := strings.Split(data, " ")
+	vals := strings.Fields(data)
 	if len(data) < 4 {
 		return fmt.Errorf("Error: Unknown SHA Hash line: '%s'", data)
 	}
