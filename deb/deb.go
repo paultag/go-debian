@@ -75,7 +75,7 @@ type Deb struct {
 
 // Load {{{
 
-// LoadFile {{{
+// Load {{{
 
 // Given a reader, and the file path to the file (for use in the Deb later)
 // create a deb.Deb object, and populate the Control and Data members.
@@ -90,16 +90,6 @@ func Load(in io.Reader, pathname string) (*Deb, error) {
 	}
 	deb.Path = pathname
 	return deb, nil
-}
-
-// Given a path to a file on the filesystem, load the file as a Debian .deb
-// struct, and populate the Control and Data members.
-func LoadFile(path string) (*Deb, error) {
-	fd, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	return Load(fd, path)
 }
 
 // }}}
