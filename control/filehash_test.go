@@ -40,8 +40,6 @@ func TestFilehash(t *testing.T) {
 	validator, err := hash.Validator()
 	isok(t, err)
 
-	// `nobody inspects the spammish repetition`
-
 	assert(t, !validator.Validate())
 
 	c, err := validator.Write([]byte("nobody inspects the spammish repetition"))
