@@ -23,6 +23,7 @@ package control
 import (
 	"fmt"
 	"hash"
+	"io"
 	"strconv"
 	"strings"
 
@@ -162,5 +163,37 @@ func (d FileHash) Validator() (*FileHashValidator, error) {
 // }}}
 
 // }}}
+
+type FileHashes []FileHash
+type FileHashValidators []*FileHashValidator
+
+func (f FileHashes) Validators() (FileHashValidators, error) {
+	ret := FileHashValidators{}
+	for _, el := range f {
+		validator, err := el.Validator()
+		if err != nil {
+			return FileHashValidators{}, err
+		}
+		ret = append(ret, validator)
+	}
+	return ret, nil
+}
+
+func (f FileHashValidators) Writer() io.Writer {
+	writers := []io.Writer{}
+	for _, el := range f {
+		writers = append(writers, el)
+	}
+	return io.MultiWriter(writers...)
+}
+
+func (f FileHashValidators) Validate() bool {
+	for _, el := range f {
+		if ok := el.Validate(); !ok {
+			return false
+		}
+	}
+	return true
+}
 
 // vim: foldmethod=marker

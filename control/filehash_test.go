@@ -47,7 +47,35 @@ func TestFilehash(t *testing.T) {
 	assert(t, c == 39)
 
 	assert(t, validator.Validate())
+}
 
+func TestFilehashs(t *testing.T) {
+	shaHash := control.FileHash{
+		Algorithm: "sha256",
+		Hash:      "1eb9d182f09f015790915a9875005b70328c96ea43010c04b3b2b3a6ff37d2f4",
+		Size:      39,
+		Filename:  "<nowhere in particular>",
+	}
+
+	md5Hash := control.FileHash{
+		Algorithm: "md5",
+		Hash:      "f81cbdf994b88acebafc3a83da2d5ee1",
+		Size:      39,
+		Filename:  "<nowhere in particular>",
+	}
+
+	hashes := control.FileHashes{shaHash, md5Hash}
+	validators, err := hashes.Validators()
+	isok(t, err)
+
+	assert(t, !validators.Validate())
+
+	writer := validators.Writer()
+	c, err := writer.Write([]byte("nobody inspects the spammish repetition"))
+	isok(t, err)
+	assert(t, c == 39)
+
+	assert(t, validators.Validate())
 }
 
 // vim: foldmethod=marker
