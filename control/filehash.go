@@ -164,8 +164,9 @@ func (d FileHash) Validator() (*FileHashValidator, error) {
 
 // }}}
 
+// FileHashes {{{
+
 type FileHashes []FileHash
-type FileHashValidators []*FileHashValidator
 
 func (f FileHashes) Validators() (FileHashValidators, error) {
 	ret := FileHashValidators{}
@@ -178,6 +179,12 @@ func (f FileHashes) Validators() (FileHashValidators, error) {
 	}
 	return ret, nil
 }
+
+// }}}
+
+// FileHashValidators {{{
+
+type FileHashValidators []*FileHashValidator
 
 func (f FileHashValidators) Writer() io.Writer {
 	writers := []io.Writer{}
@@ -195,5 +202,7 @@ func (f FileHashValidators) Validate() bool {
 	}
 	return true
 }
+
+// }}}
 
 // vim: foldmethod=marker
