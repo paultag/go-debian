@@ -76,6 +76,9 @@ func TestFilehashs(t *testing.T) {
 	assert(t, c == 39)
 
 	assert(t, validators.Validate())
+
+	_, err = writer.Write([]byte("wait, yes we do"))
+	assert(t, !validators.Validate())
 }
 
 // vim: foldmethod=marker
