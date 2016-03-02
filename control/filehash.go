@@ -21,11 +21,8 @@
 package control
 
 import (
-	"encoding/hex"
 	"fmt"
 	"hash"
-	"io"
-	"os"
 	"strconv"
 	"strings"
 
@@ -34,23 +31,11 @@ import (
 	"crypto/sha256"
 )
 
-func hashFile(path string, algo hash.Hash) (string, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
+// FileHash {{{
 
-	if _, err := io.Copy(algo, f); err != nil {
-		return "", err
-	}
-
-	return hex.EncodeToString(algo.Sum(nil)), nil
-}
-
-// A DebianFileHash is an entry as found in the Files, Checksum-Sha1, and
+// A FileHash is an entry as found in the Files, Checksum-Sha1, and
 // Checksum-Sha256 entry for the .dsc or .changes files.
-type DebianFileHash struct {
+type FileHash struct {
 	// cb136f28a8c971d4299cc68e8fdad93a8ca7daf3 1131 dput-ng_1.9.dsc
 	Algorithm string
 	Hash      string
@@ -58,50 +43,18 @@ type DebianFileHash struct {
 	Filename  string
 }
 
-// Validate the DebianFileHash by checking the target Filesize and Checksum.
-func (d DebianFileHash) Validate() error {
-	var algo hash.Hash
+// {{{ Hash File implementations
 
-	stat, err := os.Stat(d.Filename)
-	if err != nil {
-		return err
-	}
-	if size := stat.Size(); size != d.Size {
-		return fmt.Errorf("Size mismatch: %d != %d", size, d.Size)
-	}
-
-	switch d.Algorithm {
-	case "md5":
-		algo = md5.New()
-	case "sha1":
-		algo = sha1.New()
-	case "sha256":
-		algo = sha256.New()
-	default:
-		return fmt.Errorf("Unknown algorithm: %s", d.Algorithm)
-	}
-	fileHash, err := hashFile(d.Filename, algo)
-	if err != nil {
-		return fmt.Errorf("Hash failed: %v", err)
-	}
-	if fileHash != d.Hash {
-		return fmt.Errorf("Incorrect hash: %q != %q", fileHash, d.Hash)
-	}
-	return nil
+type boringFileHash struct {
+	FileHash
 }
 
-// {{{ SHA DebianFileHash (both 1 and 256)
-
-type SHADebianFileHash struct {
-	DebianFileHash
-}
-
-func (c *SHADebianFileHash) unmarshalControl(algorithm, data string) error {
+func (c *boringFileHash) unmarshalControl(algorithm, data string) error {
 	var err error
 	c.Algorithm = algorithm
 	vals := strings.Fields(data)
 	if len(data) < 4 {
-		return fmt.Errorf("Error: Unknown SHA Hash line: '%s'", data)
+		return fmt.Errorf("Error: Unknown Debian Hash line: '%s'", data)
 	}
 
 	c.Hash = vals[0]
@@ -113,32 +66,97 @@ func (c *SHADebianFileHash) unmarshalControl(algorithm, data string) error {
 	return nil
 }
 
-// {{{ MD5 DebianFileHash
+// {{{ MD5 FileHash
 
-type MD5DebianFileHash struct{ SHADebianFileHash }
+type MD5FileHash struct{ boringFileHash }
 
-func (c *MD5DebianFileHash) UnmarshalControl(data string) error {
+func (c *MD5FileHash) UnmarshalControl(data string) error {
 	return c.unmarshalControl("md5", data)
 }
 
 // }}}
 
-// {{{ SHA1 DebianFileHash
+// {{{ SHA1 FileHash
 
-type SHA1DebianFileHash struct{ SHADebianFileHash }
+type SHA1FileHash struct{ boringFileHash }
 
-func (c *SHA1DebianFileHash) UnmarshalControl(data string) error {
+func (c *SHA1FileHash) UnmarshalControl(data string) error {
 	return c.unmarshalControl("sha1", data)
 }
 
 // }}}
 
-// {{{ SHA256 DebianFileHash
+// {{{ SHA256 FileHash
 
-type SHA256DebianFileHash struct{ SHADebianFileHash }
+type SHA256FileHash struct{ boringFileHash }
 
-func (c *SHA256DebianFileHash) UnmarshalControl(data string) error {
+func (c *SHA256FileHash) UnmarshalControl(data string) error {
 	return c.unmarshalControl("sha256", data)
+}
+
+// }}}
+
+// }}}
+
+// }}}
+
+// FileHashValidator {{{
+
+type FileHashValidator struct {
+	target hash.Hash
+	size   int64
+	hash   FileHash
+}
+
+// io.Writer interface {{{
+
+func (dh *FileHashValidator) Write(p []byte) (int, error) {
+	n, err := dh.target.Write(p)
+	dh.size += int64(n)
+	return n, err
+}
+
+// }}}
+
+// GetHash {{{
+
+func (d FileHash) GetHash() (hash.Hash, error) {
+	switch d.Algorithm {
+	case "md5":
+		return md5.New(), nil
+	case "sha1":
+		return sha1.New(), nil
+	case "sha256":
+		return sha256.New(), nil
+	default:
+		return nil, fmt.Errorf("Unknown algorithm: %s", d.Algorithm)
+	}
+}
+
+// }}}
+
+// Validate {{{
+
+func (d FileHashValidator) Validate() bool {
+	hash := fmt.Sprintf("%x", d.target.Sum(nil))
+	return d.hash.Size == d.size && d.hash.Hash == hash
+}
+
+// }}}
+
+// FileHash -> FileHashValidator {{{
+
+func (d FileHash) Validator() (*FileHashValidator, error) {
+	hasher, err := d.GetHash()
+	if err != nil {
+		return nil, err
+	}
+
+	return &FileHashValidator{
+		target: hasher,
+		size:   0,
+		hash:   d,
+	}, nil
 }
 
 // }}}

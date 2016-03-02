@@ -33,7 +33,7 @@ import (
 
 // {{{ MD5 DSCFileHash
 
-type FileListDSCFileHash struct{ SHADebianFileHash }
+type FileListDSCFileHash struct{ boringFileHash }
 
 func (c *FileListDSCFileHash) UnmarshalControl(data string) error {
 	return c.unmarshalControl("md5", data)
@@ -65,9 +65,9 @@ type DSC struct {
 	StandardsVersion string                `control:"Standards-Version"`
 	BuildDepends     dependency.Dependency `control:"Build-Depends"`
 
-	ChecksumsSha1   []SHA1DebianFileHash   `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
-	ChecksumsSha256 []SHA256DebianFileHash `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
-	Files           []FileListDSCFileHash  `control:"Files" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha1   []SHA1FileHash        `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha256 []SHA256FileHash      `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
+	Files           []FileListDSCFileHash `control:"Files" delim:"\n" strip:"\n\r\t "`
 
 	/*
 		TODO:
@@ -171,31 +171,6 @@ func (d *DSC) HasArchAll() bool {
 // with any Uploaders following.
 func (d *DSC) Maintainers() []string {
 	return append([]string{d.Maintainer}, d.Uploaders...)
-}
-
-// Validate the attached files by checking the target Filesize and Checksum.
-func (d DSC) Validate() error {
-	dscDir := filepath.Dir(d.Filename)
-	for _, f := range d.ChecksumsSha1 {
-		f.Filename = filepath.Join(dscDir, f.Filename)
-		if err := f.Validate(); err != nil {
-			return err
-		}
-	}
-	for _, f := range d.ChecksumsSha256 {
-		f.Filename = filepath.Join(dscDir, f.Filename)
-		if err := f.Validate(); err != nil {
-			return err
-		}
-	}
-	for _, f := range d.Files {
-		f.Filename = filepath.Join(dscDir, f.Filename)
-		if err := f.Validate(); err != nil {
-			return err
-		}
-	}
-	// TODO also verify that all three lists contain the _same_ files (and the same filesizes)
-	return nil
 }
 
 // vim: foldmethod=marker

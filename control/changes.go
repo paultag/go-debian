@@ -36,7 +36,7 @@ import (
 // {{{ .changes Files list entries
 
 type FileListChangesFileHash struct {
-	DebianFileHash
+	FileHash
 
 	Component string
 	Priority  string
@@ -90,8 +90,8 @@ type Changes struct {
 	ChangedBy       string `control:"Changed-By"`
 	Closes          []string
 	Changes         string
-	ChecksumsSha1   []SHA1DebianFileHash      `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
-	ChecksumsSha256 []SHA256DebianFileHash    `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha1   []SHA1FileHash            `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha256 []SHA256FileHash          `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
 	Files           []FileListChangesFileHash `control:"Files" delim:"\n" strip:"\n\r\t "`
 }
 
