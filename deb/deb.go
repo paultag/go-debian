@@ -25,6 +25,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"path"
 	"strings"
 
@@ -89,6 +90,28 @@ func Load(in io.Reader, pathname string) (*Deb, error) {
 	}
 	deb.Path = pathname
 	return deb, nil
+}
+
+// }}}
+
+// LoadFile {{{
+
+type Closer func() error
+
+func LoadFile(path string) (*Deb, Closer, error) {
+	fd, err := os.Open(path)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	debFile, err := Load(fd, path)
+	if err != nil {
+		fd.Close()
+		return nil, nil, err
+	}
+
+	return debFile, fd.Close, nil
+
 }
 
 // }}}
