@@ -121,8 +121,8 @@ func (dh *FileHashValidator) Write(p []byte) (int, error) {
 
 // GetHash {{{
 
-func (d FileHash) GetHash() (hash.Hash, error) {
-	switch d.Algorithm {
+func GetHash(name string) (hash.Hash, error) {
+	switch name {
 	case "md5":
 		return md5.New(), nil
 	case "sha1":
@@ -130,7 +130,7 @@ func (d FileHash) GetHash() (hash.Hash, error) {
 	case "sha256":
 		return sha256.New(), nil
 	default:
-		return nil, fmt.Errorf("Unknown algorithm: %s", d.Algorithm)
+		return nil, fmt.Errorf("Unknown algorithm: %s", name)
 	}
 }
 
@@ -148,7 +148,7 @@ func (d FileHashValidator) Validate() bool {
 // FileHash -> FileHashValidator {{{
 
 func (d FileHash) Validator() (*FileHashValidator, error) {
-	hasher, err := d.GetHash()
+	hasher, err := GetHash(d.Algorithm)
 	if err != nil {
 		return nil, err
 	}
