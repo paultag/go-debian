@@ -13,8 +13,9 @@ func NewHasherWriter(hash string, target io.Writer) (io.Writer, *Hasher, error) 
 	return endWriter, hw, nil
 }
 
-func NewHasherWriters(hashes ...string, target io.Writer) (io.Writer, []*Hasher, error) {
+func NewHasherWriters(hashes []string, target io.Writer) (io.Writer, []*Hasher, error) {
 	hashers := []*Hasher{}
+	writers := []io.Writer{}
 
 	for _, hash := range hashes {
 		hw, err := NewHasher(hash)
@@ -22,9 +23,10 @@ func NewHasherWriters(hashes ...string, target io.Writer) (io.Writer, []*Hasher,
 			return nil, nil, err
 		}
 		hashers = append(hashers, hw)
+		writers = append(writers, hw)
 	}
 
-	endWriter := io.MultiWriter(target, hashers...)
+	endWriter := io.MultiWriter(append(writers, target)...)
 	return endWriter, hashers, nil
 }
 
@@ -37,8 +39,9 @@ func NewHasherReader(hash string, target io.Reader) (io.Reader, *Hasher, error) 
 	return endReader, hw, nil
 }
 
-func NewHasherReaders(hashes ...string, target io.Reader) (io.Reader, []*Hasher, error) {
+func NewHasherReaders(hashes []string, target io.Reader) (io.Reader, []*Hasher, error) {
 	hashers := []*Hasher{}
+	writers := []io.Writer{}
 
 	for _, hash := range hashes {
 		hw, err := NewHasher(hash)
@@ -46,7 +49,8 @@ func NewHasherReaders(hashes ...string, target io.Reader) (io.Reader, []*Hasher,
 			return nil, nil, err
 		}
 		hashers = append(hashers, hw)
+		writers = append(writers, hw)
 	}
-	endReader := io.TeeReader(target, io.MultiWriter(hashers...))
+	endReader := io.TeeReader(target, io.MultiWriter(writers...))
 	return endReader, hashers, nil
 }
