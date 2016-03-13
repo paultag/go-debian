@@ -26,20 +26,11 @@ import (
 	"path/filepath"
 
 	"pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/transput"
 	"pault.ag/go/debian/version"
 
 	"pault.ag/go/topsort"
 )
-
-// {{{ MD5 DSCFileHash
-
-type FileListDSCFileHash struct{ boringFileHash }
-
-func (c *FileListDSCFileHash) UnmarshalControl(data string) error {
-	return c.unmarshalControl("md5", data)
-}
-
-// }}}
 
 // A DSC is the ecapsulation of a Debian .dsc control file. This contains
 // information about the source package, and is general handy.
@@ -65,9 +56,9 @@ type DSC struct {
 	StandardsVersion string                `control:"Standards-Version"`
 	BuildDepends     dependency.Dependency `control:"Build-Depends"`
 
-	ChecksumsSha1   []SHA1FileHash        `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
-	ChecksumsSha256 []SHA256FileHash      `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
-	Files           []FileListDSCFileHash `control:"Files" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha1   []transput.SHA1FileHash   `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha256 []transput.SHA256FileHash `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
+	Files           []transput.MD5FileHash    `control:"Files" delim:"\n" strip:"\n\r\t "`
 
 	/*
 		TODO:
