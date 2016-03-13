@@ -7,6 +7,7 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
+	"crypto/sha512"
 )
 
 func GetHash(name string) (hash.Hash, error) {
@@ -17,18 +18,21 @@ func GetHash(name string) (hash.Hash, error) {
 		return sha1.New(), nil
 	case "sha256":
 		return sha256.New(), nil
+	case "sha512":
+		return sha512.New(), nil
 	default:
 		return nil, fmt.Errorf("Unknown algorithm: %s", name)
 	}
 }
 
-func NewHashWriter(name string) (*HashWriter, error) {
+func NewHasher(name string) (*Hasher, error) {
 	hash, err := GetHash(name)
 	if err != nil {
 		return nil, err
 	}
 
-	hw := HashWriter{
+	hw := Hasher{
+		name: name,
 		hash: hash,
 		size: 0,
 	}
@@ -36,21 +40,26 @@ func NewHashWriter(name string) (*HashWriter, error) {
 	return &hw, nil
 }
 
-type HashWriter struct {
+type Hasher struct {
+	name string
 	hash hash.Hash
 	size int64
 }
 
-func (dh *HashWriter) Write(p []byte) (int, error) {
+func (dh *Hasher) Name() string {
+	return dh.name
+}
+
+func (dh *Hasher) Write(p []byte) (int, error) {
 	n, err := dh.hash.Write(p)
 	dh.size += int64(n)
 	return n, err
 }
 
-func (dh *HashWriter) Size() int64 {
+func (dh *Hasher) Size() int64 {
 	return dh.size
 }
 
-func (dh *HashWriter) Sum(b []byte) []byte {
+func (dh *Hasher) Sum(b []byte) []byte {
 	return dh.hash.Sum(b)
 }
