@@ -22,7 +22,6 @@ package control
 
 import (
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
 )
