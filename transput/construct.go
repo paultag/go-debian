@@ -13,6 +13,15 @@ func NewHasherWriter(hash string, target io.Writer) (io.Writer, *Hasher, error) 
 	return endWriter, hw, nil
 }
 
+func NewHasherReader(hash string, target io.Reader) (io.Reader, *Hasher, error) {
+	hw, err := NewHasher(hash)
+	if err != nil {
+		return nil, nil, err
+	}
+	endReader := io.TeeReader(target, hw)
+	return endReader, hw, nil
+}
+
 func NewCompressedHasherWriter(hash, compression string, target io.Writer) (io.WriteCloser, *Hasher, error) {
 	w, h, err := NewHasherWriter(hash, target)
 	if err != nil {
