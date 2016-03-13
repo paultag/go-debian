@@ -18,20 +18,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE. }}} */
 
-package control_test
+package transput_test
 
 import (
+	"io"
+	"log"
 	"testing"
 
-	"pault.ag/go/debian/control"
+	"pault.ag/go/debian/transput"
 )
 
 /*
  *
  */
 
+func isok(t *testing.T, err error) {
+	if err != nil && err != io.EOF {
+		log.Printf("Error! Error is not nil! - %s\n", err)
+		t.FailNow()
+	}
+}
+
+func notok(t *testing.T, err error) {
+	if err == nil {
+		log.Printf("Error! Error is nil!\n")
+		t.FailNow()
+	}
+}
+
+func assert(t *testing.T, expr bool) {
+	if !expr {
+		log.Printf("Assertion failed!")
+		t.FailNow()
+	}
+}
+
 func TestFilehash(t *testing.T) {
-	hash := control.FileHash{
+	hash := transput.FileHash{
 		Algorithm: "sha256",
 		Hash:      "1eb9d182f09f015790915a9875005b70328c96ea43010c04b3b2b3a6ff37d2f4",
 		Size:      39,
@@ -50,21 +73,21 @@ func TestFilehash(t *testing.T) {
 }
 
 func TestFilehashs(t *testing.T) {
-	shaHash := control.FileHash{
+	shaHash := transput.FileHash{
 		Algorithm: "sha256",
 		Hash:      "1eb9d182f09f015790915a9875005b70328c96ea43010c04b3b2b3a6ff37d2f4",
 		Size:      39,
 		Filename:  "<nowhere in particular>",
 	}
 
-	md5Hash := control.FileHash{
+	md5Hash := transput.FileHash{
 		Algorithm: "md5",
 		Hash:      "f81cbdf994b88acebafc3a83da2d5ee1",
 		Size:      39,
 		Filename:  "<nowhere in particular>",
 	}
 
-	hashes := control.FileHashes{shaHash, md5Hash}
+	hashes := transput.FileHashes{shaHash, md5Hash}
 	validators, err := hashes.Validators()
 	isok(t, err)
 

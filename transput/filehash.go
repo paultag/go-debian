@@ -18,18 +18,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE. }}} */
 
-package control
+package transput
 
 import (
 	"fmt"
-	"hash"
 	"io"
 	"strconv"
 	"strings"
-
-	"crypto/md5"
-	"crypto/sha1"
-	"crypto/sha256"
 )
 
 // FileHash {{{
@@ -104,34 +99,14 @@ func (c *SHA256FileHash) UnmarshalControl(data string) error {
 // FileHashValidator {{{
 
 type FileHashValidator struct {
-	target hash.Hash
-	size   int64
 	hash   FileHash
+	writer *HashWriter
 }
 
 // io.Writer interface {{{
 
 func (dh *FileHashValidator) Write(p []byte) (int, error) {
-	n, err := dh.target.Write(p)
-	dh.size += int64(n)
-	return n, err
-}
-
-// }}}
-
-// GetHash {{{
-
-func GetHash(name string) (hash.Hash, error) {
-	switch name {
-	case "md5":
-		return md5.New(), nil
-	case "sha1":
-		return sha1.New(), nil
-	case "sha256":
-		return sha256.New(), nil
-	default:
-		return nil, fmt.Errorf("Unknown algorithm: %s", name)
-	}
+	return dh.writer.Write(p)
 }
 
 // }}}
@@ -139,8 +114,8 @@ func GetHash(name string) (hash.Hash, error) {
 // Validate {{{
 
 func (d FileHashValidator) Validate() bool {
-	hash := fmt.Sprintf("%x", d.target.Sum(nil))
-	return d.hash.Size == d.size && d.hash.Hash == hash
+	hash := fmt.Sprintf("%x", d.writer.Sum(nil))
+	return d.writer.Size() == d.hash.Size && d.hash.Hash == hash
 }
 
 // }}}
@@ -148,15 +123,14 @@ func (d FileHashValidator) Validate() bool {
 // FileHash -> FileHashValidator {{{
 
 func (d FileHash) Validator() (*FileHashValidator, error) {
-	hasher, err := GetHash(d.Algorithm)
+	writer, err := NewHashWriter(d.Algorithm)
 	if err != nil {
 		return nil, err
 	}
 
 	return &FileHashValidator{
-		target: hasher,
-		size:   0,
 		hash:   d,
+		writer: writer,
 	}, nil
 }
 
