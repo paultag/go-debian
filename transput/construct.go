@@ -13,6 +13,21 @@ func NewHasherWriter(hash string, target io.Writer) (io.Writer, *Hasher, error) 
 	return endWriter, hw, nil
 }
 
+func NewHasherWriters(hashes ...string, target io.Writer) (io.Writer, []*Hasher, error) {
+	hashers := []*Hasher{}
+
+	for _, hash := range hashes {
+		hw, err := NewHasher(hash)
+		if err != nil {
+			return nil, nil, err
+		}
+		hashers = append(hashers, hw)
+	}
+
+	endWriter := io.MultiWriter(target, hashers...)
+	return endWriter, hashers, nil
+}
+
 func NewHasherReader(hash string, target io.Reader) (io.Reader, *Hasher, error) {
 	hw, err := NewHasher(hash)
 	if err != nil {
@@ -22,18 +37,16 @@ func NewHasherReader(hash string, target io.Reader) (io.Reader, *Hasher, error) 
 	return endReader, hw, nil
 }
 
-func NewCompressedHasherWriter(hash, compression string, target io.Writer) (io.WriteCloser, *Hasher, error) {
-	w, h, err := NewHasherWriter(hash, target)
-	if err != nil {
-		return nil, nil, err
+func NewHasherReaders(hashes ...string, target io.Reader) (io.Reader, []*Hasher, error) {
+	hashers := []*Hasher{}
+
+	for _, hash := range hashes {
+		hw, err := NewHasher(hash)
+		if err != nil {
+			return nil, nil, err
+		}
+		hashers = append(hashers, hw)
 	}
-	compressor, err := GetCompressor(compression)
-	if err != nil {
-		return nil, nil, err
-	}
-	newWriter, err := compressor(w)
-	if err != nil {
-		return nil, nil, err
-	}
-	return newWriter, h, nil
+	endReader := io.TeeReader(target, io.MultiWriter(hashers...))
+	return endReader, hashers, nil
 }

@@ -36,6 +36,8 @@ type FileHash struct {
 	Filename  string
 }
 
+type FileHashes []FileHash
+
 // {{{ Hash File implementations
 
 type boringFileHash struct {
