@@ -26,7 +26,6 @@ import (
 	"path/filepath"
 
 	"pault.ag/go/debian/dependency"
-	"pault.ag/go/debian/transput"
 	"pault.ag/go/debian/version"
 
 	"pault.ag/go/topsort"
@@ -56,9 +55,9 @@ type DSC struct {
 	StandardsVersion string                `control:"Standards-Version"`
 	BuildDepends     dependency.Dependency `control:"Build-Depends"`
 
-	ChecksumsSha1   []transput.SHA1FileHash   `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
-	ChecksumsSha256 []transput.SHA256FileHash `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
-	Files           []transput.MD5FileHash    `control:"Files" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha1   []SHA1FileHash   `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha256 []SHA256FileHash `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
+	Files           []MD5FileHash    `control:"Files" delim:"\n" strip:"\n\r\t "`
 
 	/*
 		TODO:

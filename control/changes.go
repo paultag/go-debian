@@ -30,14 +30,13 @@ import (
 
 	"pault.ag/go/debian/dependency"
 	"pault.ag/go/debian/internal"
-	"pault.ag/go/debian/transput"
 	"pault.ag/go/debian/version"
 )
 
 // {{{ .changes Files list entries
 
 type FileListChangesFileHash struct {
-	transput.FileHash
+	FileHash
 
 	Component string
 	Priority  string
@@ -91,8 +90,8 @@ type Changes struct {
 	ChangedBy       string `control:"Changed-By"`
 	Closes          []string
 	Changes         string
-	ChecksumsSha1   []transput.SHA1FileHash   `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
-	ChecksumsSha256 []transput.SHA256FileHash `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha1   []SHA1FileHash            `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha256 []SHA256FileHash          `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
 	Files           []FileListChangesFileHash `control:"Files" delim:"\n" strip:"\n\r\t "`
 }
 

@@ -18,7 +18,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE. }}} */
 
-package transput
+package control
 
 import (
 	"fmt"
@@ -26,8 +26,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-// FileHash {{{
 
 // A FileHash is an entry as found in the Files, Checksum-Sha1, and
 // Checksum-Sha256 entry for the .dsc or .changes files.
@@ -91,91 +89,6 @@ func (c *SHA256FileHash) UnmarshalControl(data string) error {
 }
 
 // }}}
-
-// }}}
-
-// }}}
-
-// FileHashValidator {{{
-
-type FileHashValidator struct {
-	hash   FileHash
-	writer *HashWriter
-}
-
-// io.Writer interface {{{
-
-func (dh *FileHashValidator) Write(p []byte) (int, error) {
-	return dh.writer.Write(p)
-}
-
-// }}}
-
-// Validate {{{
-
-func (d FileHashValidator) Validate() bool {
-	hash := fmt.Sprintf("%x", d.writer.Sum(nil))
-	return d.writer.Size() == d.hash.Size && d.hash.Hash == hash
-}
-
-// }}}
-
-// FileHash -> FileHashValidator {{{
-
-func (d FileHash) Validator() (*FileHashValidator, error) {
-	writer, err := NewHashWriter(d.Algorithm)
-	if err != nil {
-		return nil, err
-	}
-
-	return &FileHashValidator{
-		hash:   d,
-		writer: writer,
-	}, nil
-}
-
-// }}}
-
-// }}}
-
-// FileHashes {{{
-
-type FileHashes []FileHash
-
-func (f FileHashes) Validators() (FileHashValidators, error) {
-	ret := FileHashValidators{}
-	for _, el := range f {
-		validator, err := el.Validator()
-		if err != nil {
-			return FileHashValidators{}, err
-		}
-		ret = append(ret, validator)
-	}
-	return ret, nil
-}
-
-// }}}
-
-// FileHashValidators {{{
-
-type FileHashValidators []*FileHashValidator
-
-func (f FileHashValidators) Writer() io.Writer {
-	writers := []io.Writer{}
-	for _, el := range f {
-		writers = append(writers, el)
-	}
-	return io.MultiWriter(writers...)
-}
-
-func (f FileHashValidators) Validate() bool {
-	for _, el := range f {
-		if ok := el.Validate(); !ok {
-			return false
-		}
-	}
-	return true
-}
 
 // }}}
 
