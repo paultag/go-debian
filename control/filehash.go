@@ -24,6 +24,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"pault.ag/go/debian/transput"
 )
 
 // A FileHash is an entry as found in the Files, Checksum-Sha1, and
@@ -36,15 +38,24 @@ type FileHash struct {
 	Filename  string
 }
 
+func FileHashFromHasher(path string, hasher transput.Hasher) FileHash {
+	return FileHash{
+		Algorithm: hasher.Name(),
+		Hash:      fmt.Sprintf("%x", hasher.Sum(nil)),
+		Size:      hasher.Size(),
+		Filename:  path,
+	}
+}
+
 type FileHashes []FileHash
 
 // {{{ Hash File implementations
 
-type boringFileHash struct {
-	FileHash
+func (c FileHash) marshalControl() (string, error) {
+	return fmt.Sprintf("%s %d %s", c.Hash, c.Size, c.Filename), nil
 }
 
-func (c *boringFileHash) unmarshalControl(algorithm, data string) error {
+func (c *FileHash) unmarshalControl(algorithm, data string) error {
 	var err error
 	c.Algorithm = algorithm
 	vals := strings.Fields(data)
@@ -63,30 +74,42 @@ func (c *boringFileHash) unmarshalControl(algorithm, data string) error {
 
 // {{{ MD5 FileHash
 
-type MD5FileHash struct{ boringFileHash }
+type MD5FileHash struct{ FileHash }
 
 func (c *MD5FileHash) UnmarshalControl(data string) error {
 	return c.unmarshalControl("md5", data)
+}
+
+func (c MD5FileHash) MarshalControl() (string, error) {
+	return c.marshalControl()
 }
 
 // }}}
 
 // {{{ SHA1 FileHash
 
-type SHA1FileHash struct{ boringFileHash }
+type SHA1FileHash struct{ FileHash }
 
 func (c *SHA1FileHash) UnmarshalControl(data string) error {
 	return c.unmarshalControl("sha1", data)
+}
+
+func (c SHA1FileHash) MarshalControl() (string, error) {
+	return c.marshalControl()
 }
 
 // }}}
 
 // {{{ SHA256 FileHash
 
-type SHA256FileHash struct{ boringFileHash }
+type SHA256FileHash struct{ FileHash }
 
 func (c *SHA256FileHash) UnmarshalControl(data string) error {
 	return c.unmarshalControl("sha256", data)
+}
+
+func (c SHA256FileHash) MarshalControl() (string, error) {
+	return c.marshalControl()
 }
 
 // }}}
