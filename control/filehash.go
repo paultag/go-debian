@@ -114,6 +114,20 @@ func (c SHA256FileHash) MarshalControl() (string, error) {
 
 // }}}
 
+// {{{ SHA512 FileHash
+
+type SHA512FileHash struct{ FileHash }
+
+func (c *SHA512FileHash) UnmarshalControl(data string) error {
+	return c.unmarshalControl("sha512", data)
+}
+
+func (c SHA512FileHash) MarshalControl() (string, error) {
+	return c.marshalControl()
+}
+
+// }}}
+
 // }}}
 
 // vim: foldmethod=marker
