@@ -99,6 +99,10 @@ func convertToParagraph(data reflect.Value) (*Paragraph, error) {
 			continue
 		}
 
+		if fieldType.Tag.Get("multiline") == "true" {
+			data = "\n" + data
+		}
+
 		order = append(order, paragraphKey)
 		values[paragraphKey] = data
 	}
