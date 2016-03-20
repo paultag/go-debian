@@ -42,7 +42,8 @@ import (
 type Control struct {
 	control.Paragraph
 
-	Package       string          `required:"true"`
+	Package       string `required:"true"`
+	Source        string
 	Version       version.Version `required:"true"`
 	Architecture  dependency.Arch `required:"true"`
 	Maintainer    string          `required:"true"`
@@ -57,6 +58,13 @@ type Control struct {
 	Priority      string
 	Homepage      string
 	Description   string `required:"true"`
+}
+
+func (c Control) SourceName() string {
+	if c.Source == "" {
+		return c.Package
+	}
+	return c.Source
 }
 
 // }}}
