@@ -1,10 +1,10 @@
-package control_test
+package rfc2822_test
 
 import (
 	"strings"
 	"testing"
 
-	"pault.ag/go/debian/control"
+	"pault.ag/go/debian/rfc2822"
 	"pault.ag/go/debian/dependency"
 	"pault.ag/go/debian/version"
 )
@@ -24,7 +24,7 @@ type TestStruct struct {
 
 func TestBasicUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+	isok(t, rfc2822.Unmarshal(&foo, strings.NewReader(`Value: foo
 Foo-Bar: baz
 `)))
 	assert(t, foo.Value == "foo")
@@ -32,7 +32,7 @@ Foo-Bar: baz
 
 func TestBasicArrayUnmarshal(t *testing.T) {
 	foo := []TestStruct{}
-	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+	isok(t, rfc2822.Unmarshal(&foo, strings.NewReader(`Value: foo
 Foo-Bar: baz
 
 Value: Bar
@@ -45,7 +45,7 @@ Value: Baz
 
 func TestTagUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+	isok(t, rfc2822.Unmarshal(&foo, strings.NewReader(`Value: foo
 Value-Two: baz
 `)))
 	assert(t, foo.Value == "foo")
@@ -54,20 +54,20 @@ Value-Two: baz
 
 func TestDependsUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+	isok(t, rfc2822.Unmarshal(&foo, strings.NewReader(`Value: foo
 Depends: foo, bar
 `)))
 	assert(t, foo.Value == "foo")
 	assert(t, foo.Depends.Relations[0].Possibilities[0].Name == "foo")
 
 	/* Actually invalid below */
-	notok(t, control.Unmarshal(&foo, strings.NewReader(`Depends: foo (>= 1.0) (<= 1.0)
+	notok(t, rfc2822.Unmarshal(&foo, strings.NewReader(`Depends: foo (>= 1.0) (<= 1.0)
 `)))
 }
 
 func TestVersionUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+	isok(t, rfc2822.Unmarshal(&foo, strings.NewReader(`Value: foo
 Version: 1.0-1
 `)))
 	assert(t, foo.Value == "foo")
@@ -76,14 +76,14 @@ Version: 1.0-1
 
 func TestArchUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+	isok(t, rfc2822.Unmarshal(&foo, strings.NewReader(`Value: foo
 Arch: amd64
 `)))
 	assert(t, foo.Value == "foo")
 	assert(t, foo.Arch.CPU == "amd64")
 
 	foo = TestStruct{}
-	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+	isok(t, rfc2822.Unmarshal(&foo, strings.NewReader(`Value: foo
 Arches: amd64 sparc any
 `)))
 	assert(t, foo.Value == "foo")
@@ -94,7 +94,7 @@ Arches: amd64 sparc any
 
 func TestNestedUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+	isok(t, rfc2822.Unmarshal(&foo, strings.NewReader(`Value: foo
 Fnord-Foo-Bar: Thing
 `)))
 	assert(t, foo.Value == "foo")
@@ -103,7 +103,7 @@ Fnord-Foo-Bar: Thing
 
 func TestListUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+	isok(t, rfc2822.Unmarshal(&foo, strings.NewReader(`Value: foo
 ValueThree: foo bar baz
 `)))
 	assert(t, foo.Value == "foo")
@@ -112,6 +112,6 @@ ValueThree: foo bar baz
 
 func TestRequiredUnmarshal(t *testing.T) {
 	foo := TestStruct{}
-	notok(t, control.Unmarshal(&foo, strings.NewReader(`Foo-Bar: baz
+	notok(t, rfc2822.Unmarshal(&foo, strings.NewReader(`Foo-Bar: baz
 `)))
 }

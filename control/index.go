@@ -24,8 +24,18 @@ import (
 	"bufio"
 
 	"pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/rfc2822"
 	"pault.ag/go/debian/version"
 )
+
+func getOptionalDependencyField(para rfc2822.Paragraph, field string) dependency.Dependency {
+	val := para.Values[field]
+	dep, err := dependency.Parse(val)
+	if err != nil {
+		return dependency.Dependency{}
+	}
+	return *dep
+}
 
 // The BinaryIndex struct represents the exported APT Binary package index
 // file, as seen on Debian (and Debian derived) mirrors, as well as the
@@ -35,7 +45,7 @@ import (
 // to examine things like Built-Using, Depends, Tags or Binary packages
 // present on an Architecture.
 type BinaryIndex struct {
-	Paragraph
+	rfc2822.Paragraph
 
 	Package        string
 	Source         string
@@ -61,27 +71,27 @@ type BinaryIndex struct {
 
 // Parse the Depends Dependency relation on this package.
 func (index *BinaryIndex) GetDepends() dependency.Dependency {
-	return index.getOptionalDependencyField("Depends")
+	return getOptionalDependencyField(index.Paragraph, "Depends")
 }
 
 // Parse the Depends Suggests relation on this package.
 func (index *BinaryIndex) GetSuggests() dependency.Dependency {
-	return index.getOptionalDependencyField("Suggests")
+	return getOptionalDependencyField(index.Paragraph, "Suggests")
 }
 
 // Parse the Depends Breaks relation on this package.
 func (index *BinaryIndex) GetBreaks() dependency.Dependency {
-	return index.getOptionalDependencyField("Breaks")
+	return getOptionalDependencyField(index.Paragraph, "Breaks")
 }
 
 // Parse the Depends Replaces relation on this package.
 func (index *BinaryIndex) GetReplaces() dependency.Dependency {
-	return index.getOptionalDependencyField("Replaces")
+	return getOptionalDependencyField(index.Paragraph, "Replaces")
 }
 
 // Parse the Depends Pre-Depends relation on this package.
 func (index *BinaryIndex) GetPreDepends() dependency.Dependency {
-	return index.getOptionalDependencyField("Pre-Depends")
+	return getOptionalDependencyField(index.Paragraph, "Pre-Depends")
 }
 
 // The SourceIndex struct represents the exported APT Source index
@@ -92,7 +102,7 @@ func (index *BinaryIndex) GetPreDepends() dependency.Dependency {
 // Binary packages built by Source packages, who maintains a package,
 // or where to find the VCS repo for that package.
 type SourceIndex struct {
-	Paragraph
+	rfc2822.Paragraph
 
 	Package  string
 	Binaries []string `control:"Binary" delim:","`
@@ -118,20 +128,20 @@ type SourceIndex struct {
 
 // Parse the Depends Build-Depends relation on this package.
 func (index *SourceIndex) GetBuildDepends() dependency.Dependency {
-	return index.getOptionalDependencyField("Build-Depends")
+	return getOptionalDependencyField(index.Paragraph, "Build-Depends")
 }
 
 // Given a reader, parse out a list of BinaryIndex structs.
 func ParseBinaryIndex(reader *bufio.Reader) (ret []BinaryIndex, err error) {
 	ret = []BinaryIndex{}
-	err = Unmarshal(&ret, reader)
+	err = rfc2822.Unmarshal(&ret, reader)
 	return ret, err
 }
 
 // Given a reader, parse out a list of SourceIndex structs.
 func ParseSourceIndex(reader *bufio.Reader) (ret []SourceIndex, err error) {
 	ret = []SourceIndex{}
-	err = Unmarshal(&ret, reader)
+	err = rfc2822.Unmarshal(&ret, reader)
 	return ret, err
 }
 
