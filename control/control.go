@@ -22,11 +22,11 @@ package control
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"path/filepath"
 
 	"pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/rfc2822"
 )
 
 // Encapsulation for a debian/control file, which is a series of RFC2822-like
@@ -50,7 +50,7 @@ type Control struct {
 // Encapsulation for a debian/control Source entry. This contains information
 // that will wind up in the .dsc and friends. Really quite fun!
 type SourceParagraph struct {
-	Paragraph
+	rfc2822.Paragraph
 
 	Maintainer  string
 	Uploaders   []string `delim:","`
@@ -76,7 +76,8 @@ func (s *SourceParagraph) Maintainers() []string {
 // information that will be eventually put lovingly into the .deb file
 // after it's built on a given Arch.
 type BinaryParagraph struct {
-	Paragraph
+	rfc2822.Paragraph
+
 	Architectures []dependency.Arch `control:"Architecture"`
 	Package       string
 	Priority      string
@@ -95,22 +96,6 @@ type BinaryParagraph struct {
 	Replaces  dependency.Dependency
 
 	BuiltUsing dependency.Dependency `control:"Built-Using"`
-}
-
-func (para *Paragraph) getDependencyField(field string) (*dependency.Dependency, error) {
-	if val, ok := para.Values[field]; ok {
-		return dependency.Parse(val)
-	}
-	return nil, fmt.Errorf("Field `%s' Missing", field)
-}
-
-func (para *Paragraph) getOptionalDependencyField(field string) dependency.Dependency {
-	val := para.Values[field]
-	dep, err := dependency.Parse(val)
-	if err != nil {
-		return dependency.Dependency{}
-	}
-	return *dep
 }
 
 // Given a path on the filesystem, Parse the file off the disk and return
@@ -144,10 +129,10 @@ func ParseControl(reader *bufio.Reader, path string) (*Control, error) {
 		Source:   SourceParagraph{},
 	}
 
-	if err := Unmarshal(&ret.Source, reader); err != nil {
+	if err := rfc2822.Unmarshal(&ret.Source, reader); err != nil {
 		return nil, err
 	}
-	if err := Unmarshal(&ret.Binaries, reader); err != nil {
+	if err := rfc2822.Unmarshal(&ret.Binaries, reader); err != nil {
 		return nil, err
 	}
 

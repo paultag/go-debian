@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 
 	"pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/rfc2822"
 	"pault.ag/go/debian/version"
 
 	"pault.ag/go/topsort"
@@ -39,7 +40,7 @@ import (
 // When unpacking, it is checked against the files and directories in the
 // other parts of the source package.
 type DSC struct {
-	Paragraph
+	rfc2822.Paragraph
 
 	Filename string
 
@@ -138,7 +139,7 @@ func ParseDscFile(path string) (ret *DSC, err error) {
 // for use.
 func ParseDsc(reader *bufio.Reader, path string) (*DSC, error) {
 	ret := DSC{Filename: path}
-	err := Unmarshal(&ret, reader)
+	err := rfc2822.Unmarshal(&ret, reader)
 	if err != nil {
 		return nil, err
 	}

@@ -18,7 +18,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE. }}} */
 
-package control
+package rfc2822
 
 import (
 	"fmt"
@@ -40,10 +40,10 @@ type Marshallable interface {
 
 // ConvertToParagraph {{{
 
-// Given a Struct, convert that Struct back into a control.Paragraph.
+// Given a Struct, convert that Struct back into a rfc2822.Paragraph.
 // This is not exactly useful as part of the external API, but may be
 // useful in some funny circumstances where you need to treat a Struct
-// you Unmarshaled into as a control.Paragraph again.
+// you Unmarshaled into as a rfc2822.Paragraph again.
 //
 // In most cases, the Marshal API should be sufficient. Use of this API
 // is mildly discouraged.
@@ -144,7 +144,7 @@ func marshalStructValueStruct(field reflect.Value, fieldType reflect.StructField
 	}
 
 	return "", fmt.Errorf(
-		"Type '%s' does not implement control.Marshallable",
+		"Type '%s' does not implement rfc2822.Marshallable",
 		field.Type().Name(),
 	)
 }
@@ -186,7 +186,7 @@ func marshalStructValueSlice(field reflect.Value, fieldType reflect.StructField)
 //
 // It's also worth noting that this *will* also write out elements that
 // were Unmarshaled into a Struct without a member of that name if (and only
-// if) the target Struct contains a `control.Paragraph` anonymous member.
+// if) the target Struct contains a `rfc2822.Paragraph` anonymous member.
 //
 // This is handy if the Unmarshaler was given any `X-*` keys that were not
 // present on your Struct.

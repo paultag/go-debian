@@ -18,16 +18,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE. }}} */
 
-package control_test
+package rfc2822_test
 
 import (
-	"io"
-	"log"
 	"strings"
 	"testing"
 
 	"golang.org/x/crypto/openpgp"
-	"pault.ag/go/debian/control"
+	"pault.ag/go/debian/rfc2822"
 )
 
 /*
@@ -92,34 +90,13 @@ A8Ija2WnFdScMVRuMxDxK8yMdy1/BtZQKV6uzSt7ebHfPcUopBM4yARM8C90EbJD
 
 // }}}
 
-func isok(t *testing.T, err error) {
-	if err != nil && err != io.EOF {
-		log.Printf("Error! Error is not nil! - %s\n", err)
-		t.FailNow()
-	}
-}
-
-func notok(t *testing.T, err error) {
-	if err == nil {
-		log.Printf("Error! Error is nil!\n")
-		t.FailNow()
-	}
-}
-
-func assert(t *testing.T, expr bool) {
-	if !expr {
-		log.Printf("Assertion failed!")
-		t.FailNow()
-	}
-}
-
 /*
  *
  */
 
 func TestBasicParagraphReader(t *testing.T) {
 	// Reader {{{
-	reader, err := control.NewParagraphReader(strings.NewReader(`Para: one
+	reader, err := rfc2822.NewParagraphReader(strings.NewReader(`Para: one
 
 Para: two
 
@@ -134,7 +111,7 @@ Para: three
 }
 
 func TestOpenPGPParagraphReader(t *testing.T) {
-	reader, err := control.NewParagraphReader(strings.NewReader(signedParagraph), nil)
+	reader, err := rfc2822.NewParagraphReader(strings.NewReader(signedParagraph), nil)
 	isok(t, err)
 
 	blocks, err := reader.All()
@@ -146,7 +123,7 @@ func TestEmptyKeyringOpenPGPParagraphReader(t *testing.T) {
 	keyring := openpgp.EntityList{}
 
 	// Reader {{{
-	_, err := control.NewParagraphReader(strings.NewReader(`-----BEGIN PGP SIGNED MESSAGE-----
+	_, err := rfc2822.NewParagraphReader(strings.NewReader(`-----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA512
 
 Format: 1.8
@@ -205,7 +182,7 @@ A8Ija2WnFdScMVRuMxDxK8yMdy1/BtZQKV6uzSt7ebHfPcUopBM4yARM8C90EbJD
 }
 
 func TestLineWrapping(t *testing.T) {
-	reader, err := control.NewParagraphReader(strings.NewReader(signedParagraph), nil)
+	reader, err := rfc2822.NewParagraphReader(strings.NewReader(signedParagraph), nil)
 	isok(t, err)
 
 	el, err := reader.Next()

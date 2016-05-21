@@ -30,6 +30,7 @@ import (
 
 	"pault.ag/go/debian/dependency"
 	"pault.ag/go/debian/internal"
+	"pault.ag/go/debian/rfc2822"
 	"pault.ag/go/debian/version"
 )
 
@@ -74,7 +75,7 @@ func (c *FileListChangesFileHash) UnmarshalControl(data string) error {
 // debian/control file and other data about the source package gathered via
 // debian/changelog and debian/rules.
 type Changes struct {
-	Paragraph
+	rfc2822.Paragraph
 
 	Filename string
 
@@ -120,7 +121,7 @@ func ParseChangesFile(path string) (ret *Changes, err error) {
 // to something invalid if you're not using those functions.
 func ParseChanges(reader *bufio.Reader, path string) (*Changes, error) {
 	ret := &Changes{Filename: path}
-	return ret, Unmarshal(ret, reader)
+	return ret, rfc2822.Unmarshal(ret, reader)
 }
 
 // Return a DSC struct for the DSC listed in the .changes file. This requires

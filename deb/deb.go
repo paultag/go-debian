@@ -29,8 +29,8 @@ import (
 	"path"
 	"strings"
 
-	"pault.ag/go/debian/control"
 	"pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/rfc2822"
 	"pault.ag/go/debian/version"
 )
 
@@ -40,7 +40,7 @@ import (
 // archive, as defined in Debian Policy, section 5.3, entitiled "Binary
 // package control files -- DEBIAN/control".
 type Control struct {
-	control.Paragraph
+	rfc2822.Paragraph
 
 	Package       string `required:"true"`
 	Source        string
@@ -202,7 +202,7 @@ func loadDeb2Control(archive *Ar, deb *Deb) error {
 					return err
 				}
 				if path.Clean(member.Name) == "control" {
-					return control.Unmarshal(&deb.Control, archive)
+					return rfc2822.Unmarshal(&deb.Control, archive)
 				}
 			}
 		}
