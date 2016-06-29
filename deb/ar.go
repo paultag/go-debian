@@ -59,7 +59,7 @@ type Ar struct {
 
 // LoadAr {{{
 
-// Load an Ar archive reader from a io.Reader
+// Load an Ar archive reader from an io.Reader
 func LoadAr(in io.Reader) (*Ar, error) {
 	if err := checkAr(in); err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (d *Ar) Next() (*ArEntry, error) {
 			return nil, err
 		}
 		if d.offset {
-			/* .ar archives align on 2 byte boundries, so if we're odd, go
+			/* .ar archives align on 2 byte boundaries, so if we're odd, go
 			 * ahead and read another byte. If we get an io.EOF, it's fine
 			 * to return it. */
 			_, err := d.in.Read(make([]byte, 1))
@@ -185,14 +185,14 @@ func parseArEntry(line []byte) (*ArEntry, error) {
 // checkAr {{{
 
 // Given a brand spank'n new os.File entry, go ahead and make sure it looks
-// like an `ar(1)` archive, and not some rando file.
+// like an `ar(1)` archive, and not some random file.
 func checkAr(reader io.Reader) error {
 	header := make([]byte, 8)
 	if _, err := reader.Read(header); err != nil {
 		return err
 	}
 	if string(header) != "!<arch>\n" {
-		return fmt.Errorf("Header does't look right!")
+		return fmt.Errorf("Header doesn't look right!")
 	}
 	return nil
 }
