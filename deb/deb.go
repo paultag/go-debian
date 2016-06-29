@@ -37,7 +37,7 @@ import (
 // Control {{{
 
 // Binary Control format, as exists in the Control section of the `.deb`
-// archive, as defined in Debian Policy, section 5.3, entitiled "Binary
+// archive, as defined in Debian Policy, section 5.3, entitled "Binary
 // package control files -- DEBIAN/control".
 type Control struct {
 	control.Paragraph
