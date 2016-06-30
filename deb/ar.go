@@ -34,7 +34,7 @@ import (
 //
 // The most interesting parts of this are the `Name` attribute, Data
 // `io.Reader`, and the Tarfile helpers. This will allow the developer to
-// programatically inspect the information inside without forcing her to
+// programmatically inspect the information inside without forcing her to
 // unpack the .deb to the filesystem.
 type ArEntry struct {
 	Name      string
