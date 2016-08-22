@@ -67,7 +67,7 @@ func (c *FileListChangesFileHash) UnmarshalControl(data string) error {
 
 // The Changes struct is the default encapsulation of the Debian .changes
 // package filetype.This struct contains an anonymous member of type Paragraph,
-// allowing you to use the standard .Values and .Order of the Paragraph type.
+// allowing you to use the standard .Get() and .Order of the Paragraph type.
 //
 // The .changes files are used by the Debian archive maintenance software to
 // process updates to packages. They consist of a single paragraph, possibly

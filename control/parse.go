@@ -34,30 +34,62 @@ import (
 )
 
 // A Paragraph is a block of RFC2822-like key value pairs. This struct contains
-// two methods to fetch values, a Map called Values, and a Slice called
+// two methods to fetch values, a Map called values, and a Slice called
 // Order, which maintains the ordering as defined in the RFC2822-like block
+// The map called values contains lowercased keys. You should access it via
+// methods Get() and Set() of Pararagraph.
 type Paragraph struct {
-	Values map[string]string
+	values map[string]string
 	Order  []string
 }
 
 // Paragraph Helpers {{{
+func NewParagraph() Paragraph {
+	return Paragraph{
+		Order:  []string{},
+		values: map[string]string{},
+	}
+}
+
+// This is dangerous function, but sometimes it is a nice shortcut.
+func (p Paragraph) GetValues() map[string]string {
+	return p.values
+}
 
 func (p *Paragraph) Set(key, value string) {
-	if _, found := p.Values[key]; found {
+	k := strings.ToLower(key)
+	if _, found := p.values[k]; found {
 		/* We've got the key */
-		p.Values[key] = value
+		p.values[k] = value
 		return
 	}
 	/* Otherwise, go ahead and set it in the order and dict,
 	 * and call it a day */
 	p.Order = append(p.Order, key)
-	p.Values[key] = value
+	p.values[k] = value
+}
+
+func (p Paragraph) Get2(key string) (string, bool) {
+	if v, found := p.values[key]; found {
+		return v, true
+	}
+	v, f := p.values[strings.ToLower(key)]
+	return v, f
+}
+
+func (p Paragraph) Get(key string) string {
+	v, _ := p.Get2(key)
+	return v
+}
+
+func (p Paragraph) Has(key string) bool {
+	_, b := p.Get2(key)
+	return b
 }
 
 func (p *Paragraph) WriteTo(out io.Writer) error {
 	for _, key := range p.Order {
-		value := p.Values[key]
+		value := p.Get(key)
 
 		value = strings.Replace(value, "\n", "\n ", -1)
 		value = strings.Replace(value, "\n \n", "\n .\n", -1)
@@ -74,23 +106,25 @@ func (p *Paragraph) WriteTo(out io.Writer) error {
 func (p *Paragraph) Update(other Paragraph) Paragraph {
 	ret := Paragraph{
 		Order:  []string{},
-		Values: map[string]string{},
+		values: map[string]string{},
 	}
 
 	seen := map[string]bool{}
 
 	for _, el := range p.Order {
 		ret.Order = append(ret.Order, el)
-		ret.Values[el] = p.Values[el]
-		seen[el] = true
+		k := strings.ToLower(el)
+		ret.values[k] = p.values[k]
+		seen[k] = true
 	}
 
 	for _, el := range other.Order {
-		if _, ok := seen[el]; !ok {
+		k := strings.ToLower(el)
+		if _, ok := seen[k]; !ok {
 			ret.Order = append(ret.Order, el)
-			seen[el] = true
+			seen[k] = true
 		}
-		ret.Values[el] = other.Values[el]
+		ret.values[k] = other.values[k]
 	}
 
 	return ret
@@ -175,9 +209,10 @@ func (p *ParagraphReader) All() ([]Paragraph, error) {
 func (p *ParagraphReader) Next() (*Paragraph, error) {
 	paragraph := Paragraph{
 		Order:  []string{},
-		Values: map[string]string{},
+		values: map[string]string{},
 	}
 	var lastKey string
+	lowerSeen := make(map[string]bool)
 
 	for {
 		line, err := p.reader.ReadString('\n')
@@ -233,13 +268,13 @@ func (p *ParagraphReader) Next() (*Paragraph, error) {
 				line = ""
 			}
 
-			if paragraph.Values[lastKey] == "" {
-				paragraph.Values[lastKey] = line + "\n"
+			if paragraph.values[lastKey] == "" {
+				paragraph.values[lastKey] = line + "\n"
 			} else {
-				if !strings.HasSuffix(paragraph.Values[lastKey], "\n") {
-					paragraph.Values[lastKey] = paragraph.Values[lastKey] + "\n"
+				if !strings.HasSuffix(paragraph.values[lastKey], "\n") {
+					paragraph.values[lastKey] = paragraph.values[lastKey] + "\n"
 				}
-				paragraph.Values[lastKey] = paragraph.Values[lastKey] + line + "\n"
+				paragraph.values[lastKey] = paragraph.values[lastKey] + line + "\n"
 			}
 			continue
 		}
@@ -252,11 +287,18 @@ func (p *ParagraphReader) Next() (*Paragraph, error) {
 		}
 
 		/* We'll go ahead and take off any leading spaces */
-		lastKey = strings.TrimSpace(els[0])
+		key := strings.TrimSpace(els[0])
+		lastKey = strings.ToLower(key)
 		value := strings.TrimSpace(els[1])
 
-		paragraph.Order = append(paragraph.Order, lastKey)
-		paragraph.Values[lastKey] = value
+		if lowerSeen[lastKey] {
+			return nil, fmt.Errorf("Duplicate key '%s'", key)
+		} else {
+			lowerSeen[lastKey] = true
+		}
+
+		paragraph.Order = append(paragraph.Order, key)
+		paragraph.values[lastKey] = value
 	}
 }
 

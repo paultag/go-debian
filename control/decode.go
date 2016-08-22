@@ -66,7 +66,7 @@ type Unmarshallable interface {
 //
 // Structs that contain Paragraph as an Anonymous member will have that
 // member populated with the parsed RFC822 block, to allow access to the
-// .Values and .Order members.
+// .Get and .Order members.
 func Unmarshal(data interface{}, reader io.Reader) error {
 	decoder, err := NewDecoder(reader, nil)
 	if err != nil {
@@ -178,7 +178,7 @@ func decodeStruct(p Paragraph, into reflect.Value) error {
 			}
 		}
 
-		if value, ok := p.Values[paragraphKey]; ok {
+		if value, ok := p.Get2(paragraphKey); ok {
 			if err := decodeStructValue(field, fieldType, value); err != nil {
 				return err
 			}

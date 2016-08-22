@@ -171,8 +171,8 @@ Key2: two
 
 	blocks, err := reader.All()
 	isok(t, err)
-	assert(t, blocks[0].Values["Key1"] == "one\n continuation\n")
-	assert(t, blocks[0].Values["Key2"] == "two\ntabbed continuation\n")
+	assert(t, blocks[0].Get("Key1") == "one\n continuation\n")
+	assert(t, blocks[0].Get("Key2") == "two\ntabbed continuation\n")
 }
 
 func TestCommentLines(t *testing.T) {
@@ -186,8 +186,8 @@ Key2: two
 
 	blocks, err := reader.All()
 	isok(t, err)
-	assert(t, blocks[0].Values["Key1"] == "one")
-	assert(t, blocks[0].Values["Key2"] == "two")
+	assert(t, blocks[0].Get("Key1") == "one")
+	assert(t, blocks[0].Get("Key2") == "two")
 }
 
 func TestTrailingTwoCharacterNewlines(t *testing.T) {
@@ -286,7 +286,7 @@ func TestLineWrapping(t *testing.T) {
 	el, err := reader.Next()
 	isok(t, err)
 
-	assert(t, el.Values["Changes"] == `hy (0.11.0-4) unstable; urgency=medium
+	assert(t, el.Get("changes") == `hy (0.11.0-4) unstable; urgency=medium
 
   * Fix FTBFS due to rply trying to write to HOME during sphinx-build.
   * Fix build repeatability with proper override_dh_auto_clean.

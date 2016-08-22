@@ -98,14 +98,14 @@ type BinaryParagraph struct {
 }
 
 func (para *Paragraph) getDependencyField(field string) (*dependency.Dependency, error) {
-	if val, ok := para.Values[field]; ok {
+	if val, ok := para.Get2(field); ok {
 		return dependency.Parse(val)
 	}
 	return nil, fmt.Errorf("Field `%s' Missing", field)
 }
 
 func (para *Paragraph) getOptionalDependencyField(field string) dependency.Dependency {
-	val := para.Values[field]
+	val := para.Get(field)
 	dep, err := dependency.Parse(val)
 	if err != nil {
 		return dependency.Dependency{}
