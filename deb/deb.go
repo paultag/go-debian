@@ -80,6 +80,8 @@ type Deb struct {
 	Control Control
 	Path    string
 	Data    *tar.Reader
+	ControlExt  string
+	DataExt	    string
 }
 
 // Load {{{
@@ -197,6 +199,7 @@ func loadDeb2Control(archive *Ar, deb *Deb) error {
 			if err != nil {
 				return err
 			}
+			deb.ControlExt = member.Name[8:len(member.Name)]
 			for {
 				member, err := archive.Next()
 				if err != nil {
@@ -230,6 +233,7 @@ func loadDeb2Data(archive *Ar, deb *Deb) error {
 			if err != nil {
 				return err
 			}
+			deb.DataExt = member.Name[5:len(member.Name)]
 			deb.Data = archive
 			return nil
 		}
