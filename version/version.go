@@ -173,6 +173,97 @@ func (v Version) ComparableString() string {
 	return buffer.String()
 }
 
+func comparableVerRevToStr(s string, pos *int) (ret string, err error) {
+	const (
+		STATE_STRING = iota
+		STATE_BEFORE_STRING
+		STATE_NUMBER
+		STATE_END
+	)
+	var buffer bytes.Buffer
+	state := STATE_STRING
+	for len(s) > *pos && state != STATE_END {
+		c := s[*pos]
+		switch {
+			case state == STATE_NUMBER:
+				numLen := int(c) - numberDigitsZero
+				if len(s) < *pos + 1 + numLen {
+					err = fmt.Errorf("Unexpected end of version or revision.")
+					return
+				}
+				buffer.WriteString(s[*pos+1:*pos+1+numLen])
+				*pos += numLen
+				state = STATE_BEFORE_STRING
+			case state != STATE_BEFORE_STRING && state != STATE_STRING:
+				err = fmt.Errorf("Unexpected state.")
+				return
+			case c == versionEnd:
+				if state == STATE_BEFORE_STRING {
+					state = STATE_END
+				} else {
+					err = fmt.Errorf("Unexpected end of version or revision.")
+					return
+				}
+			case c == endOfString:
+				state = STATE_NUMBER
+			case c == tildeTo:
+				buffer.WriteByte('~')
+				state = STATE_STRING
+			case c > nonAlphaAfter && int(c) <= nonAlphaAfter + len(fromChars):
+				buffer.WriteByte(fromChars[c-nonAlphaAfter-1])
+				state = STATE_STRING
+			case (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'):
+				buffer.WriteByte(c)
+				state = STATE_STRING
+			default:
+				err = fmt.Errorf("Unexpected character.")
+				return
+		}
+		*pos++
+	}
+	if state != STATE_END {
+		err = fmt.Errorf("Unexpected end of version or revision.")
+		return
+	}
+	*pos ++
+	ret = buffer.String()
+	return
+}
+
+func ComparableStringToVersion(s string) (ret Version, err error) {
+	if len(s) < 4 {
+		err = fmt.Errorf("Comparable version too short.")
+		return
+	}
+	pos := int(s[0]) - numberDigitsZero + 1
+	if len(s) < pos+2 {
+		err = fmt.Errorf("Unexpected end of comparable version.")
+		return
+	}
+	if pos > 1 {
+		var epoch int64
+		epoch, err = strconv.ParseInt(s[1:pos], 10, 32)
+		if err != nil { return }
+		ret.Epoch = uint(epoch)
+	} else {
+		ret.Epoch = 0
+	}
+	if s[pos] != versionEnd {
+		err = fmt.Errorf("Expected version separator after epoch.")
+		return
+	}
+	pos++
+	ret.Version, err = comparableVerRevToStr(s, &pos)
+	if err != nil { return }
+	ret.Revision, err = comparableVerRevToStr(s, &pos)
+	if err != nil { return }
+	if pos < len(s) {
+		err = fmt.Errorf("Extra characters after revision.")
+		return
+	}
+	return
+}
+
 func cisdigit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
