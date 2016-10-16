@@ -94,15 +94,24 @@ func (d *Ar) Next() (*ArEntry, error) {
 	}
 
 	line := make([]byte, 60)
+	pos := 0
 
-	count, err := d.in.Read(line)
-	if err != nil {
-		return nil, err
+	var err error
+	for pos < 60 {
+		var count int
+		count, err = d.in.Read(line[pos:])
+		if (err == nil) || (err == io.EOF){
+			pos = pos + count
+		}
+		if (err == io.EOF) { break }
+		if (err != nil) { return nil, err }
 	}
-	if count == 1 && line[0] == '\n' {
-		return nil, io.EOF
+	if err == io.EOF {
+		if pos == 0 || (pos == 1 && line[0] == '\n') {
+			return nil, err
+		}
 	}
-	if count != 60 {
+	if pos < 60 {
 		return nil, fmt.Errorf("Caught a short read at the end")
 	}
 	entry, err := parseArEntry(line)
@@ -160,7 +169,11 @@ func parseArEntry(line []byte) (*ArEntry, error) {
 	}
 
 	entry := ArEntry{
-		Name:     strings.TrimSpace(string(line[0:16])),
+		// Found a valid deb packages with trailing slash in ar names.
+		// According to wikipedia, that is System V extension. -- Ebik.
+		Name:     strings.TrimSuffix(
+				strings.TrimSpace(string(line[0:16])), "/",
+			  ),
 		FileMode: strings.TrimSpace(string(line[48:58])),
 	}
 
@@ -188,11 +201,23 @@ func parseArEntry(line []byte) (*ArEntry, error) {
 // like an `ar(1)` archive, and not some random file.
 func checkAr(reader io.Reader) error {
 	header := make([]byte, 8)
-	if _, err := reader.Read(header); err != nil {
-		return err
+	pos := 0
+	for pos < 8 {
+		count, err := reader.Read(header[pos:])
+		if  err == io.EOF {
+			if count+pos == 0  {
+				return fmt.Errorf("File is empty.")
+			} else {
+				return fmt.Errorf("Header too short for 'ar' file.")
+			}
+		}
+		if  err != nil {
+			return err
+		}
+		pos = pos + count
 	}
 	if string(header) != "!<arch>\n" {
-		return fmt.Errorf("Header doesn't look right!")
+		return fmt.Errorf("Header doesn't look as 'ar' file.")
 	}
 	return nil
 }
