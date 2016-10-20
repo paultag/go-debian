@@ -192,7 +192,7 @@ Key2: two
 
 func TestTrailingTwoCharacterNewlines(t *testing.T) {
 	// Reader {{{
-	reader, err := control.NewDecoder(strings.NewReader("Key1: one\r\nKey2: two\r\n\r\n"), nil)
+	reader, err := control.NewDecoder(strings.NewReader("Key1: one\r\nKey2: two\r\n\r\n"), nil, nil)
 	// }}}
 	isok(t, err)
 

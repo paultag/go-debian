@@ -3,6 +3,7 @@ package control_test
 import (
 	"strings"
 	"testing"
+	"reflect"
 
 	"pault.ag/go/debian/control"
 	"pault.ag/go/debian/dependency"
@@ -62,7 +63,8 @@ Depends: foo, bar
 	assert(t, foo.Depends.Relations[0].Possibilities[0].Name == "foo")
 
 	/* Actually invalid below */
-	notok(t, control.Unmarshal(&foo, strings.NewReader(`Depends: foo (>= 1.0) (<= 1.0)
+	notok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+Depends: foo (>= 1.0) (<= 1.0)
 `)))
 }
 
@@ -115,6 +117,16 @@ func TestRequiredUnmarshal(t *testing.T) {
 	foo := TestStruct{}
 	notok(t, control.Unmarshal(&foo, strings.NewReader(`Foo-Bar: baz
 `)))
+	called := false
+	reqHandler := func(structType reflect.Type, field reflect.StructField) error {
+		assert(t, structType.Name() == "TestStruct")
+		assert(t, field.Name == "Value")
+		called = true
+		return nil
+	}
+	isok(t, control.UnmarshalCtx(&foo, strings.NewReader(`Foo-Bar: foo
+`), &control.DecodingContext{MissingHandler: reqHandler}))
+	assert(t, called)
 }
 
 func TestBoolUnmarshal(t *testing.T) {

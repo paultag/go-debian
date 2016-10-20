@@ -68,7 +68,11 @@ type Unmarshallable interface {
 // member populated with the parsed RFC822 block, to allow access to the
 // .Values and .Order members.
 func Unmarshal(data interface{}, reader io.Reader) error {
-	decoder, err := NewDecoder(reader, nil)
+	return UnmarshalCtx(data, reader, nil)
+}
+
+func UnmarshalCtx(data interface{}, reader io.Reader, ctx *DecodingContext) error {
+	decoder, err := NewDecoder(reader, nil, ctx)
 	if err != nil {
 		return err
 	}
@@ -81,17 +85,36 @@ func Unmarshal(data interface{}, reader io.Reader) error {
 
 type Decoder struct {
 	paragraphReader ParagraphReader
+	ctx *DecodingContext
 }
+
+type MissingHandler = func (structType reflect.Type, field reflect.StructField) error
+
+type DecodingContext struct {
+	MissingHandler MissingHandler
+}
+
 
 // NewDecoder {{{
 
-func NewDecoder(reader io.Reader, keyring *openpgp.EntityList) (*Decoder, error) {
+func NewDecoder(reader io.Reader, keyring *openpgp.EntityList, ctx *DecodingContext) (*Decoder, error) {
 	ret := Decoder{}
 	pr, err := NewParagraphReader(reader, keyring)
 	if err != nil {
 		return nil, err
 	}
 	ret.paragraphReader = *pr
+	if ctx == nil {
+		ctx = &DecodingContext{
+			MissingHandler: func(structType reflect.Type, field reflect.StructField) error {
+				return fmt.Errorf(
+					"Required field '%s' is missing!",
+					field.Name,
+				)
+			},
+		} 
+	}
+	ret.ctx = ctx
 	return &ret, nil
 }
 
@@ -100,12 +123,12 @@ func NewDecoder(reader io.Reader, keyring *openpgp.EntityList) (*Decoder, error)
 // Decode {{{
 
 func (d *Decoder) Decode(into interface{}) error {
-	return decode(&d.paragraphReader, reflect.ValueOf(into))
+	return decode(&d.paragraphReader, reflect.ValueOf(into), d.ctx.MissingHandler)
 }
 
 // Top-level decode dispatch {{{
 
-func decode(p *ParagraphReader, into reflect.Value) error {
+func decode(p *ParagraphReader, into reflect.Value, missingHandler MissingHandler) error {
 	if into.Type().Kind() != reflect.Ptr {
 		return fmt.Errorf("Decode can only decode into a pointer!")
 	}
@@ -116,9 +139,9 @@ func decode(p *ParagraphReader, into reflect.Value) error {
 		if err != nil {
 			return err
 		}
-		return decodeStruct(*paragraph, into)
+		return decodeStruct(*paragraph, into, missingHandler)
 	case reflect.Slice:
-		return decodeSlice(p, into)
+		return decodeSlice(p, into, missingHandler)
 	default:
 		return fmt.Errorf("Can't Decode into a %s", into.Elem().Type().Name())
 	}
@@ -130,10 +153,10 @@ func decode(p *ParagraphReader, into reflect.Value) error {
 
 // Top-level struct dispatch {{{
 
-func decodeStruct(p Paragraph, into reflect.Value) error {
+func decodeStruct(p Paragraph, into reflect.Value, missingHandler MissingHandler) error {
 	/* If we have a pointer, let's follow it */
 	if into.Type().Kind() == reflect.Ptr {
-		return decodeStruct(p, into.Elem())
+		return decodeStruct(p, into.Elem(), missingHandler)
 	}
 
 	/* Store the Paragraph type for later use when checking Anonymous
@@ -147,7 +170,7 @@ func decodeStruct(p Paragraph, into reflect.Value) error {
 		fieldType := into.Type().Field(i)
 
 		if field.Type().Kind() == reflect.Struct {
-			err := decodeStruct(p, field)
+			err := decodeStruct(p, field, missingHandler)
 			if err != nil {
 				return err
 			}
@@ -185,10 +208,10 @@ func decodeStruct(p Paragraph, into reflect.Value) error {
 			continue
 		} else {
 			if fieldType.Tag.Get("required") == "true" {
-				return fmt.Errorf(
-					"Required field '%s' is missing!",
-					fieldType.Name,
-				)
+				err := missingHandler(into.Type(), fieldType)
+				if err != nil {
+					return err
+				}
 			}
 			continue
 		}
@@ -286,7 +309,7 @@ func decodeStructValueSlice(field reflect.Value, fieldType reflect.StructField, 
 
 // Top-level slice dispatch {{{
 
-func decodeSlice(p *ParagraphReader, into reflect.Value) error {
+func decodeSlice(p *ParagraphReader, into reflect.Value, missingHandler MissingHandler) error {
 	flavor := into.Elem().Type().Elem()
 
 	for {
@@ -300,7 +323,7 @@ func decodeSlice(p *ParagraphReader, into reflect.Value) error {
 			return err
 		}
 
-		if err := decodeStruct(*para, targetValue); err != nil {
+		if err := decodeStruct(*para, targetValue, missingHandler); err != nil {
 			return err
 		}
 		into.Elem().Set(reflect.Append(into.Elem(), targetValue.Elem()))
@@ -331,12 +354,12 @@ func (d *Decoder) Signer() *openpgp.Entity {
 //
 // In most cases, the Unmarshal API should be sufficient. Use of this API
 // is mildly discouraged.
-func UnpackFromParagraph(para Paragraph, incoming interface{}) error {
+func UnpackFromParagraph(para Paragraph, incoming interface{}, missingHandler MissingHandler) error {
 	data := reflect.ValueOf(incoming)
 	if data.Type().Kind() != reflect.Ptr {
 		return fmt.Errorf("Can only Decode a pointer to a Struct")
 	}
-	return decodeStruct(para, data.Elem())
+	return decodeStruct(para, data.Elem(), missingHandler)
 }
 
 // }}}
