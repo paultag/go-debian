@@ -124,6 +124,9 @@ func ParseChanges(reader *bufio.Reader, path string) (*Changes, error) {
 	return ret, Unmarshal(ret, reader)
 }
 
+// Return a list of FileListChangesFileHash entries from the `changes.Files`
+// entry, with the exception that each `Filename` will be joined to the root
+// directory of the Changes file.
 func (changes *Changes) AbsFiles() []FileListChangesFileHash {
 	ret := []FileListChangesFileHash{}
 
