@@ -29,6 +29,8 @@ import (
 
 	"compress/bzip2"
 	"compress/gzip"
+
+	"github.com/lxq/lzma"
 	"xi2.org/x/xz"
 )
 
@@ -44,14 +46,19 @@ func xzNewReader(r io.Reader) (io.Reader, error) {
 	return xz.NewReader(r, 0)
 }
 
+func lzmaNewReader(r io.Reader) (io.Reader, error) {
+	return lzma.NewReader(r), nil
+}
+
 func bzipNewReader(r io.Reader) (io.Reader, error) {
 	return bzip2.NewReader(r), nil
 }
 
 var knownCompressionAlgorithms = map[string]compressionReader{
-	".tar.gz":  gzipNewReader,
-	".tar.bz2": bzipNewReader,
-	".tar.xz":  xzNewReader,
+	".tar.gz":   gzipNewReader,
+	".tar.bz2":  bzipNewReader,
+	".tar.xz":   xzNewReader,
+	".tar.lzma": lzmaNewReader,
 }
 
 // }}}
