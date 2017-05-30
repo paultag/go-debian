@@ -156,7 +156,7 @@ func (arch *Arch) Is(other *Arch) bool {
 		return other.Is(arch)
 	}
 
-	if (arch.CPU == other.CPU || other.CPU == "any") &&
+	if (arch.CPU == other.CPU || (arch.CPU != "all" && other.CPU == "any")) &&
 		(arch.OS == other.OS || other.OS == "any") &&
 		(arch.ABI == other.ABI || other.ABI == "any") {
 

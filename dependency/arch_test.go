@@ -77,6 +77,26 @@ func TestArchCompareBasics(t *testing.T) {
 	}
 }
 
+func TestArchCompareAllAny(t *testing.T) {
+	all, err := dependency.ParseArch("all")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	any, err := dependency.ParseArch("any")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if all.Is(any) {
+		t.Fatalf("arch:all unexpectedly is arch:any")
+	}
+
+	if any.Is(all) {
+		t.Fatalf("arch:all unexpectedly is arch:any")
+	}
+}
+
 /*
  */
 func TestArchSetCompare(t *testing.T) {
