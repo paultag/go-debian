@@ -52,8 +52,11 @@ type DSC struct {
 	Maintainer       string
 	Uploaders        []string
 	Homepage         string
-	StandardsVersion string                `control:"Standards-Version"`
-	BuildDepends     dependency.Dependency `control:"Build-Depends"`
+	StandardsVersion string `control:"Standards-Version"`
+
+	BuildDepends      dependency.Dependency `control:"Build-Depends"`
+	BuildDependsArch  dependency.Dependency `control:"Build-Depends-Arch"`
+	BuildDependsIndep dependency.Dependency `control:"Build-Depends-Indep"`
 
 	ChecksumsSha1   []SHA1FileHash   `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
 	ChecksumsSha256 []SHA256FileHash `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
@@ -89,7 +92,10 @@ func OrderDSCForBuild(dscs []DSC, arch dependency.Arch) ([]DSC, error) {
 	}
 
 	for _, dsc := range dscs {
-		concreteBuildDepends := dsc.BuildDepends.GetPossibilities(arch)
+		concreteBuildDepends := []dependency.Possibility{}
+		concreteBuildDepends = append(concreteBuildDepends, dsc.BuildDepends.GetPossibilities(arch)...)
+		concreteBuildDepends = append(concreteBuildDepends, dsc.BuildDependsArch.GetPossibilities(arch)...)
+		concreteBuildDepends = append(concreteBuildDepends, dsc.BuildDependsIndep.GetPossibilities(arch)...)
 		for _, relation := range concreteBuildDepends {
 			if val, ok := sourceMapping[relation.Name]; ok {
 				err := network.AddEdge(val, dsc.Source)
