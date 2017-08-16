@@ -58,6 +58,10 @@ type Version struct {
 	Revision string
 }
 
+func (v *Version) Empty() bool {
+	return v.Epoch == 0 && v.Version == "" && v.Revision == ""
+}
+
 func (v *Version) IsNative() bool {
 	return len(v.Revision) == 0
 }
