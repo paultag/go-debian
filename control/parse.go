@@ -212,13 +212,14 @@ func (p *ParagraphReader) Next() (*Paragraph, error) {
 		 * Key line is a Key/Value mapping.
 		 */
 
-		if strings.HasPrefix(line, " ") {
+		if strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t") {
 			/* This is a continuation line; so we're going to go ahead and
 			 * clean it up, and throw it into the list. We're going to remove
-			 * the space, and if it's a line that only has a dot on it, we'll
-			 * remove that too (since " .\n" is actually "\n"). We only
-			 * trim off space on the right hand, because indentation under
-			 * the single space is up to the data format. Not us. */
+			 * the first character (which we now know is whitespace), and if
+			 * it's a line that only has a dot on it, we'll remove that too
+			 * (since " .\n" is actually "\n"). We only trim off space on the
+			 * right hand, because indentation under the whitespace is up to
+			 * the data format. Not us. */
 
 			/* TrimFunc(line[1:], unicode.IsSpace) is identical to calling
 			 * TrimSpace. */
