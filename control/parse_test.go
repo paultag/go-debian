@@ -133,6 +133,22 @@ Para: three
 	assert(t, len(blocks) == 3)
 }
 
+func TestWhitespacePrefixedLines(t *testing.T) {
+	// Reader {{{
+	reader, err := control.NewParagraphReader(strings.NewReader(`Key1: one
+  continuation
+Key2: two
+	tabbed continuation
+`), nil)
+	// }}}
+	isok(t, err)
+
+	blocks, err := reader.All()
+	isok(t, err)
+	assert(t, blocks[0].Values["Key1"] == "one\n continuation\n")
+	assert(t, blocks[0].Values["Key2"] == "two\ntabbed continuation\n")
+}
+
 func TestOpenPGPParagraphReader(t *testing.T) {
 	reader, err := control.NewParagraphReader(strings.NewReader(signedParagraph), nil)
 	isok(t, err)
