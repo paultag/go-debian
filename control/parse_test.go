@@ -149,6 +149,24 @@ Key2: two
 	assert(t, blocks[0].Values["Key2"] == "two\ntabbed continuation\n")
 }
 
+func TestTrailingTwoCharacterNewlines(t *testing.T) {
+	// Reader {{{
+	reader, err := control.NewDecoder(strings.NewReader("Key1: one\r\nKey2: two\r\n\r\n"), nil)
+	// }}}
+	isok(t, err)
+
+	type TestStruct struct {
+		Key1 string
+		Key2 string
+	}
+
+	testStruct := TestStruct{}
+	err = reader.Decode(&testStruct)
+	isok(t, err)
+	assert(t, testStruct.Key1 == "one")
+	assert(t, testStruct.Key2 == "two")
+}
+
 func TestOpenPGPParagraphReader(t *testing.T) {
 	reader, err := control.NewParagraphReader(strings.NewReader(signedParagraph), nil)
 	isok(t, err)
