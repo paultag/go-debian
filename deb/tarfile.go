@@ -54,6 +54,8 @@ func bzipNewReader(r io.Reader) (io.Reader, error) {
 	return bzip2.NewReader(r), nil
 }
 
+// For the authoritative list of supported file formats, see
+// https://manpages.debian.org/unstable/dpkg-dev/deb.5
 var knownCompressionAlgorithms = map[string]compressionReader{
 	".tar.gz":   gzipNewReader,
 	".tar.bz2":  bzipNewReader,
