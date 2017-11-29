@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"pault.ag/go/debian/transput"
+	"pault.ag/go/debian/hashio"
 )
 
 // A FileHash is an entry as found in the Files, Checksum-Sha1, and
@@ -38,7 +38,7 @@ type FileHash struct {
 	Filename  string
 }
 
-func FileHashFromHasher(path string, hasher transput.Hasher) FileHash {
+func FileHashFromHasher(path string, hasher hashio.Hasher) FileHash {
 	return FileHash{
 		Algorithm: hasher.Name(),
 		Hash:      fmt.Sprintf("%x", hasher.Sum(nil)),

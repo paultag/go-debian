@@ -1,4 +1,4 @@
-package transput
+package hashio
 
 import (
 	"fmt"
