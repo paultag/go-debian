@@ -31,7 +31,8 @@ import (
 	"compress/gzip"
 
 	"github.com/lxq/lzma"
-	"xi2.org/x/xz"
+	// "xi2.org/x/xz"
+	"github.com/ulikunitz/xz"
 )
 
 // known compression types {{{
@@ -43,7 +44,8 @@ func gzipNewReader(r io.Reader) (io.Reader, error) {
 }
 
 func xzNewReader(r io.Reader) (io.Reader, error) {
-	return xz.NewReader(r, 0)
+	return xz.NewReader(r)
+	// return xz.NewReader(r, 0)
 }
 
 func lzmaNewReader(r io.Reader) (io.Reader, error) {
