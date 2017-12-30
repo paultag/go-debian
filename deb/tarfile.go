@@ -31,7 +31,7 @@ import (
 	"compress/gzip"
 
 	"github.com/lxq/lzma"
-	"xi2.org/x/xz"
+	"github.com/xi2/xz"
 )
 
 // known compression types {{{
