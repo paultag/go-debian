@@ -203,6 +203,10 @@ func (p *ParagraphReader) Next() (*Paragraph, error) {
 			return &paragraph, nil
 		}
 
+		if strings.HasPrefix(line, "#") {
+			continue // skip comments
+		}
+
 		/* Right, so we have a line in one of the following formats:
 		 *
 		 * "Key: Value"
