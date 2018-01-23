@@ -149,6 +149,21 @@ Key2: two
 	assert(t, blocks[0].Values["Key2"] == "two\ntabbed continuation\n")
 }
 
+func TestCommentLines(t *testing.T) {
+	// Reader {{{
+	reader, err := control.NewParagraphReader(strings.NewReader(`Key1: one
+# comment
+Key2: two
+`), nil)
+	// }}}
+	isok(t, err)
+
+	blocks, err := reader.All()
+	isok(t, err)
+	assert(t, blocks[0].Values["Key1"] == "one")
+	assert(t, blocks[0].Values["Key2"] == "two")
+}
+
 func TestTrailingTwoCharacterNewlines(t *testing.T) {
 	// Reader {{{
 	reader, err := control.NewDecoder(strings.NewReader("Key1: one\r\nKey2: two\r\n\r\n"), nil)
