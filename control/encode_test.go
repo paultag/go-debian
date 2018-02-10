@@ -112,4 +112,28 @@ A Test`}
 `)
 }
 
+type boolStruct struct {
+	ExtraSourceOnly bool `control:"Extra-Source-Only"`
+}
+
+func TestBoolMarshal(t *testing.T) {
+	bs := boolStruct{ExtraSourceOnly: true}
+
+	writer := bytes.Buffer{}
+	err := control.Marshal(&writer, bs)
+	isok(t, err)
+
+	assert(t, writer.String() == `Extra-Source-Only: yes
+`)
+
+	bs = boolStruct{ExtraSourceOnly: false}
+
+	writer = bytes.Buffer{}
+	err = control.Marshal(&writer, bs)
+	isok(t, err)
+
+	assert(t, writer.String() == `Extra-Source-Only: no
+`)
+}
+
 // vim: foldmethod=marker

@@ -221,6 +221,9 @@ func decodeStructValue(field reflect.Value, fieldType reflect.StructField, value
 		return decodeStructValueSlice(field, fieldType, value)
 	case reflect.Struct:
 		return decodeStructValueStruct(field, fieldType, value)
+	case reflect.Bool:
+		field.SetBool(value == "yes")
+		return nil
 	}
 
 	return fmt.Errorf("Unknown type of field: %s", field.Type())
