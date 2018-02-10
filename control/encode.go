@@ -128,6 +128,11 @@ func marshalStructValue(field reflect.Value, fieldType reflect.StructField) (str
 		return marshalStructValueSlice(field, fieldType)
 	case reflect.Struct:
 		return marshalStructValueStruct(field, fieldType)
+	case reflect.Bool:
+		if field.Bool() {
+			return "yes", nil
+		}
+		return "no", nil
 	}
 	return "", fmt.Errorf("Unknown type: %s", field.Type().Kind())
 }

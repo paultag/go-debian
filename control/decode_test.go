@@ -20,6 +20,7 @@ type TestStruct struct {
 	Fnord      struct {
 		FooBar string `control:"Fnord-Foo-Bar"`
 	}
+	ExtraSourceOnly bool `control:"Extra-Source-Only"`
 }
 
 func TestBasicUnmarshal(t *testing.T) {
@@ -114,4 +115,21 @@ func TestRequiredUnmarshal(t *testing.T) {
 	foo := TestStruct{}
 	notok(t, control.Unmarshal(&foo, strings.NewReader(`Foo-Bar: baz
 `)))
+}
+
+func TestBoolUnmarshal(t *testing.T) {
+	foo := TestStruct{}
+	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+`)))
+	assert(t, !foo.ExtraSourceOnly)
+
+	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+Extra-Source-Only: no
+`)))
+	assert(t, !foo.ExtraSourceOnly)
+
+	isok(t, control.Unmarshal(&foo, strings.NewReader(`Value: foo
+Extra-Source-Only: yes
+`)))
+	assert(t, foo.ExtraSourceOnly)
 }
