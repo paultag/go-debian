@@ -174,7 +174,7 @@ func parsePossibility(input *input, relation *Relation) error {
 			continue
 		case ',', '|', 0: /* I'm out! */
 			if ret.Name == "" {
-				return errors.New("No package name in Possibility")
+				return nil // e.g. trailing comma in Build-Depends
 			}
 			relation.Possibilities = append(relation.Possibilities, *ret)
 			return nil
