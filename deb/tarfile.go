@@ -23,6 +23,7 @@ package deb
 import (
 	"fmt"
 	"io"
+	"path/filepath"
 	"strings"
 
 	"archive/tar"
@@ -36,7 +37,7 @@ import (
 
 // known compression types {{{
 
-type compressionReader func(io.Reader) (io.Reader, error)
+type DecompressorFunc func(io.Reader) (io.Reader, error)
 
 func gzipNewReader(r io.Reader) (io.Reader, error) {
 	return gzip.NewReader(r)
@@ -56,11 +57,20 @@ func bzipNewReader(r io.Reader) (io.Reader, error) {
 
 // For the authoritative list of supported file formats, see
 // https://manpages.debian.org/unstable/dpkg-dev/deb.5
-var knownCompressionAlgorithms = map[string]compressionReader{
-	".tar.gz":   gzipNewReader,
-	".tar.bz2":  bzipNewReader,
-	".tar.xz":   xzNewReader,
-	".tar.lzma": lzmaNewReader,
+var knownCompressionAlgorithms = map[string]DecompressorFunc{
+	".gz":   gzipNewReader,
+	".bz2":  bzipNewReader,
+	".xz":   xzNewReader,
+	".lzma": lzmaNewReader,
+}
+
+// DecompressorFn returns a decompressing reader for the specified reader and its
+// corresponding file extension ext.
+func DecompressorFor(ext string) DecompressorFunc {
+	if fn, ok := knownCompressionAlgorithms[ext]; ok {
+		return fn
+	}
+	return func(r io.Reader) (io.Reader, error) { return r, nil } // uncompressed file or unknown compression scheme
 }
 
 // }}}
@@ -74,7 +84,8 @@ var knownCompressionAlgorithms = map[string]compressionReader{
 // returns `true`, the `.Tarfile()` method will be around to give you a
 // tar.Reader back.
 func (e *ArEntry) IsTarfile() bool {
-	return e.getCompressionReader() != nil
+	ext := filepath.Ext(e.Name)
+	return filepath.Ext(strings.TrimSuffix(e.Name, ext)) == ".tar"
 }
 
 // }}}
@@ -84,29 +95,14 @@ func (e *ArEntry) IsTarfile() bool {
 // `.Tarfile()` will return a `tar.Reader` created from the ArEntry member
 // to allow further inspection of the contents of the `.deb`.
 func (e *ArEntry) Tarfile() (*tar.Reader, error) {
-	decompressor := e.getCompressionReader()
-	if decompressor == nil {
+	if !e.IsTarfile() {
 		return nil, fmt.Errorf("%s appears to not be a tarfile", e.Name)
 	}
-	reader, err := (*decompressor)(e.Data)
+	reader, err := DecompressorFor(filepath.Ext(e.Name))(e.Data)
 	if err != nil {
 		return nil, err
 	}
 	return tar.NewReader(reader), nil
-}
-
-// }}}
-
-// getCompressionReader {{{
-
-// Get a compressionReader that we can use to unpack the member.
-func (e *ArEntry) getCompressionReader() *compressionReader {
-	for key, decompressor := range knownCompressionAlgorithms {
-		if strings.HasSuffix(e.Name, key) {
-			return &decompressor
-		}
-	}
-	return nil
 }
 
 // }}}
