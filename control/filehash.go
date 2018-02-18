@@ -21,7 +21,14 @@
 package control
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"crypto/sha512"
+	"encoding/hex"
 	"fmt"
+	"hash"
+	"io"
+	"log"
 	"strconv"
 	"strings"
 
@@ -48,6 +55,57 @@ func FileHashFromHasher(path string, hasher hashio.Hasher) FileHash {
 }
 
 type FileHashes []FileHash
+
+type verifier struct {
+	h      hash.Hash
+	want   []byte
+	closed bool
+}
+
+func (v *verifier) Write(p []byte) (n int, err error) {
+	return v.h.Write(p)
+}
+
+func (v *verifier) Close() error {
+	if v.closed {
+		return nil
+	}
+	v.closed = true
+	got := v.h.Sum(nil)
+	if !bytes.Equal(got, v.want) {
+		return fmt.Errorf("invalid hash: got %x, want %x", got, v.want)
+	}
+	return nil
+}
+
+// Verifier returns an io.WriteCloser which verifies the hash of the data being
+// written to it and fails Close() upon hash mismatch.
+//
+// Example:
+//     verifier := fh.Verifier()
+//     r = io.TeeReader(r, verifier)
+//     if _, err := io.Copy(f, r); err != nil {
+//         return err
+//     }
+//     if err := verifier.Close(); err != nil {
+//         return err
+//     }
+func (c *FileHash) Verifier() (io.WriteCloser, error) {
+	var h hash.Hash
+	switch c.Algorithm {
+	case "sha256":
+		h = sha256.New()
+	case "sha512":
+		h = sha512.New()
+	default:
+		log.Fatalf("BUG: FileHash.Verifier not updated after release.Indices()")
+	}
+	sum, err := hex.DecodeString(c.Hash)
+	if err != nil {
+		return nil, err
+	}
+	return &verifier{h: h, want: sum}, nil
+}
 
 // {{{ Hash File implementations
 
