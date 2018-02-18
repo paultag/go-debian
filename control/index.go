@@ -84,6 +84,39 @@ func (index *BinaryIndex) GetPreDepends() dependency.Dependency {
 	return index.getOptionalDependencyField("Pre-Depends")
 }
 
+// BestChecksums can be included in a struct instead of e.g. ChecksumsSha256.
+//
+// BestChecksums uses cryptographically secure checksums, so that application
+// code does not need to worry about that.
+//
+// The struct fields of BestChecksums need to be exported for the unmarshaling
+// process but most not be used directly. Use the Checksums() accessor instead.
+type BestChecksums struct {
+	ChecksumsSha256 []SHA256FileHash `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha512 []SHA256FileHash `control:"Checksums-Sha512" delim:"\n" strip:"\n\r\t "`
+}
+
+// Checksums returns FileHashes of a cryptographically secure kind.
+func (b *BestChecksums) Checksums() []FileHash {
+	if len(b.ChecksumsSha256) > 0 {
+		res := make([]FileHash, len(b.ChecksumsSha256))
+		for i, c := range b.ChecksumsSha256 {
+			res[i] = c.FileHash
+		}
+		return res
+	}
+
+	if len(b.ChecksumsSha512) > 0 {
+		res := make([]FileHash, len(b.ChecksumsSha512))
+		for i, c := range b.ChecksumsSha512 {
+			res[i] = c.FileHash
+		}
+		return res
+	}
+
+	return nil
+}
+
 // The SourceIndex struct represents the exported APT Source index
 // file, as seen on Debian (and Debian derived) mirrors, as well as the
 // cached version in /var/lib/apt/lists/.
