@@ -84,6 +84,11 @@ func (index *BinaryIndex) GetPreDepends() dependency.Dependency {
 	return index.getOptionalDependencyField("Pre-Depends")
 }
 
+// Parse the Built-Depends relation on this package.
+func (index *BinaryIndex) GetBuiltUsing() dependency.Dependency {
+	return index.getOptionalDependencyField("Built-Using")
+}
+
 // BestChecksums can be included in a struct instead of e.g. ChecksumsSha256.
 //
 // BestChecksums uses cryptographically secure checksums, so that application
