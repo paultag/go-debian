@@ -22,6 +22,7 @@ package control
 
 import (
 	"bufio"
+	"strings"
 
 	"pault.ag/go/debian/dependency"
 	"pault.ag/go/debian/version"
@@ -87,6 +88,19 @@ func (index *BinaryIndex) GetPreDepends() dependency.Dependency {
 // Parse the Built-Depends relation on this package.
 func (index *BinaryIndex) GetBuiltUsing() dependency.Dependency {
 	return index.getOptionalDependencyField("Built-Using")
+}
+
+// SourcePackage returns the Debian source package name from which this binary
+// Package was built, coping with the special cases Source == Package (skipped
+// for efficiency) and binNMUs (Source contains version number).
+func (index *BinaryIndex) SourcePackage() string {
+	if index.Source == "" {
+		return index.Package
+	}
+	if !strings.Contains(index.Source, " ") {
+		return index.Source
+	}
+	return strings.Split(index.Source, " ")[0]
 }
 
 // BestChecksums can be included in a struct instead of e.g. ChecksumsSha256.
