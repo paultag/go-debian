@@ -31,7 +31,7 @@ import (
 	"compress/bzip2"
 	"compress/gzip"
 
-	"github.com/lxq/lzma"
+	"github.com/kjk/lzma"
 	"github.com/xi2/xz"
 )
 
