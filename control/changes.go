@@ -47,7 +47,7 @@ func (c *FileListChangesFileHash) UnmarshalControl(data string) error {
 	var err error
 	c.Algorithm = "md5"
 	vals := strings.Split(data, " ")
-	if len(data) < 5 {
+	if len(vals) < 5 {
 		return fmt.Errorf("Error: Unknown File List Hash line: '%s'", data)
 	}
 
