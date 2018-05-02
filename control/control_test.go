@@ -25,7 +25,7 @@ import (
 	"strings"
 	"testing"
 
-	"pault.ag/go/debian/control"
+	"github.com/paultag/go-debian/control"
 )
 
 /*

@@ -29,9 +29,9 @@ import (
 	"strconv"
 	"strings"
 
-	"pault.ag/go/debian/dependency"
-	"pault.ag/go/debian/internal"
-	"pault.ag/go/debian/version"
+	"github.com/paultag/go-debian/dependency"
+	"github.com/paultag/go-debian/internal"
+	"github.com/paultag/go-debian/version"
 )
 
 // {{{ .changes Files list entries
