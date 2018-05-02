@@ -27,7 +27,7 @@ import (
 
 	"github.com/paultag/go-debian/dependency"
 	"github.com/paultag/go-debian/version"
-	"github.com/paultag/go-topsort"
+	topsort "github.com/paultag/go-topsort"
 )
 
 // A DSC is the encapsulation of a Debian .dsc control file. This contains
