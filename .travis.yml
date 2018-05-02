@@ -1,5 +1,5 @@
 language: go
-go_import_path: pault.ag/go/debian
+go_import_path: github.com/paultag/go-debian
 go:
   - 1.9.x
   - 1.8.x

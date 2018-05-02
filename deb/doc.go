@@ -18,7 +18,7 @@ Here's a trivial example, which will print out the Package name for a
 		"log"
 		"os"
 
-		"pault.ag/go/debian/deb"
+		"github.com/paultag/go-debian/deb"
 	)
 
 	func main() {

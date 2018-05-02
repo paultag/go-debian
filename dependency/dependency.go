@@ -21,7 +21,7 @@
 package dependency
 
 import (
-	"pault.ag/go/debian/version"
+	"github.com/paultag/go-debian/version"
 )
 
 //
