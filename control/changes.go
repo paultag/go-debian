@@ -174,7 +174,7 @@ func (changes *Changes) Copy(dest string) error {
 		return fmt.Errorf("Attempting to move .changes to a non-directory")
 	}
 
-	for _, file := range changes.Files {
+	for _, file := range changes.AbsFiles() {
 		dirname := filepath.Base(file.Filename)
 		err := internal.Copy(file.Filename, dest+"/"+dirname)
 		if err != nil {
@@ -200,7 +200,7 @@ func (changes *Changes) Move(dest string) error {
 		return fmt.Errorf("Attempting to move .changes to a non-directory")
 	}
 
-	for _, file := range changes.Files {
+	for _, file := range changes.AbsFiles() {
 		dirname := filepath.Base(file.Filename)
 		err := os.Rename(file.Filename, dest+"/"+dirname)
 		if err != nil {
@@ -218,7 +218,7 @@ func (changes *Changes) Move(dest string) error {
 // always remove the .changes last, in the event there are filesystem i/o errors
 // on removing associated files.
 func (changes *Changes) Remove() error {
-	for _, file := range changes.Files {
+	for _, file := range changes.AbsFiles() {
 		err := os.Remove(file.Filename)
 		if err != nil {
 			return err
