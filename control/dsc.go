@@ -22,10 +22,13 @@ package control
 
 import (
 	"bufio"
+	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 
 	"pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/internal"
 	"pault.ag/go/debian/version"
 
 	"pault.ag/go/topsort"
@@ -167,6 +170,86 @@ func (d *DSC) HasArchAll() bool {
 // with any Uploaders following.
 func (d *DSC) Maintainers() []string {
 	return append([]string{d.Maintainer}, d.Uploaders...)
+}
+
+// Return a list of MD5FileHash entries from the `dsc.Files`
+// entry, with the exception that each `Filename` will be joined to the root
+// directory of the DSC file.
+func (d *DSC) AbsFiles() []MD5FileHash {
+	ret := []MD5FileHash{}
+
+	baseDir := filepath.Dir(d.Filename)
+	for _, hash := range d.Files {
+		hash.Filename = path.Join(baseDir, hash.Filename)
+		ret = append(ret, hash)
+	}
+
+	return ret
+}
+
+// Copy the .dsc file and all referenced files to the directory
+// listed by the dest argument. This function will error out if the dest
+// argument is not a directory, or if there is an IO operation in transfer.
+//
+// This function will always move .dsc last, making it suitable to
+// be used to move something into an incoming directory with an inotify
+// hook. This will also mutate DSC.Filename to match the new location.
+func (d *DSC) Copy(dest string) error {
+	if file, err := os.Stat(dest); err == nil && !file.IsDir() {
+		return fmt.Errorf("Attempting to move .dsc to a non-directory")
+	}
+
+	for _, file := range d.AbsFiles() {
+		dirname := filepath.Base(file.Filename)
+		err := internal.Copy(file.Filename, dest+"/"+dirname)
+		if err != nil {
+			return err
+		}
+	}
+
+	dirname := filepath.Base(d.Filename)
+	err := internal.Copy(d.Filename, dest+"/"+dirname)
+	d.Filename = dest + "/" + dirname
+	return err
+}
+
+// Move the .dsc file and all referenced files to the directory
+// listed by the dest argument. This function will error out if the dest
+// argument is not a directory, or if there is an IO operation in transfer.
+//
+// This function will always move .dsc last, making it suitable to
+// be used to move something into an incoming directory with an inotify
+// hook. This will also mutate DSC.Filename to match the new location.
+func (d *DSC) Move(dest string) error {
+	if file, err := os.Stat(dest); err == nil && !file.IsDir() {
+		return fmt.Errorf("Attempting to move .dsc to a non-directory")
+	}
+
+	for _, file := range d.AbsFiles() {
+		dirname := filepath.Base(file.Filename)
+		err := os.Rename(file.Filename, dest+"/"+dirname)
+		if err != nil {
+			return err
+		}
+	}
+
+	dirname := filepath.Base(d.Filename)
+	err := os.Rename(d.Filename, dest+"/"+dirname)
+	d.Filename = dest + "/" + dirname
+	return err
+}
+
+// Remove the .dsc file and any associated files. This function will
+// always remove the .dsc last, in the event there are filesystem i/o errors
+// on removing associated files.
+func (d *DSC) Remove() error {
+	for _, file := range d.AbsFiles() {
+		err := os.Remove(file.Filename)
+		if err != nil {
+			return err
+		}
+	}
+	return os.Remove(d.Filename)
 }
 
 // vim: foldmethod=marker
