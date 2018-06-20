@@ -43,7 +43,7 @@ type Paragraph struct {
 
 // Paragraph Helpers {{{
 
-func (p Paragraph) Set(key, value string) {
+func (p *Paragraph) Set(key, value string) {
 	if _, found := p.Values[key]; found {
 		/* We've got the key */
 		p.Values[key] = value
@@ -55,7 +55,7 @@ func (p Paragraph) Set(key, value string) {
 	p.Values[key] = value
 }
 
-func (p Paragraph) WriteTo(out io.Writer) error {
+func (p *Paragraph) WriteTo(out io.Writer) error {
 	for _, key := range p.Order {
 		value := p.Values[key]
 
@@ -71,7 +71,7 @@ func (p Paragraph) WriteTo(out io.Writer) error {
 	return nil
 }
 
-func (p Paragraph) Update(other Paragraph) Paragraph {
+func (p *Paragraph) Update(other Paragraph) Paragraph {
 	ret := Paragraph{
 		Order:  []string{},
 		Values: map[string]string{},

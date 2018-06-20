@@ -133,6 +133,32 @@ Para: three
 	assert(t, len(blocks) == 3)
 }
 
+func TestParagraphSet(t *testing.T) {
+	para := control.Paragraph{
+		Order:  nil,
+		Values: map[string]string{},
+	}
+	// Setting a key:value updates both order and values.
+	para.Set("yankee", "doodle")
+	assert(t, len(para.Order) == 1)
+	assert(t, para.Order[0] == "yankee")
+	assert(t, para.Values["yankee"] == "doodle")
+	// Adding a second key:value updates both order and values.
+	para.Set("british", "redcoat")
+	assert(t, len(para.Order) == 2)
+	assert(t, para.Order[0] == "yankee")
+	assert(t, para.Values["yankee"] == "doodle")
+	assert(t, para.Order[1] == "british")
+	assert(t, para.Values["british"] == "redcoat")
+	// Updating a previously existing key leaves order untouched.
+	para.Set("yankee", "candle")
+	assert(t, len(para.Order) == 2)
+	assert(t, para.Order[0] == "yankee")
+	assert(t, para.Values["yankee"] == "candle")
+	assert(t, para.Order[1] == "british")
+	assert(t, para.Values["british"] == "redcoat")
+}
+
 func TestWhitespacePrefixedLines(t *testing.T) {
 	// Reader {{{
 	reader, err := control.NewParagraphReader(strings.NewReader(`Key1: one
