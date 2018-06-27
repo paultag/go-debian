@@ -73,6 +73,10 @@ Files:
 
 	assert(t, c.StandardsVersion == "3.9.3")
 	assert(t, c.Homepage == "https://launchpad.net/fbautostart")
+
+	debianSource, err := c.DebianSource()
+	assert(t, err == nil)
+	assert(t, debianSource == "fbautostart_2.718281828-1.debian.tar.xz")
 }
 
 func TestOpenPGPDSCParse(t *testing.T) {

@@ -26,6 +26,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"pault.ag/go/debian/dependency"
 	"pault.ag/go/debian/internal"
@@ -250,6 +251,17 @@ func (d *DSC) Remove() error {
 		}
 	}
 	return os.Remove(d.Filename)
+}
+
+// Return the name of the Debian source. This is assumed to be the first file
+// that contains ".debian." in its name.
+func (d *DSC) DebianSource() (string, error) {
+	for _, file := range d.Files {
+		if strings.Contains(file.Filename, ".debian.") {
+			return file.Filename, nil
+		}
+	}
+	return "", fmt.Errorf("Could not find the Debian source")
 }
 
 // vim: foldmethod=marker
