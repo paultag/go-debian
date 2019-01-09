@@ -12,4 +12,4 @@ Dependency relationships.
            | Architectures | -> Arch                          amd64
            | Stages        |
 */
-package dependency
+package dependency // import "pault.ag/go/debian/dependency"
