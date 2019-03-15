@@ -124,7 +124,7 @@ func ParseChanges(reader *bufio.Reader, path string) (*Changes, error) {
 	return ret, Unmarshal(ret, reader)
 }
 
-// Return a list of FileListChangesFileHash entries from the `changes.Files`
+// AbsFiles returns a list of FileListChangesFileHash entries from the `changes.Files`
 // entry, with the exception that each `Filename` will be joined to the root
 // directory of the Changes file.
 func (changes *Changes) AbsFiles() []FileListChangesFileHash {
@@ -139,7 +139,7 @@ func (changes *Changes) AbsFiles() []FileListChangesFileHash {
 	return ret
 }
 
-// Return a DSC struct for the DSC listed in the .changes file. This requires
+// GetDSC returns a DSC struct for the DSC listed in the .changes file. This requires
 // Changes.Filename to be correctly set, and for the .dsc file to exist
 // in the correct place next to the .changes.
 //

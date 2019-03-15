@@ -144,7 +144,7 @@ func NewParagraphReader(reader io.Reader, keyring *openpgp.EntityList) (*Paragra
 
 // Signer {{{
 
-// Return the Entity (if one exists) that signed this set of Paragraphs.
+// Signer returns the Entity (if one exists) that signed this set of Paragraphs.
 func (p *ParagraphReader) Signer() *openpgp.Entity {
 	return p.signer
 }
