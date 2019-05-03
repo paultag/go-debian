@@ -287,6 +287,10 @@ func (p *ParagraphReader) decodeClearsig(keyring *openpgp.EntityList) error {
 	 * the remainder, and return that out to put through another
 	 * ParagraphReader, since it may have a different signer. */
 
+	if block == nil {
+		return fmt.Errorf("Invalid clearsigned input")
+	}
+
 	if keyring == nil {
 		/* As a special case, if the keyring is nil, we can go ahead
 		 * and assume this data isn't intended to be checked against the
