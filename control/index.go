@@ -157,11 +157,13 @@ type SourceIndex struct {
 
 	StandardsVersion string
 	Format           string
-	Files            []string `delim:"\n"`
-	VcsBrowser       string   `control:"Vcs-Browser"`
-	VcsGit           string   `control:"Vcs-Git"`
-	VcsSvn           string   `control:"Vcs-Svn"`
-	VcsBzr           string   `control:"Vcs-Bzr"`
+	Files            []MD5FileHash    `delim:"\n" strip:"\n\r\t "`
+	VcsBrowser       string           `control:"Vcs-Browser"`
+	VcsGit           string           `control:"Vcs-Git"`
+	VcsSvn           string           `control:"Vcs-Svn"`
+	VcsBzr           string           `control:"Vcs-Bzr"`
+	ChecksumsSha1    []SHA1FileHash   `control:"Checksums-Sha1" delim:"\n" strip:"\n\r\t "`
+	ChecksumsSha256  []SHA256FileHash `control:"Checksums-Sha256" delim:"\n" strip:"\n\r\t "`
 	Homepage         string
 	Directory        string
 	Priority         string
