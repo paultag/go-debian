@@ -94,6 +94,27 @@ Section: misc
 	fbautostart := sources[1]
 	assert(t, fbautostart.Maintainer == "Paul Tagliamonte <paultag@ubuntu.com>")
 	assert(t, fbautostart.VcsGit == "git://git.debian.org/collab-maint/fbautostart.git")
+
+	assert(t, len(fbautostart.Files) == 3)
+	assert(t, fbautostart.Files[0].Algorithm == "md5")
+	assert(t, fbautostart.Files[0].Hash == "9d610c30f96623cff07bd880e5cca12f")
+	assert(t, fbautostart.Files[0].Filename == "fbautostart_2.718281828-1.dsc")
+	assert(t, fbautostart.Files[0].Size == 1899)
+	assert(t, fbautostart.Files[0].ByHash == "")
+
+	assert(t, len(fbautostart.ChecksumsSha1) == 3)
+	assert(t, fbautostart.ChecksumsSha1[1].Algorithm == "sha1")
+	assert(t, fbautostart.ChecksumsSha1[1].Hash == "bc36310c15edc9acf48f0a1daf548bcc6f861372")
+	assert(t, fbautostart.ChecksumsSha1[1].Filename == "fbautostart_2.718281828.orig.tar.gz")
+	assert(t, fbautostart.ChecksumsSha1[1].Size == 92748)
+	assert(t, fbautostart.ChecksumsSha1[1].ByHash == "")
+
+	assert(t, len(fbautostart.ChecksumsSha256) == 3)
+	assert(t, fbautostart.ChecksumsSha256[2].Algorithm == "sha256")
+	assert(t, fbautostart.ChecksumsSha256[2].Hash == "49f402ff3a72653e63542037be9f4da56e318e412d26d4154f9336fb88df3519")
+	assert(t, fbautostart.ChecksumsSha256[2].Filename == "fbautostart_2.718281828-1.debian.tar.gz")
+	assert(t, fbautostart.ChecksumsSha256[2].Size == 2396)
+	assert(t, fbautostart.ChecksumsSha256[2].ByHash == "SHA256")
 }
 
 func TestBinaryIndexParse(t *testing.T) {
