@@ -93,26 +93,16 @@ func (d *Ar) Next() (*ArEntry, error) {
 		}
 	}
 
-	line := make([]byte, 60)
-	pos := 0
-
-	var err error
-	for pos < 60 {
-		var count int
-		count, err = d.in.Read(line[pos:])
-		if (err == nil) || (err == io.EOF){
-			pos = pos + count
-		}
-		if (err == io.EOF) { break }
-		if (err != nil) { return nil, err }
-	}
-	if err == io.EOF {
-		if pos == 0 || (pos == 1 && line[0] == '\n') {
-			return nil, err
+	line, err := ioutil.ReadAll(&io.LimitedReader{R:d.in, N:60})
+	if len(line) < 60 {
+		if len(line) == 0 || (len(line) == 1 && line[0] == '\n') {
+			return nil, io.EOF
+		} else {
+			return nil, fmt.Errorf("Caught a short read at the end")
 		}
 	}
-	if pos < 60 {
-		return nil, fmt.Errorf("Caught a short read at the end")
+	if err != nil && err != io.EOF {
+		return nil, err
 	}
 	entry, err := parseArEntry(line)
 	if err != nil {
@@ -174,7 +164,7 @@ func parseArEntry(line []byte) (*ArEntry, error) {
 		Name:     strings.TrimSuffix(
 				strings.TrimSpace(string(line[0:16])), "/",
 			  ),
-		FileMode: strings.TrimSpace(string(line[48:58])),
+		FileMode: strings.TrimSpace(string(line[40:48])),
 	}
 
 	for target, value := range map[*int64][]byte{
@@ -200,24 +190,12 @@ func parseArEntry(line []byte) (*ArEntry, error) {
 // Given a brand spank'n new os.File entry, go ahead and make sure it looks
 // like an `ar(1)` archive, and not some random file.
 func checkAr(reader io.Reader) error {
-	header := make([]byte, 8)
-	pos := 0
-	for pos < 8 {
-		count, err := reader.Read(header[pos:])
-		if  err == io.EOF {
-			if count+pos == 0  {
-				return fmt.Errorf("File is empty.")
-			} else {
-				return fmt.Errorf("Header too short for 'ar' file.")
-			}
-		}
-		if  err != nil {
-			return err
-		}
-		pos = pos + count
+	header, err := ioutil.ReadAll(&io.LimitedReader{R: reader, N: 8})
+	if err != nil {
+		return err
 	}
 	if string(header) != "!<arch>\n" {
-		return fmt.Errorf("Header doesn't look as 'ar' file.")
+		return fmt.Errorf("Header is invalid for an 'ar' archive.")
 	}
 	return nil
 }
