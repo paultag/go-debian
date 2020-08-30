@@ -133,6 +133,23 @@ Para: three
 	assert(t, len(blocks) == 3)
 }
 
+func TestMultipleNewlines(t *testing.T) {
+	// Reader {{{
+	reader, err := control.NewParagraphReader(strings.NewReader(`Para: one
+
+
+Para: two
+
+Para: three
+`), nil)
+	// }}}
+	isok(t, err)
+
+	blocks, err := reader.All()
+	isok(t, err)
+	assert(t, len(blocks) == 3)
+}
+
 func TestParagraphSet(t *testing.T) {
 	para := control.Paragraph{
 		Order:  nil,

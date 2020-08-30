@@ -198,6 +198,10 @@ func (p *ParagraphReader) Next() (*Paragraph, error) {
 		}
 
 		if line == "\n" || line == "\r\n" {
+			if len(paragraph.Order) == 0 {
+				/* Skip over any number of blank lines between paragraphs. */
+				continue
+			}
 			/* Lines are ended by a blank line; so we're able to go ahead
 			 * and return this guy as-is. All set. Done. Finished. */
 			return &paragraph, nil
