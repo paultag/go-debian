@@ -91,11 +91,14 @@ type Deb struct {
 // Given a reader, and the file path to the file (for use in the Deb later)
 // create a deb.Deb object, and populate the Control and Data members.
 func Load(in io.Reader, pathname string) (*Deb, error) {
+	return LoadCtx(in, pathname, nil)
+}
+func LoadCtx(in io.Reader, pathname string, ctx *control.DecodingContext) (*Deb, error) {
 	ar, err := LoadAr(in)
 	if err != nil {
 		return nil, err
 	}
-	deb, err := loadDeb(ar)
+	deb, err := loadDeb(ar, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +136,7 @@ func LoadFile(path string) (*Deb, Closer, error) {
 
 // Look for the debian-binary member and figure out which version to read
 // it as. Return the newly created .deb struct.
-func loadDeb(archive *Ar) (*Deb, error) {
+func loadDeb(archive *Ar, ctx *control.DecodingContext) (*Deb, error) {
 	for {
 		member, err := archive.Next()
 		if err == io.EOF {
@@ -150,7 +153,7 @@ func loadDeb(archive *Ar) (*Deb, error) {
 			}
 			switch version {
 			case "2.0\n":
-				return loadDeb2(archive)
+				return loadDeb2(archive, ctx)
 			default:
 				return nil, fmt.Errorf("Unknown binary version: '%s'", version)
 			}
@@ -165,10 +168,10 @@ func loadDeb(archive *Ar) (*Deb, error) {
 // Top-level .deb loader dispatch for 2.0 {{{
 
 // Load a Debian 2.x series .deb - track down the control and data members.
-func loadDeb2(archive *Ar) (*Deb, error) {
+func loadDeb2(archive *Ar, ctx *control.DecodingContext) (*Deb, error) {
 	ret := Deb{}
 
-	if err := loadDeb2Control(archive, &ret); err != nil {
+	if err := loadDeb2Control(archive, &ret, ctx); err != nil {
 		return nil, err
 	}
 
@@ -185,7 +188,7 @@ func loadDeb2(archive *Ar) (*Deb, error) {
 
 // Load a Debian 2.x series .deb control file and write it out to
 // the deb.Deb.Control member.
-func loadDeb2Control(archive *Ar, deb *Deb) error {
+func loadDeb2Control(archive *Ar, deb *Deb, ctx *control.DecodingContext) error {
 	for {
 		member, err := archive.Next()
 		if err == io.EOF {
@@ -206,7 +209,7 @@ func loadDeb2Control(archive *Ar, deb *Deb) error {
 					return err
 				}
 				if path.Clean(member.Name) == "control" {
-					return control.Unmarshal(&deb.Control, archive)
+					return control.UnmarshalCtx(&deb.Control, archive, ctx)
 				}
 			}
 		}
