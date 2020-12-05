@@ -29,6 +29,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/vbatts/go-mtree"
+
 	"pault.ag/go/debian/control"
 	"pault.ag/go/debian/dependency"
 	"pault.ag/go/debian/version"
@@ -79,6 +81,7 @@ func (c Control) SourceName() string {
 type Deb struct {
 	Control Control
 	Path    string
+	Mtree   *mtree.DirectoryHierarchy
 	Data    *tar.Reader
 	ControlExt  string
 	DataExt	    string
@@ -202,11 +205,28 @@ func loadDeb2Control(archive *Ar, deb *Deb) error {
 			deb.ControlExt = member.Name[8:len(member.Name)]
 			for {
 				member, err := archive.Next()
+				if err == io.EOF {
+					/* Double check we've found the one thing we care about,
+					 * the control member. The mtree may be present, but
+					 * isn't required to be. */
+					if len(deb.Control.Paragraph.Order) != 0 {
+						return nil
+					}
+					return err
+				}
 				if err != nil {
 					return err
 				}
+				if path.Clean(member.Name) == "mtree" {
+					deb.Mtree, err = mtree.ParseSpec(archive)
+					if err != nil {
+						return err
+					}
+				}
 				if path.Clean(member.Name) == "control" {
-					return control.Unmarshal(&deb.Control, archive)
+					if err := control.Unmarshal(&deb.Control, archive); err != nil {
+						return err
+					}
 				}
 			}
 		}
