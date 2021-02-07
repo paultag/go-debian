@@ -82,6 +82,7 @@ type Deb struct {
 	Data       *tar.Reader
 	ControlExt string
 	DataExt    string
+	ArContent  map[string]*ArEntry
 }
 
 // Load {{{
@@ -134,27 +135,31 @@ func LoadFile(path string) (*Deb, Closer, error) {
 // Look for the debian-binary member and figure out which version to read
 // it as. Return the newly created .deb struct.
 func loadDeb(archive *Ar) (*Deb, error) {
+	contents := make(map[string]*ArEntry)
 	for {
 		member, err := archive.Next()
 		if err == io.EOF {
-			return nil, fmt.Errorf("Archive contains no binary version member!")
+			break
 		}
 		if err != nil {
 			return nil, err
 		}
-		if member.Name == "debian-binary" {
-			reader := bufio.NewReader(member.Data)
-			version, err := reader.ReadString('\n')
-			if err != nil {
-				return nil, err
-			}
-			switch version {
-			case "2.0\n":
-				return loadDeb2(archive)
-			default:
-				return nil, fmt.Errorf("Unknown binary version: '%s'", version)
-			}
-		}
+		contents[member.Name] = member
+	}
+	member, ok := contents["debian-binary"]
+	if !ok {
+		return nil, fmt.Errorf("Archive contains no binary version member!")
+	}
+	reader := bufio.NewReader(member.Data)
+	version, err := reader.ReadString('\n')
+	if err != nil {
+		return nil, err
+	}
+	switch version {
+	case "2.0\n":
+		return loadDeb2(contents)
+	default:
+		return nil, fmt.Errorf("Unknown binary version: '%s'", version)
 	}
 }
 
@@ -165,8 +170,8 @@ func loadDeb(archive *Ar) (*Deb, error) {
 // Top-level .deb loader dispatch for 2.0 {{{
 
 // Load a Debian 2.x series .deb - track down the control and data members.
-func loadDeb2(archive *Ar) (*Deb, error) {
-	ret := Deb{}
+func loadDeb2(archive map[string]*ArEntry) (*Deb, error) {
+	ret := Deb{ArContent: archive}
 
 	if err := loadDeb2Control(archive, &ret); err != nil {
 		return nil, err
@@ -185,15 +190,8 @@ func loadDeb2(archive *Ar) (*Deb, error) {
 
 // Load a Debian 2.x series .deb control file and write it out to
 // the deb.Deb.Control member.
-func loadDeb2Control(archive *Ar, deb *Deb) error {
-	for {
-		member, err := archive.Next()
-		if err == io.EOF {
-			return fmt.Errorf("Missing or out of order .deb member 'control'")
-		}
-		if err != nil {
-			return err
-		}
+func loadDeb2Control(archive map[string]*ArEntry, deb *Deb) error {
+	for _, member := range archive {
 		if strings.HasPrefix(member.Name, "control.") {
 			archive, err := member.Tarfile()
 			if err != nil {
@@ -211,6 +209,7 @@ func loadDeb2Control(archive *Ar, deb *Deb) error {
 			}
 		}
 	}
+	return fmt.Errorf("Missing or out of order .deb member 'control'")
 }
 
 // }}}
@@ -219,15 +218,8 @@ func loadDeb2Control(archive *Ar, deb *Deb) error {
 
 // Load a Debian 2.x series .deb data file and write it out to
 // the deb.Deb.Data member.
-func loadDeb2Data(archive *Ar, deb *Deb) error {
-	for {
-		member, err := archive.Next()
-		if err == io.EOF {
-			return fmt.Errorf("Missing or out of order .deb member 'data'")
-		}
-		if err != nil {
-			return err
-		}
+func loadDeb2Data(archive map[string]*ArEntry, deb *Deb) error {
+	for _, member := range archive {
 		if strings.HasPrefix(member.Name, "data.") {
 			archive, err := member.Tarfile()
 			if err != nil {
@@ -238,6 +230,7 @@ func loadDeb2Data(archive *Ar, deb *Deb) error {
 			return nil
 		}
 	}
+	return fmt.Errorf("Missing or out of order .deb member 'data'")
 }
 
 // }}}
