@@ -77,11 +77,11 @@ func (c Control) SourceName() string {
 // regarding the Control file is read from the control section of the .deb,
 // and Unmarshaled into the `Control` member of the Struct.
 type Deb struct {
-	Control Control
-	Path    string
-	Data    *tar.Reader
-	ControlExt  string
-	DataExt	    string
+	Control    Control
+	Path       string
+	Data       *tar.Reader
+	ControlExt string
+	DataExt    string
 }
 
 // Load {{{
@@ -90,7 +90,7 @@ type Deb struct {
 
 // Given a reader, and the file path to the file (for use in the Deb later)
 // create a deb.Deb object, and populate the Control and Data members.
-func Load(in io.Reader, pathname string) (*Deb, error) {
+func Load(in io.ReaderAt, pathname string) (*Deb, error) {
 	ar, err := LoadAr(in)
 	if err != nil {
 		return nil, err

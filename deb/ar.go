@@ -23,7 +23,6 @@ package deb // import "pault.ag/go/debian/deb"
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strconv"
 	"strings"
 )
@@ -43,7 +42,7 @@ type ArEntry struct {
 	GroupID   int64
 	FileMode  string
 	Size      int64
-	Data      io.Reader
+	Data      *io.SectionReader
 }
 
 // }}}
@@ -52,19 +51,19 @@ type ArEntry struct {
 
 // This struct encapsulates a Debian .deb flavored `ar(1)` archive.
 type Ar struct {
-	in         io.Reader
-	lastReader *io.Reader
-	offset     bool
+	in     io.ReaderAt
+	offset int64
 }
 
 // LoadAr {{{
 
-// Load an Ar archive reader from an io.Reader
-func LoadAr(in io.Reader) (*Ar, error) {
-	if err := checkAr(in); err != nil {
+// Load an Ar archive reader from an io.ReaderAt
+func LoadAr(in io.ReaderAt) (*Ar, error) {
+	offset, err := checkAr(in)
+	if err != nil {
 		return nil, err
 	}
-	debFile := Ar{in: in}
+	debFile := Ar{in: in, offset: offset}
 	return &debFile, nil
 }
 
@@ -75,27 +74,9 @@ func LoadAr(in io.Reader) (*Ar, error) {
 // Function to jump to the next file in the Debian `ar(1)` archive, and
 // return the next member.
 func (d *Ar) Next() (*ArEntry, error) {
-	if d.lastReader != nil {
-		/* Before we do much more, let's empty out the reader, since we
-		 * can't be sure of our position in the reader until the LimitReader
-		 * is empty */
-		if _, err := io.Copy(ioutil.Discard, *d.lastReader); err != nil {
-			return nil, err
-		}
-		if d.offset {
-			/* .ar archives align on 2 byte boundaries, so if we're odd, go
-			 * ahead and read another byte. If we get an io.EOF, it's fine
-			 * to return it. */
-			_, err := d.in.Read(make([]byte, 1))
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
 	line := make([]byte, 60)
 
-	count, err := d.in.Read(line)
+	count, err := d.in.ReadAt(line, d.offset)
 	if err != nil {
 		return nil, err
 	}
@@ -110,9 +91,8 @@ func (d *Ar) Next() (*ArEntry, error) {
 		return nil, err
 	}
 
-	entry.Data = io.LimitReader(d.in, entry.Size)
-	d.lastReader = &entry.Data
-	d.offset = (entry.Size % 2) == 1
+	entry.Data = io.NewSectionReader(d.in, d.offset+int64(count), entry.Size)
+	d.offset += int64(count) + entry.Size + (entry.Size % 2)
 
 	return entry, nil
 }
@@ -186,15 +166,15 @@ func parseArEntry(line []byte) (*ArEntry, error) {
 
 // Given a brand spank'n new os.File entry, go ahead and make sure it looks
 // like an `ar(1)` archive, and not some random file.
-func checkAr(reader io.Reader) error {
+func checkAr(reader io.ReaderAt) (int64, error) {
 	header := make([]byte, 8)
-	if _, err := reader.Read(header); err != nil {
-		return err
+	if _, err := reader.ReadAt(header, 0); err != nil {
+		return 0, err
 	}
 	if string(header) != "!<arch>\n" {
-		return fmt.Errorf("Header doesn't look right!")
+		return 0, fmt.Errorf("Header doesn't look right!")
 	}
-	return nil
+	return int64(len(header)), nil
 }
 
 // }}}
