@@ -65,7 +65,7 @@ type SourceParagraph struct {
 	BuildConflictsIndep dependency.Dependency `control:"Build-Conflicts-Indep"`
 }
 
-// Return a list of all entities that are responsible for the package's
+// Maintainers returns a list of all entities that are responsible for the package's
 // well being. The 0th element is always the package's Maintainer,
 // with any Uploaders following.
 func (s *SourceParagraph) Maintainers() []string {

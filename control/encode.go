@@ -266,7 +266,7 @@ func NewEncoder(writer io.Writer) (*Encoder, error) {
 
 // Encode {{{
 
-// Take a Struct, Encode it into a Paragraph, and write that out to the
+// Encode takes a Struct, Encode it into a Paragraph, and write that out to the
 // io.Writer set up when the Encoder was configured.
 func (e *Encoder) Encode(incoming interface{}) error {
 	data := reflect.ValueOf(incoming)
