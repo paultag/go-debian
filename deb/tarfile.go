@@ -31,37 +31,50 @@ import (
 	"compress/bzip2"
 	"compress/gzip"
 
+	"github.com/DataDog/zstd"
 	"github.com/kjk/lzma"
 	"github.com/xi2/xz"
 )
 
 // known compression types {{{
 
-type DecompressorFunc func(io.Reader) (io.Reader, error)
+type DecompressorFunc func(io.Reader) (io.ReadCloser, error)
 
-func gzipNewReader(r io.Reader) (io.Reader, error) {
+func gzipNewReader(r io.Reader) (io.ReadCloser, error) {
 	return gzip.NewReader(r)
 }
 
-func xzNewReader(r io.Reader) (io.Reader, error) {
-	return xz.NewReader(r, 0)
+func xzNewReader(r io.Reader) (io.ReadCloser, error) {
+	reader, err := xz.NewReader(r, 0)
+	if err != nil {
+		return nil, err
+	}
+	return io.NopCloser(reader), nil
 }
 
-func lzmaNewReader(r io.Reader) (io.Reader, error) {
+func lzmaNewReader(r io.Reader) (io.ReadCloser, error) {
 	return lzma.NewReader(r), nil
 }
 
-func bzipNewReader(r io.Reader) (io.Reader, error) {
-	return bzip2.NewReader(r), nil
+func bzipNewReader(r io.Reader) (io.ReadCloser, error) {
+	return io.NopCloser(bzip2.NewReader(r)), nil
 }
+
+func zstdNewReader(r io.Reader) (io.ReadCloser, error) {
+	return zstd.NewReader(r), nil
+}
+
 
 // For the authoritative list of supported file formats, see
 // https://manpages.debian.org/unstable/dpkg-dev/deb.5
+// zstd-compressed packages are not yet (08-2021) officially supported by Debian, but they
+// are used by Ubuntu.
 var knownCompressionAlgorithms = map[string]DecompressorFunc{
 	".gz":   gzipNewReader,
 	".bz2":  bzipNewReader,
 	".xz":   xzNewReader,
 	".lzma": lzmaNewReader,
+	".zst":  zstdNewReader,
 }
 
 // DecompressorFn returns a decompressing reader for the specified reader and its
@@ -70,7 +83,7 @@ func DecompressorFor(ext string) DecompressorFunc {
 	if fn, ok := knownCompressionAlgorithms[ext]; ok {
 		return fn
 	}
-	return func(r io.Reader) (io.Reader, error) { return r, nil } // uncompressed file or unknown compression scheme
+	return func(r io.Reader) (io.ReadCloser, error) { return io.NopCloser(r), nil } // uncompressed file or unknown compression scheme
 }
 
 // }}}
@@ -94,15 +107,15 @@ func (e *ArEntry) IsTarfile() bool {
 
 // `.Tarfile()` will return a `tar.Reader` created from the ArEntry member
 // to allow further inspection of the contents of the `.deb`.
-func (e *ArEntry) Tarfile() (*tar.Reader, error) {
+func (e *ArEntry) Tarfile() (*tar.Reader, io.Closer, error) {
 	if !e.IsTarfile() {
-		return nil, fmt.Errorf("%s appears to not be a tarfile", e.Name)
+		return nil, nil, fmt.Errorf("%s appears to not be a tarfile", e.Name)
 	}
-	reader, err := DecompressorFor(filepath.Ext(e.Name))(e.Data)
+	readCloser, err := DecompressorFor(filepath.Ext(e.Name))(e.Data)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return tar.NewReader(reader), nil
+	return tar.NewReader(readCloser), readCloser, nil
 }
 
 // }}}
