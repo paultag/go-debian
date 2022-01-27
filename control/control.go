@@ -83,6 +83,7 @@ type BinaryParagraph struct {
 	Section       string
 	Essential     bool
 	Description   string
+	Conffiles     []MD5FileHash `delim:"\n" strip:"\n\r\t "`
 
 	Depends    dependency.Dependency
 	Recommends dependency.Dependency
