@@ -125,23 +125,29 @@ func (c *FileHash) unmarshalControl(algorithm, data string) error {
 	var err error
 	c.Algorithm = algorithm
 	vals := strings.Fields(data)
-	if len(vals) < 3 {
+
+	switch len(vals) {
+	case 3:
+		c.Hash = vals[0]
+		c.Size, err = strconv.ParseInt(vals[1], 10, 64)
+		if err != nil {
+			return err
+		}
+		c.Filename = vals[2]
+		switch algorithm {
+		case "sha256":
+			c.ByHash = "SHA256"
+		case "sha512":
+			c.ByHash = "SHA512"
+		}
+		return nil
+	case 2:
+		c.Filename = vals[0]
+		c.Hash = vals[1]
+		return nil
+	default:
 		return fmt.Errorf("Error: Unknown Debian Hash line: '%s'", data)
 	}
-
-	c.Hash = vals[0]
-	c.Size, err = strconv.ParseInt(vals[1], 10, 64)
-	if err != nil {
-		return err
-	}
-	c.Filename = vals[2]
-	switch algorithm {
-	case "sha256":
-		c.ByHash = "SHA256"
-	case "sha512":
-		c.ByHash = "SHA512"
-	}
-	return nil
 }
 
 // {{{ MD5 FileHash
