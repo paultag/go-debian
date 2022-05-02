@@ -31,8 +31,8 @@ import (
 	"compress/bzip2"
 	"compress/gzip"
 
-	"github.com/DataDog/zstd"
 	"github.com/kjk/lzma"
+	"github.com/klauspost/compress/zstd"
 	"github.com/xi2/xz"
 )
 
@@ -61,9 +61,10 @@ func bzipNewReader(r io.Reader) (io.ReadCloser, error) {
 }
 
 func zstdNewReader(r io.Reader) (io.ReadCloser, error) {
-	return zstd.NewReader(r), nil
+	d, err := zstd.NewReader(r)
+	rc := d.IOReadCloser()
+	return rc, err
 }
-
 
 // For the authoritative list of supported file formats, see
 // https://manpages.debian.org/unstable/dpkg-dev/deb.5

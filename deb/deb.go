@@ -123,7 +123,7 @@ type closerAdapter struct {
 	closeFunc Closer
 }
 
-func (c* closerAdapter) Close() error {
+func (c *closerAdapter) Close() error {
 	return c.closeFunc()
 }
 
