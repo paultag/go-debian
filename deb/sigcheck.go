@@ -1,10 +1,11 @@
-package deb // import "pault.ag/go/debian/deb"
+package deb
 
 import (
 	"fmt"
-	"golang.org/x/crypto/openpgp"
 	"io"
 	"strings"
+
+	"golang.org/x/crypto/openpgp"
 )
 
 const (

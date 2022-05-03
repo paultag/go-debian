@@ -18,7 +18,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE. }}} */
 
-package deb // import "pault.ag/go/debian/deb"
+package deb
 
 import (
 	"fmt"
@@ -61,9 +61,11 @@ func bzipNewReader(r io.Reader) (io.ReadCloser, error) {
 }
 
 func zstdNewReader(r io.Reader) (io.ReadCloser, error) {
-	d, err := zstd.NewReader(r)
-	rc := d.IOReadCloser()
-	return rc, err
+	reader, err := zstd.NewReader(r)
+	if err != nil {
+		return nil, err
+	}
+	return io.NopCloser(reader), err
 }
 
 // For the authoritative list of supported file formats, see
