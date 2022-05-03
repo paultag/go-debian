@@ -1,4 +1,4 @@
-package deb
+package deb // import "pault.ag/go/debian/deb"
 
 import (
 	"fmt"
