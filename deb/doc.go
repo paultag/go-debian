@@ -18,7 +18,7 @@ Here's a trivial example, which will print out the Package name for a
 		"log"
 		"os"
 
-		"github.com/pschou/go_debian/deb"
+		"pault.ag/go/debian/deb"
 	)
 
 	func main() {
@@ -37,4 +37,4 @@ Here's a trivial example, which will print out the Package name for a
 	}
 
 */
-package deb
+package deb // import "pault.ag/go/debian/deb"

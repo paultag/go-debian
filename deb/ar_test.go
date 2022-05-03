@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/pschou/go_debian/deb"
+	"pault.ag/go/debian/deb"
 )
 
 /*
