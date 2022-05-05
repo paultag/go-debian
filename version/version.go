@@ -28,7 +28,7 @@
 
 // version is a pure-go implementation of dpkg version string functions
 // (parsing, comparison) which is compatible with dpkg(1).
-package version // import "pault.ag/go/debian/version"
+package version
 
 import (
 	"fmt"

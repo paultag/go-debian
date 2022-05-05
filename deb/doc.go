@@ -37,4 +37,4 @@ Here's a trivial example, which will print out the Package name for a
 	}
 
 */
-package deb // import "pault.ag/go/debian/deb"
+package deb
