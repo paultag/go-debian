@@ -52,7 +52,7 @@ type BinaryIndex struct {
 	Section        string
 	Priority       string
 	Filename       string
-	Size           string
+	Size           int
 	MD5sum         string
 	SHA1           string
 	SHA256         string

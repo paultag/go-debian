@@ -190,7 +190,7 @@ SHA256: fa53e4f50349c5c9b564b8dc1da86c503b0baf56ab95a4ef6e204b6f77bfe70c
     assert(t, sources[2].Section == "java")
     assert(t, sources[2].Priority == "extra")
 	assert(t, sources[2].Filename == "pool/main/a/androidsdk-tools/androidsdk-ddms_22.2+git20130830~92d25d6-1_all.deb")
-    assert(t, sources[2].Size == "132048")
+    assert(t, sources[2].Size == 132048)
     assert(t, sources[2].MD5sum == "fde05f3552457e91a415c99ab2a2a514")
     assert(t, sources[2].SHA256 == "fa53e4f50349c5c9b564b8dc1da86c503b0baf56ab95a4ef6e204b6f77bfe70c")
 }
