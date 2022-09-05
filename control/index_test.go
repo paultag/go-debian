@@ -225,4 +225,42 @@ SHA256: fa53e4f50349c5c9b564b8dc1da86c503b0baf56ab95a4ef6e204b6f77bfe70c
 	assert(t, ddmsDepends.GetAllPossibilities()[0].Version.Number == "22.2+git20130830~92d25d6-1")
 }
 
+func TestBinaryIndexConflictsParse(t *testing.T) {
+	// Test Binary Index {{{
+	reader := bufio.NewReader(strings.NewReader(`Package: zvmcloudconnector-common
+Architecture: all
+Version: 2.0.0~b1~git2019062011.4fc9142.really.1.4.1-0ubuntu3
+Priority: optional
+Section: python
+Source: zvmcloudconnector
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Corey Bryant <corey.bryant@canonical.com>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 56
+Depends: adduser
+Conflicts: somepackage (>= 5.0)
+Filename: pool/main/z/zvmcloudconnector/zvmcloudconnector-common_2.0.0~b1~git2019062011.4fc9142.really.1.4.1-0ubuntu3_all.deb
+Size: 11948
+MD5sum: b6356b883d475e5552eb61f3d3dac051
+SHA1: f411b822cdf581e7f83f9bbf59371f91a00ff9bb
+SHA256: f55ba72804b82daa77fd10afe07ac75fd5ce24740bafd26bc587be34850b96c5
+Homepage: https://github.com/mfcloud/python-zvm-sdk
+Description: z/VM Development SDK for managing z/VM - Common Files
+Description-md5: d05e72aec9e53ee776fc0735e135889b
+`))
+	// }}}
+	sources, err := control.ParseBinaryIndex(reader)
+	isok(t, err)
+	assert(t, len(sources) == 1)
+
+	pkgconflicts := sources[0].GetConflicts()
+    conflicts := pkgconflicts.GetAllPossibilities()
+    assert(t, len(conflicts) == 1)
+
+	assert(t, conflicts[0].Name == "somepackage")
+    assert(t, conflicts[0].Version.Number == "5.0")
+    assert(t, conflicts[0].Version.Operator == ">=")
+}
+
 // vim: foldmethod=marker
