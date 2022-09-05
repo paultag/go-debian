@@ -41,7 +41,7 @@ type BinaryIndex struct {
 	Package        string
 	Source         string
 	Version        version.Version
-	InstalledSize  string `control:"Installed-Size"`
+	InstalledSize  int     `control:"Installed-Size"`
 	Maintainer     string
 	Architecture   dependency.Arch
 	MultiArch      string `control:"Multi-Arch"`
