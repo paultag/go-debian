@@ -182,7 +182,7 @@ SHA256: fa53e4f50349c5c9b564b8dc1da86c503b0baf56ab95a4ef6e204b6f77bfe70c
     assert(t, sources[2].Package == "androidsdk-ddms")
 	assert(t, sources[2].Source == "androidsdk-tools")
     assert(t, sources[2].Version.String() == "22.2+git20130830~92d25d6-1")
-    assert(t, sources[2].InstalledSize == "211")
+    assert(t, sources[2].InstalledSize == 211)
     assert(t, sources[2].Maintainer == "Debian Java Maintainers <pkg-java-maintainers@lists.alioth.debian.org>")
     assert(t, sources[2].Architecture == dependency.All)
     assert(t, sources[2].Description == "Graphical debugging tool for Android")
