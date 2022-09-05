@@ -60,6 +60,11 @@ type BinaryIndex struct {
 	DebugBuildIds []string `control:"Build-Ids" delim:" "`
 }
 
+// Parse the Conflicts Dependency relation on this package.
+func (index *BinaryIndex) GetConflicts() dependency.Dependency {
+	return index.getOptionalDependencyField("Conflicts")
+}
+
 // Parse the Depends Dependency relation on this package.
 func (index *BinaryIndex) GetDepends() dependency.Dependency {
 	return index.getOptionalDependencyField("Depends")
