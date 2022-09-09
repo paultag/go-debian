@@ -80,7 +80,7 @@ var knownCompressionAlgorithms = map[string]DecompressorFunc{
 	".zst":  zstdNewReader,
 }
 
-// DecompressorFn returns a decompressing reader for the specified reader and its
+// DecompressorFor returns a decompressing reader for the specified reader and its
 // corresponding file extension ext.
 func DecompressorFor(ext string) DecompressorFunc {
 	if fn, ok := knownCompressionAlgorithms[ext]; ok {
@@ -93,7 +93,7 @@ func DecompressorFor(ext string) DecompressorFunc {
 
 // IsTarfile {{{
 
-// Check to see if the given ArEntry is, in fact, a Tarfile. This method
+// IsTarfile checks to see if the given ArEntry is, in fact, a Tarfile. This method
 // will return `true` for `control.tar.*` and `data.tar.*` files.
 //
 // This will return `false` for the `debian-binary` file. If this method

@@ -155,7 +155,7 @@ func ParseDsc(reader *bufio.Reader, path string) (*DSC, error) {
 	return &ret, nil
 }
 
-// Check to see if this .dsc contains any arch:all binary packages along
+// HasArchAll checks to see if this .dsc contains any arch:all binary packages along
 // with any arch dependent packages.
 func (d *DSC) HasArchAll() bool {
 	for _, arch := range d.Architectures {
@@ -166,14 +166,14 @@ func (d *DSC) HasArchAll() bool {
 	return false
 }
 
-// Return a list of all entities that are responsible for the package's
+// Maintainers returns a list of all entities that are responsible for the package's
 // well being. The 0th element is always the package's Maintainer,
 // with any Uploaders following.
 func (d *DSC) Maintainers() []string {
 	return append([]string{d.Maintainer}, d.Uploaders...)
 }
 
-// Return a list of MD5FileHash entries from the `dsc.Files`
+// AbsFiles returns a list of MD5FileHash entries from the `dsc.Files`
 // entry, with the exception that each `Filename` will be joined to the root
 // directory of the DSC file.
 func (d *DSC) AbsFiles() []MD5FileHash {
@@ -253,7 +253,7 @@ func (d *DSC) Remove() error {
 	return os.Remove(d.Filename)
 }
 
-// Return the name of the Debian source. This is assumed to be the first file
+// DebianSource returns the name of the Debian source. This is assumed to be the first file
 // that contains ".debian." in its name.
 func (d *DSC) DebianSource() (string, error) {
 	for _, file := range d.Files {
