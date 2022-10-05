@@ -94,14 +94,14 @@ func DecompressorFor(ext string) DecompressorFunc {
 // IsTarfile {{{
 
 // Check to see if the given ArEntry is, in fact, a Tarfile. This method
-// will return `true` for `control.tar.*` and `data.tar.*` files.
+// will return `true` for files that have `.tar.*` or `.tar` suffix.
 //
 // This will return `false` for the `debian-binary` file. If this method
 // returns `true`, the `.Tarfile()` method will be around to give you a
 // tar.Reader back.
 func (e *ArEntry) IsTarfile() bool {
 	ext := filepath.Ext(e.Name)
-	return filepath.Ext(strings.TrimSuffix(e.Name, ext)) == ".tar"
+	return ext == ".tar" || filepath.Ext(strings.TrimSuffix(e.Name, ext)) == ".tar"
 }
 
 // }}}
