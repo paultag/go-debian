@@ -89,6 +89,19 @@ func DecompressorFor(ext string) DecompressorFunc {
 	return func(r io.Reader) (io.ReadCloser, error) { return io.NopCloser(r), nil } // uncompressed file or unknown compression scheme
 }
 
+// SetXZMaxDict updates the maximum dictionary size parameter for XZ
+// decompressing. If zero is supplied, the default max dictionary size will be
+// used.
+func SetXZMaxDict(maxDict uint32) {
+	knownCompressionAlgorithms[".xz"] = func(r io.Reader) (io.ReadCloser, error) {
+		reader, err := xz.NewReader(r, maxDict)
+		if err != nil {
+			return nil, err
+		}
+		return io.NopCloser(reader), nil
+	}
+}
+
 // }}}
 
 // IsTarfile {{{
