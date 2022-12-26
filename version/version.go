@@ -35,6 +35,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"bytes"
 )
 
 // Slice is a slice versions, satisfying sort.Interface
@@ -85,6 +86,182 @@ func (v Version) String() string {
 		result += "-" + v.Revision
 	}
 	return result
+}
+
+const fromChars = "+-.:" //ASCII sorted chars that can occur in version
+const tildeTo = '/'
+const nonAlphaAfter = 'z'
+const numberDigitsZero = 'a'
+const endOfString = '='
+const versionEnd = '.'
+
+// According to debian policy:
+// Comparison starts with (possibly empty) nonnumber, then numbers and
+// nonnumbers alter. At the end is number (possibly 0). Each number is
+// stripped its leading zeroes. Empty number (at the end) is equal to 0.
+//
+// We replace characters in nonnumbers so that they comply with debian
+// ordering. We add character to the end of nonnumber, this char is
+// between 'A' and tilde replacement character.
+// We strip leading zeroes from each number. We prefix the number
+// by lowercase letter denoting number of digits of the number.
+// (i.e. "a" is 0, "c12" is 12)
+//
+// 1.) If two numbers differ, then their representations differ before
+//     reaching end of shorter representation.
+// 2.) If two non-numbers differ, then their representation differ before
+//     reaching end of shorter representation.
+// These two facts gives, that if two (number,non-number) pairs differ,
+// then we get the difference before end of the representation of the
+// shorter one.
+//
+// 3.) Version or revision consits of non-number,number pairs (at least one).
+//     First pair may have empty non-number part. Last pair may have ommited
+//     zero.
+// 4.) Start of non-number representation is greater than end of version or
+//     revision sequence.
+// This gives that if two upstream-versions or revisions differ, then the
+// difference is found before the end of the shorter one.
+//
+func comparableVerRev(v string, w *bytes.Buffer) {
+	i := 0
+	for {
+		for i < len(v) && !cisdigit(rune(v[i])) {
+			if cisalpha(rune(v[i])) {
+				w.WriteByte(v[i])
+			} else {
+				fr := strings.IndexRune(fromChars, rune(v[i])) + 1
+				if (fr < 1) {
+					w.WriteByte(tildeTo) //Tilde replacement
+				} else {
+					w.WriteByte(byte(nonAlphaAfter)+byte(fr)) // more than 'z'
+				}
+			}
+			i++
+		}
+		w.WriteByte(endOfString) //End of string (more than Tilde replacement, less than 'A')
+		bufPos := w.Len()
+		w.WriteByte('$') //To be replaced later
+		for i < len(v) && v[i] == '0' { i++ }
+		numStart := i
+		for i < len(v) && cisdigit(rune(v[i])) {
+			w.WriteByte(v[i])
+			i++
+		}
+		w.Bytes()[bufPos] = numberDigitsZero + byte(i - numStart)
+		if i >= len(v) { break }
+	}
+}
+
+// Comparable string. To be used as precomputed value for fast
+// comparisons. E.g., in SQL table.
+func (v Version) ComparableString() string {
+	var buffer bytes.Buffer
+	// Epoch is encoded the same way as number part in comparableVerRev()
+	if v.Epoch != 0 {
+		epoch := strconv.Itoa(int(v.Epoch))
+		buffer.WriteByte(numberDigitsZero + byte(len(epoch)))
+		buffer.WriteString(epoch)
+	} else {
+		buffer.WriteByte(numberDigitsZero)
+	}
+	buffer.WriteByte(versionEnd)
+	comparableVerRev(v.Version, &buffer)
+	buffer.WriteByte(versionEnd)
+	comparableVerRev(v.Revision, &buffer)
+	buffer.WriteByte(versionEnd)
+	return buffer.String()
+}
+
+func comparableVerRevToStr(s string, pos *int) (ret string, err error) {
+	const (
+		STATE_STRING = iota
+		STATE_BEFORE_STRING
+		STATE_NUMBER
+		STATE_END
+	)
+	var buffer bytes.Buffer
+	state := STATE_STRING
+	for len(s) > *pos && state != STATE_END {
+		c := s[*pos]
+		switch {
+			case state == STATE_NUMBER:
+				numLen := int(c) - numberDigitsZero
+				if len(s) < *pos + 1 + numLen {
+					err = fmt.Errorf("Unexpected end of version or revision.")
+					return
+				}
+				buffer.WriteString(s[*pos+1:*pos+1+numLen])
+				*pos += numLen
+				state = STATE_BEFORE_STRING
+			case state != STATE_BEFORE_STRING && state != STATE_STRING:
+				err = fmt.Errorf("Unexpected state.")
+				return
+			case c == versionEnd:
+				if state == STATE_BEFORE_STRING {
+					state = STATE_END
+				} else {
+					err = fmt.Errorf("Unexpected end of version or revision.")
+					return
+				}
+			case c == endOfString:
+				state = STATE_NUMBER
+			case c == tildeTo:
+				buffer.WriteByte('~')
+				state = STATE_STRING
+			case c > nonAlphaAfter && int(c) <= nonAlphaAfter + len(fromChars):
+				buffer.WriteByte(fromChars[c-nonAlphaAfter-1])
+				state = STATE_STRING
+			case (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'):
+				buffer.WriteByte(c)
+				state = STATE_STRING
+			default:
+				err = fmt.Errorf("Unexpected character.")
+				return
+		}
+		*pos++
+	}
+	if state != STATE_END {
+		err = fmt.Errorf("Unexpected end of version or revision.")
+		return
+	}
+	*pos ++
+	ret = buffer.String()
+	return
+}
+
+func ComparableStringToVersion(s string) (ret Version, err error) {
+	if len(s) < 4 {
+		err = fmt.Errorf("Comparable version too short.")
+		return
+	}
+	pos := int(s[0]) - numberDigitsZero + 1
+	if len(s) < pos+2 {
+		err = fmt.Errorf("Unexpected end of comparable version.")
+		return
+	}
+	if pos > 1 {
+		var epoch int64
+		epoch, err = strconv.ParseInt(s[1:pos], 10, 32)
+		if err != nil { return }
+		ret.Epoch = uint(epoch)
+	} else {
+		ret.Epoch = 0
+	}
+	if s[pos] != versionEnd {
+		err = fmt.Errorf("Expected version separator after epoch.")
+		return
+	}
+	pos++
+	ret.Version, err = comparableVerRevToStr(s, &pos)
+	if err != nil { return }
+	ret.Revision, err = comparableVerRevToStr(s, &pos)
+	if err != nil { return }
+	if pos < len(s) {
+		err = fmt.Errorf("Extra characters after revision.")
+		return
+	}
+	return
 }
 
 func cisdigit(r rune) bool {
@@ -188,6 +365,27 @@ func Parse(input string) (Version, error) {
 	return result, parseInto(&result, input)
 }
 
+func validateVerRev(v string, name string, chars string) error {
+	consecutive_digits := 0
+	if strings.IndexFunc(v, func(c rune) bool {
+		if cisdigit(c) {
+			consecutive_digits += 1
+			// ComparableString would fail...
+			return consecutive_digits > 25 
+		} else {
+			consecutive_digits = 0
+			return !cisalpha(c) && strings.IndexRune(chars, c) < 0
+		}
+	}) != -1 {
+		if consecutive_digits > 0 {
+			return fmt.Errorf("too big number in " + name)
+		} else {
+			return fmt.Errorf("invalid character in " + name)
+		}
+	}
+	return nil
+}
+
 func parseInto(result *Version, input string) error {
 	trimmed := strings.TrimSpace(input)
 	if trimmed == "" {
@@ -199,6 +397,9 @@ func parseInto(result *Version, input string) error {
 	}
 
 	colon := strings.Index(trimmed, ":")
+	if (colon >= 9) {
+		return fmt.Errorf("epoch too big or not an integer")
+	}
 	if colon != -1 {
 		epoch, err := strconv.ParseInt(trimmed[:colon], 10, 64)
 		if err != nil {
@@ -211,29 +412,30 @@ func parseInto(result *Version, input string) error {
 	}
 
 	result.Version = trimmed[colon+1:]
-	if len(result.Version) == 0 {
-		return fmt.Errorf("nothing after colon in version number")
-	}
 	if hyphen := strings.LastIndex(result.Version, "-"); hyphen != -1 {
 		result.Revision = result.Version[hyphen+1:]
 		result.Version = result.Version[:hyphen]
 	}
 
-	if len(result.Version) > 0 && !unicode.IsDigit(rune(result.Version[0])) {
+	/*
+	// Version should start with number. Thus package with empty version
+	// or version starting by nonnumber would not be accepted to debian.
+	// But unofficial and personal repositories may have different rules.
+
+	if len(result.Version) == 0 {
+		return fmt.Errorf("empty version number")
+	}
+
+	if !unicode.IsDigit(rune(result.Version[0])) {
 		return fmt.Errorf("version number does not start with digit")
 	}
+	*/
 
-	if strings.IndexFunc(result.Version, func(c rune) bool {
-		return !cisdigit(c) && !cisalpha(c) && c != '.' && c != '-' && c != '+' && c != '~' && c != ':'
-	}) != -1 {
-		return fmt.Errorf("invalid character in version number")
-	}
+	err := validateVerRev(result.Version, "version number", ".-+~:")
+	if err != nil { return err }
 
-	if strings.IndexFunc(result.Revision, func(c rune) bool {
-		return !cisdigit(c) && !cisalpha(c) && c != '.' && c != '+' && c != '~'
-	}) != -1 {
-		return fmt.Errorf("invalid character in revision number")
-	}
+	err = validateVerRev(result.Revision, "revision number", ".+~")
+	if err != nil { return err }
 
 	return nil
 }

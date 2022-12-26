@@ -30,6 +30,7 @@ package version // import "pault.ag/go/debian/version"
 
 import (
 	"testing"
+	"strings"
 )
 
 // Abbreviation for creating a new Version object.
@@ -37,73 +38,90 @@ func v(epoch uint, version string, revision string) Version {
 	return Version{Epoch: epoch, Version: version, Revision: revision}
 }
 
-func TestEpoch(t *testing.T) {
-	if Compare(Version{Epoch: 1}, Version{Epoch: 2}) == 0 {
-		t.Errorf("epoch=1, epoch=2")
-	}
+func sgn(x int) int {
+	if x < 0 {return -1}
+	if x > 0 {return 1}
+	return 0
+}
 
-	if a, b := v(0, "1", "1"), v(0, "2", "1"); Compare(a, b) == 0 {
-		t.Errorf("a, b")
+func comparisonTest(t *testing.T, a Version, b Version, expect int) {
+	cmp := Compare(a,b)
+	if sgn(cmp) != sgn(expect) {
+		t.Errorf("Compare(%v, %v), got %d, want %d", a, b, cmp, expect)
 	}
-
-	if a, b := v(0, "1", "1"), v(0, "1", "2"); Compare(a, b) == 0 {
-		t.Errorf("a, b")
+	reprA := a.ComparableString()
+	reprB := b.ComparableString()
+	cmp = strings.Compare(reprA, reprB)
+	if sgn(cmp) != expect {
+		t.Errorf("ComparableString-Compare(%v, %v), got %d, want %d", a, b, cmp, expect)
 	}
 }
 
+func TestEpoch(t *testing.T) {
+	comparisonTest(t, Version{Epoch: 1}, Version{Epoch: 2}, -1);
+	comparisonTest(t, v(0, "1", "1"),    v(0, "2", "1"),    -1);
+	comparisonTest(t, v(0, "1", "1"),    v(0, "1", "2"),    -1);
+	comparisonTest(t, v(0, "10", "1"),   v(0, "2", "1"),     1);
+}
+
 func TestEquality(t *testing.T) {
-	if a, b := v(0, "0", "0"), v(0, "0", "0"); Compare(a, b) != 0 {
-		t.Errorf("a, b")
-	}
-
-	if a, b := v(0, "0", "00"), v(0, "00", "0"); Compare(a, b) != 0 {
-		t.Errorf("a, b")
-	}
-
-	if a, b := v(1, "2", "3"), v(1, "2", "3"); Compare(a, b) != 0 {
-		t.Errorf("a, b")
-	}
+	comparisonTest(t, v(0, "0", "0"),     v(0, "0", "0"),    0);
+	comparisonTest(t, v(0, "0", "00"),    v(0, "00", "0"),   0);
+	comparisonTest(t, v(0, "00", ""),     v(0, "", "00"),   0);
+	comparisonTest(t, v(1, "2", "3"),     v(1, "2", "3"),    0);
 }
 
 func TestEpochDifference(t *testing.T) {
 	a := v(0, "0", "0")
 	b := v(1, "0", "0")
-	if Compare(a, b) >= 0 {
-		t.Errorf("a, b")
-	}
-	if Compare(b, a) <= 0 {
-		t.Errorf("a, b")
-	}
+	comparisonTest(t, a, b, -1)
+	comparisonTest(t, b, a,  1)
 }
 
 func TestVersionDifference(t *testing.T) {
 	a := v(0, "a", "0")
 	b := v(0, "b", "0")
-	if Compare(a, b) >= 0 {
-		t.Errorf("a, b")
-	}
-	if Compare(b, a) <= 0 {
-		t.Errorf("a, b")
-	}
+	comparisonTest(t, a, b, -1)
+	comparisonTest(t, b, a,  1)
 }
 
 func TestRevisionDifference(t *testing.T) {
 	a := v(0, "0", "a")
 	b := v(0, "0", "b")
-	if Compare(a, b) >= 0 {
-		t.Errorf("a, b")
+	comparisonTest(t, a, b, -1)
+	comparisonTest(t, b, a,  1)
+}
+
+func TestComparableStringSetup(t *testing.T) {
+	for i := range(fromChars) {
+		if i > 0 && fromChars[i] <= fromChars[i-1] {
+			t.Errorf("fromChars must be sorted!")
+		}
 	}
-	if Compare(b, a) <= 0 {
-		t.Errorf("a, b")
+	if len(fromChars) + int('z') > 126 {
+		t.Errorf("Too much fromChars. Result may be improperly encoded in national character sets.")
+	}
+	if (versionEnd >= tildeTo) {
+		t.Errorf("version separator must be less than tilde (smallest possible start of non-number)");
+	}
+	if (tildeTo >= endOfString) {
+		t.Errorf("tilde must be less than end of string");
+	}
+	if (endOfString >= 'A') {
+		t.Errorf("end of string must be less than 'A'");
+	}
+	if (endOfString >= numberDigitsZero) {
+		t.Errorf("end of string must be less than start of number");
+	}
+	if ('z' > nonAlphaAfter) {
+		t.Errorf("'z' must be less than non-alphanumeric characters");
 	}
 }
 
 func TestCompareCodesearch(t *testing.T) {
 	a := v(0, "1.8.6", "2")
 	b := v(0, "1.8.6", "2.1")
-	if Compare(a, b) >= 0 {
-		t.Errorf("a, b")
-	}
+	comparisonTest(t, a, b, -1)
 }
 
 func TestParseZeroVersions(t *testing.T) {
@@ -114,39 +132,29 @@ func TestParseZeroVersions(t *testing.T) {
 	if a, err = Parse("0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 
 	if a, err = Parse("0:0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 
 	if a, err = Parse("0:0-"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0-", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 
 	b = v(0, "0", "0")
 	if a, err = Parse("0:0-0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0-0", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 
 	b = v(0, "0.0", "0.0")
 	if a, err = Parse("0:0.0-0.0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0.0-0.0", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 }
 
 func TestParseEpochedVersions(t *testing.T) {
@@ -157,17 +165,13 @@ func TestParseEpochedVersions(t *testing.T) {
 	if a, err = Parse("1:0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "1:0", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 
 	b = v(5, "1", "")
 	if a, err = Parse("5:1"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "5:1", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 }
 
 func TestParseMultipleHyphens(t *testing.T) {
@@ -178,17 +182,13 @@ func TestParseMultipleHyphens(t *testing.T) {
 	if a, err = Parse("0:0-0-0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0-0-0", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 
 	b = v(0, "0-0-0", "0")
 	if a, err = Parse("0:0-0-0-0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0-0-0-0", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 }
 
 func TestParseMultipleColons(t *testing.T) {
@@ -199,17 +199,13 @@ func TestParseMultipleColons(t *testing.T) {
 	if a, err = Parse("0:0:0-0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0:0-0", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 
 	b = v(0, "0:0:0", "0")
 	if a, err = Parse("0:0:0:0-0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0:0:0-0", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 }
 
 func TestParseMultipleHyphensAndColons(t *testing.T) {
@@ -220,17 +216,13 @@ func TestParseMultipleHyphensAndColons(t *testing.T) {
 	if a, err = Parse("0:0:0-0-0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0:0-0-0", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 
 	b = v(0, "0-0:0", "0")
 	if a, err = Parse("0:0-0:0-0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0-0:0-0", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 }
 
 func TestParseValidUpstreamVersionCharacters(t *testing.T) {
@@ -241,9 +233,7 @@ func TestParseValidUpstreamVersionCharacters(t *testing.T) {
 	if a, err = Parse("0:09azAZ.-+~:-0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:09azAZ.-+~:-0", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 }
 
 func TestParseValidRevisionCharacters(t *testing.T) {
@@ -254,9 +244,7 @@ func TestParseValidRevisionCharacters(t *testing.T) {
 	if a, err = Parse("0:0-azAZ09.+~"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0-azAZ09.+~", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 }
 
 func TestParseLeadingTrailingSpaces(t *testing.T) {
@@ -267,23 +255,17 @@ func TestParseLeadingTrailingSpaces(t *testing.T) {
 	if a, err = Parse("    0:0-1"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "    0:0-1", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 
 	if a, err = Parse("0:0-1     "); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0-1     ", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 
 	if a, err = Parse("      0:0-1     "); err != nil {
 		t.Errorf("Parsing %q failed: %v", "      0:0-1     ", err)
 	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
+	comparisonTest(t, a, b, 0)
 }
 
 func TestParseEmptyVersion(t *testing.T) {
@@ -295,11 +277,17 @@ func TestParseEmptyVersion(t *testing.T) {
 	}
 }
 
+/*
+// First, "0:" did not pass, but "0:-0" passed. Second, upsteam version
+// may be in fact empty. We require only that the version string is not empty,
+// to prevent errors that occur when NULL of any form is converted to empty
+// string.
 func TestParseEmptyUpstreamVersionAfterEpoch(t *testing.T) {
 	if _, err := Parse("0:"); err == nil {
 		t.Errorf("Expected an error, but %q was parsed without an error", "0:")
 	}
 }
+*/
 
 func TestParseVersionWithEmbeddedSpaces(t *testing.T) {
 	if _, err := Parse("0:0 0-1"); err == nil {
@@ -329,8 +317,10 @@ func TestParseInvalidCharactersInEpoch(t *testing.T) {
 }
 
 func TestParseUpstreamVersionNotStartingWithADigit(t *testing.T) {
-	if _, err := Parse("0:abc3-0"); err == nil {
-		t.Errorf("Expected an error, but %q was parsed without an error", "0:abc3-0")
+	if _, err := Parse("0:abc3-0"); err != nil {
+		// Upstream version is recommended to start with digit.
+		// But we cannot force it, when dealing with external packages. -- Ebik.
+		t.Errorf("Expected an ok, but %q failed: %v", "0:abc3-0", err)
 	}
 }
 
