@@ -1,6 +1,6 @@
 module pault.ag/go/debian
 
-go 1.15
+go 1.19
 
 require (
 	github.com/kjk/lzma v0.0.0-20161016003348-3fd93898850d
