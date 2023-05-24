@@ -31,6 +31,7 @@
 package version // import "pault.ag/go/debian/version"
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -64,6 +65,19 @@ func (v *Version) Empty() bool {
 
 func (v *Version) IsNative() bool {
 	return len(v.Revision) == 0
+}
+
+func (version *Version) MarshalText() ([]byte, error) {
+	return json.Marshal(version.String())
+}
+
+func (version *Version) UnmarshalText(text []byte) error {
+	var err error
+	*version, err = Parse(string(text))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (version *Version) UnmarshalControl(data string) error {
