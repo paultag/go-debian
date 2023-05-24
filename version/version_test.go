@@ -29,6 +29,7 @@
 package version // import "pault.ag/go/debian/version"
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -354,6 +355,31 @@ func TestParseInvalidCharactersInRevision(t *testing.T) {
 		if _, err := Parse(verstr); err == nil {
 			t.Errorf("Expected an error, but %q was parsed without an error", verstr)
 		}
+	}
+}
+
+func TestString(t *testing.T) {
+	if strings.Compare("1.0-1", Version{
+		Version:  "1.0",
+		Revision: "1",
+	}.String()) != 0 {
+		t.Errorf("String() returned malformed Version")
+	}
+
+	if strings.Compare("1:1.0-1", Version{
+		Epoch:    1,
+		Version:  "1.0",
+		Revision: "1",
+	}.String()) != 0 {
+		t.Errorf("String() returned malformed Version with Epoch")
+	}
+
+	if strings.Compare("1.0-1", Version{
+		Epoch:    1,
+		Version:  "1.0",
+		Revision: "1",
+	}.StringWithoutEpoch()) != 0 {
+		t.Errorf("StringWithoutEpoch() returned malformed Version with Epoch")
 	}
 }
 

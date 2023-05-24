@@ -88,17 +88,19 @@ func (version Version) MarshalControl() (string, error) {
 	return version.String(), nil
 }
 
-func (v Version) String() string {
-	var result string
-	if v.Epoch > 0 {
-		result = strconv.Itoa(int(v.Epoch)) + ":" + v.Version
-	} else {
-		result = v.Version
-	}
+func (v Version) StringWithoutEpoch() string {
+	result := v.Version
 	if len(v.Revision) > 0 {
 		result += "-" + v.Revision
 	}
 	return result
+}
+
+func (v Version) String() string {
+	if v.Epoch > 0 {
+		return fmt.Sprintf("%d:%s", v.Epoch, v.StringWithoutEpoch())
+	}
+	return v.StringWithoutEpoch()
 }
 
 func cisdigit(r rune) bool {
