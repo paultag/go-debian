@@ -56,6 +56,7 @@ func TestAr(t *testing.T) {
 	assert(t, firstEntry.Timestamp == 1361157466)
 	assert(t, firstEntry.OwnerID == 501)
 	assert(t, firstEntry.GroupID == 20)
+	assert(t, firstEntry.FileMode == "100644")
 
 	firstContent, err := ioutil.ReadAll(firstEntry.Data)
 	isok(t, err)

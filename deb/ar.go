@@ -141,7 +141,7 @@ func parseArEntry(line []byte) (*ArEntry, error) {
 
 	entry := ArEntry{
 		Name:     strings.TrimSuffix(strings.TrimSpace(string(line[0:16])), "/"),
-		FileMode: strings.TrimSpace(string(line[48:58])),
+		FileMode: strings.TrimSpace(string(line[40:48])),
 	}
 
 	for target, value := range map[*int64][]byte{
