@@ -46,7 +46,7 @@ type Control struct {
 	Source        string
 	Version       version.Version `required:"true"`
 	Architecture  dependency.Arch `required:"true"`
-	Maintainer    string          `required:"true"`
+	Maintainer    string
 	InstalledSize int             `control:"Installed-Size"`
 	MultiArch     string          `control:"Multi-Arch"`
 	Depends       dependency.Dependency
@@ -58,7 +58,7 @@ type Control struct {
 	Section       string
 	Priority      string
 	Homepage      string
-	Description   string `required:"true"`
+	Description   string
 }
 
 func (c Control) SourceName() string {
