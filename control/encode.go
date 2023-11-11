@@ -104,9 +104,9 @@ func convertToParagraph(data reflect.Value) (*Paragraph, error) {
 		}
 
 		order = append(order, paragraphKey)
-		values[paragraphKey] = data
+		values[strings.ToLower(paragraphKey)] = data
 	}
-	para := foundParagraph.Update(Paragraph{Order: order, Values: values})
+	para := foundParagraph.Update(Paragraph{Order: order, values: values})
 	return &para, nil
 }
 

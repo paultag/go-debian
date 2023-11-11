@@ -151,29 +151,26 @@ Para: three
 }
 
 func TestParagraphSet(t *testing.T) {
-	para := control.Paragraph{
-		Order:  nil,
-		Values: map[string]string{},
-	}
+	para := control.NewParagraph()
 	// Setting a key:value updates both order and values.
 	para.Set("yankee", "doodle")
 	assert(t, len(para.Order) == 1)
 	assert(t, para.Order[0] == "yankee")
-	assert(t, para.Values["yankee"] == "doodle")
+	assert(t, para.Get("Yankee") == "doodle")
 	// Adding a second key:value updates both order and values.
 	para.Set("british", "redcoat")
 	assert(t, len(para.Order) == 2)
 	assert(t, para.Order[0] == "yankee")
-	assert(t, para.Values["yankee"] == "doodle")
+	assert(t, para.Get("yankEe") == "doodle")
 	assert(t, para.Order[1] == "british")
-	assert(t, para.Values["british"] == "redcoat")
+	assert(t, para.Get("britisH") == "redcoat")
 	// Updating a previously existing key leaves order untouched.
-	para.Set("yankee", "candle")
+	para.Set("YANKEE", "candle")
 	assert(t, len(para.Order) == 2)
 	assert(t, para.Order[0] == "yankee")
-	assert(t, para.Values["yankee"] == "candle")
+	assert(t, para.Get("yanKee") == "candle")
 	assert(t, para.Order[1] == "british")
-	assert(t, para.Values["british"] == "redcoat")
+	assert(t, para.Get("brItIsh") == "redcoat")
 }
 
 func TestWhitespacePrefixedLines(t *testing.T) {
@@ -188,8 +185,8 @@ Key2: two
 
 	blocks, err := reader.All()
 	isok(t, err)
-	assert(t, blocks[0].Values["Key1"] == "one\n continuation\n")
-	assert(t, blocks[0].Values["Key2"] == "two\ntabbed continuation\n")
+	assert(t, blocks[0].Get("Key1") == "one\n continuation\n")
+	assert(t, blocks[0].Get("Key2") == "two\ntabbed continuation\n")
 }
 
 func TestCommentLines(t *testing.T) {
@@ -203,8 +200,8 @@ Key2: two
 
 	blocks, err := reader.All()
 	isok(t, err)
-	assert(t, blocks[0].Values["Key1"] == "one")
-	assert(t, blocks[0].Values["Key2"] == "two")
+	assert(t, blocks[0].Get("Key1") == "one")
+	assert(t, blocks[0].Get("Key2") == "two")
 }
 
 func TestTrailingTwoCharacterNewlines(t *testing.T) {
@@ -303,7 +300,7 @@ func TestLineWrapping(t *testing.T) {
 	el, err := reader.Next()
 	isok(t, err)
 
-	assert(t, el.Values["Changes"] == `hy (0.11.0-4) unstable; urgency=medium
+	assert(t, el.Get("changes") == `hy (0.11.0-4) unstable; urgency=medium
 
   * Fix FTBFS due to rply trying to write to HOME during sphinx-build.
   * Fix build repeatability with proper override_dh_auto_clean.
