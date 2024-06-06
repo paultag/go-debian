@@ -102,9 +102,8 @@ func (d *Ar) Next() (*ArEntry, error) {
 // toDecimal {{{
 
 // Take a byte array, and return an int64
-func toDecimal(input []byte) (int64, error) {
-	stream := strings.TrimSpace(string(input))
-	out, err := strconv.Atoi(stream)
+func toDecimal(input string) (int64, error) {
+	out, err := strconv.Atoi(input)
 	return int64(out), err
 }
 
@@ -129,7 +128,11 @@ func toDecimal(input []byte) (int64, error) {
 // | 40      8       File mode                    Octal
 // | 48      10      File size in bytes           Decimal
 // | 58      2       File magic                   0x60 0x0A
-//
+type entryField struct {
+	Name    string
+	Pointer *int64
+}
+
 func parseArEntry(line []byte) (*ArEntry, error) {
 	if len(line) != 60 {
 		return nil, fmt.Errorf("Malformed file entry line length")
@@ -144,17 +147,22 @@ func parseArEntry(line []byte) (*ArEntry, error) {
 		FileMode: strings.TrimSpace(string(line[40:48])),
 	}
 
-	for target, value := range map[*int64][]byte{
-		&entry.Timestamp: line[16:28],
-		&entry.OwnerID:   line[28:34],
-		&entry.GroupID:   line[34:40],
-		&entry.Size:      line[48:58],
+	for target, value := range map[entryField][]byte{
+		entryField{"Timestamp", &entry.Timestamp}: line[16:28],
+		entryField{"OwnerID", &entry.OwnerID}:     line[28:34],
+		entryField{"GroupID", &entry.GroupID}:     line[34:40],
+		entryField{"Size", &entry.Size}:           line[48:58],
 	} {
-		intValue, err := toDecimal(value)
-		if err != nil {
-			return nil, err
+		input := strings.TrimSpace(string(value))
+		if input == "" {
+			continue
 		}
-		*target = intValue
+
+		intValue, err := toDecimal(input)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse entry %s: %w", target.Name, err)
+		}
+		*target.Pointer = intValue
 	}
 
 	return &entry, nil
