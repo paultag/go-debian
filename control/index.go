@@ -152,7 +152,7 @@ type SourceIndex struct {
 	Paragraph
 
 	Package  string
-	Binaries []string `control:"Binary" delim:","`
+	Binaries []string `control:"Binary" delim:"," strip:" "`
 
 	Version    version.Version
 	Maintainer string
