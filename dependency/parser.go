@@ -166,7 +166,7 @@ func parsePossibility(input *input, relation *Relation) error {
 				return err
 			}
 			continue
-		case ' ':
+		case ' ', '(':
 			err := parsePossibilityControllers(input, ret)
 			if err != nil {
 				return err

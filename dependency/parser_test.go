@@ -116,6 +116,18 @@ func TestVersioning(t *testing.T) {
 	assert(t, version.Number == "1.0")
 }
 
+func TestVersioningSkippedSpace(t *testing.T) {
+	dep, err := dependency.Parse("foo(>= 1.0)")
+	isok(t, err)
+	assert(t, len(dep.Relations) == 1)
+
+	possi := dep.Relations[0].Possibilities[0]
+	version := possi.Version
+
+	assert(t, version.Operator == ">=")
+	assert(t, version.Number == "1.0")
+}
+
 func TestSingleArch(t *testing.T) {
 	dep, err := dependency.Parse("foo [arch]")
 	isok(t, err)

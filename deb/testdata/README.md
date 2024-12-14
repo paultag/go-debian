@@ -7,5 +7,7 @@ projects with which we are attempting to remain compatible.
 - Test data for ar parsing are taken from the MIT-licensed ar library by Blake
   Smith, at https://github.com/blakesmith/ar, last modified as of 2019-02-19.
 
+  - `long.a` is taken from https://cs.opensource.google/go/x/tools/+/master:go/gccgoexportdata/testdata/long.a
+
 None of this data is included in compiled binaries, so the licensing terms for
 binaries compiled with or from go-debian are not modified.
