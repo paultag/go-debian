@@ -1,5 +1,4 @@
 /*
-
 This module provides an API to access and programmatically process
 Debian `.deb` archives on disk.
 
@@ -35,6 +34,5 @@ Here's a trivial example, which will print out the Package name for a
 		}
 		log.Printf("Package: %s\n", debFile.Control.Package)
 	}
-
 */
 package deb // import "pault.ag/go/debian/deb"

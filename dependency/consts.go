@@ -21,8 +21,8 @@
 package dependency // import "pault.ag/go/debian/dependency"
 
 var (
-	Any = Arch{ABI: "any", OS: "any", CPU: "any"}
-	All = Arch{ABI: "all", OS: "all", CPU: "all"}
+	Any = Arch{ABI: "any", Libc: "any", OS: "any", CPU: "any"}
+	All = Arch{ABI: "all", Libc: "all", OS: "all", CPU: "all"}
 )
 
 // vim: foldmethod=marker

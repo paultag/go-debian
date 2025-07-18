@@ -28,15 +28,16 @@ import (
 
 func TestArchString(t *testing.T) {
 	equivs := map[string]string{
-		"all":              "all",
-		"any":              "all",
-		"amd64":            "amd64",
-		"gnu-linux-amd64":  "amd64",
-		"bsd-windows-i386": "bsd-windows-i386",
+		"all":                  "all",
+		"any":                  "all",
+		"amd64":                "amd64",
+		"base-gnu-linux-amd64": "amd64",
+		"foo-bsd-windows-i386": "foo-bsd-windows-i386",
 	}
 
 	for _, el := range equivs {
 		arch, err := dependency.ParseArch(el)
+
 		isok(t, err)
 		assert(t, arch.String() == equivs[el])
 	}
