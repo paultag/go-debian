@@ -84,14 +84,15 @@ func (v *verifier) Close() error {
 // written to it and fails Close() upon hash mismatch.
 //
 // Example:
-//     verifier := fh.Verifier()
-//     r = io.TeeReader(r, verifier)
-//     if _, err := io.Copy(f, r); err != nil {
-//         return err
-//     }
-//     if err := verifier.Close(); err != nil {
-//         return err
-//     }
+//
+//	verifier := fh.Verifier()
+//	r = io.TeeReader(r, verifier)
+//	if _, err := io.Copy(f, r); err != nil {
+//	    return err
+//	}
+//	if err := verifier.Close(); err != nil {
+//	    return err
+//	}
 func (c *FileHash) Verifier() (io.WriteCloser, error) {
 	var h hash.Hash
 	switch c.Algorithm {

@@ -159,7 +159,7 @@ func ParseDsc(reader *bufio.Reader, path string) (*DSC, error) {
 // with any arch dependent packages.
 func (d *DSC) HasArchAll() bool {
 	for _, arch := range d.Architectures {
-		if arch.CPU == "all" && arch.OS == "all" && arch.ABI == "all" {
+		if arch.CPU == "all" && arch.OS == "all" && arch.ABI == "all" && arch.Libc == "all" {
 			return true
 		}
 	}

@@ -34,10 +34,9 @@ type ArchSet struct {
 // greater than version 1.0, or less than 2.0. The values that are valid
 // in the Operator field are defined by section 7.1 of Debian policy.
 //
-//   The relations allowed are <<, <=, =, >= and >> for strictly earlier,
-//   earlier or equal, exactly equal, later or equal and strictly later,
-//   respectively.
-//
+//	The relations allowed are <<, <=, =, >= and >> for strictly earlier,
+//	earlier or equal, exactly equal, later or equal and strictly later,
+//	respectively.
 type VersionRelation struct {
 	Number   string
 	Operator string
@@ -55,12 +54,11 @@ type StageSet struct {
 // Possibility models a concrete Possibility that may be satisfied in order
 // to satisfy the Dependency Relation. Given the Dependency line:
 //
-//   Depends: foo, bar | baz
+//	Depends: foo, bar | baz
 //
 // All of foo, bar and baz are Possibilities. Possibilities may come with
 // further restrictions, such as restrictions on Version, Architecture, or
 // Build Stage.
-//
 type Possibility struct {
 	Name          string
 	Arch          *Arch
@@ -75,7 +73,7 @@ type Possibility struct {
 // A Relation is a set of Possibilities that must be satisfied. Given the
 // Dependency line:
 //
-//   Depends: foo, bar | baz
+//	Depends: foo, bar | baz
 //
 // There are two Relations, one composed of foo, and another composed of
 // bar and baz.

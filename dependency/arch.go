@@ -21,16 +21,18 @@
 package dependency // import "pault.ag/go/debian/dependency"
 
 import (
-	"errors"
+	"fmt"
+	"reflect"
 	"strings"
 )
 
 /*
  */
 type Arch struct {
-	ABI string
-	OS  string
-	CPU string
+	ABI  string
+	Libc string
+	OS   string
+	CPU  string
 }
 
 func ParseArchitectures(arch string) ([]Arch, error) {
@@ -58,50 +60,161 @@ func (arch *Arch) UnmarshalControl(data string) error {
 
 func ParseArch(arch string) (*Arch, error) {
 	ret := &Arch{
-		ABI: "any",
-		OS:  "any",
-		CPU: "any",
+		ABI:  "any",
+		Libc: "any",
+		OS:   "any",
+		CPU:  "any",
 	}
 	return ret, parseArchInto(ret, arch)
+}
+
+func expandAnyAnyAny(parts []string) []string {
+	if len(parts) == 0 {
+		return parts
+	}
+
+	if parts[0] != "any" {
+		return parts
+	}
+
+	for idx := len(parts); idx < 4; idx++ {
+		parts = append([]string{"any"}, parts...)
+	}
+
+	return parts
+}
+
+func matchShortAgainstTupletable(parts []string) []string {
+	var matches = strings.Split(TUPLETABLE, "\n")
+nextMatch:
+	for _, line := range matches {
+		line := strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) != 2 {
+			panic("internal error: malformed tupletable")
+		}
+
+		shortName := strings.Split(fields[1], "-")
+
+		if len(shortName) != len(parts) {
+			continue
+		}
+
+		var cpu = ""
+		for idx := range parts {
+			matchName := shortName[idx]
+			partName := parts[idx]
+
+			if matchName == "<cpu>" {
+				cpu = partName
+				continue
+			}
+
+			if matchName != partName {
+				continue nextMatch
+			}
+		}
+		return strings.Split(strings.Replace(fields[0], "<cpu>", cpu, 1), "-")
+	}
+
+	return parts
+}
+
+func archToStringWithTupletable(arch Arch) string {
+
+	if arch == All {
+		return "all"
+	}
+
+	if arch == Any {
+		return "any"
+	}
+
+	rawName := []string{
+		arch.ABI,
+		arch.Libc,
+		arch.OS,
+		arch.CPU,
+	}
+
+	var matches = strings.Split(TUPLETABLE, "\n")
+	for _, line := range matches {
+		line := strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) != 2 {
+			panic("internal error: malformed tupletable")
+		}
+
+		// try this out with our cpu and see if it matches
+		longNameStr := strings.Replace(fields[0], "<cpu>", arch.CPU, 1)
+		longName := strings.Split(longNameStr, "-")
+		if len(longName) != 4 {
+			panic("internal error: malformed tupletable long name")
+		}
+
+		if reflect.DeepEqual(longName, rawName) {
+			return strings.Replace(fields[1], "<cpu>", arch.CPU, 1)
+		}
+	}
+
+	return strings.Join(rawName, "-")
 }
 
 /*
  */
 func parseArchInto(ret *Arch, arch string) error {
-	/* May be in the following form:
-	 * `any` (implicitly any-any-any)
-	 * kfreebsd-any (implicitly any-kfreebsd-any)
-	 * kfreebsd-amd64 (implicitly any-kfreebsd-any)
-	 * bsd-openbsd-i386 */
-	flavors := strings.SplitN(arch, "-", 3)
-	switch len(flavors) {
-	case 1:
-		flavor := flavors[0]
-		/* OK, we've got a single guy like `any` or `amd64` */
-		switch flavor {
-		case "all", "any":
-			ret.ABI = flavor
-			ret.OS = flavor
-			ret.CPU = flavor
-		default:
-			/* right, so we've got something like `amd64`, which is implicitly
-			 * gnu-linux-amd64. Confusing, I know. */
-			ret.ABI = "gnu"
-			ret.OS = "linux"
-			ret.CPU = flavor
+
+	if arch == "all" {
+		*ret = Arch{
+			ABI:  "all",
+			Libc: "all",
+			OS:   "all",
+			CPU:  "all",
+		}
+		return nil
+	}
+
+	parts := strings.SplitN(arch, "-", 4)
+	parts = expandAnyAnyAny(parts)
+	parts = matchShortAgainstTupletable(parts)
+
+	switch len(parts) {
+	case 4:
+		*ret = Arch{
+			ABI:  parts[0],
+			Libc: parts[1],
+			OS:   parts[2],
+			CPU:  parts[3],
+		}
+	case 3:
+		*ret = Arch{
+			ABI:  "base",
+			Libc: parts[0],
+			OS:   parts[1],
+			CPU:  parts[2],
 		}
 	case 2:
-		/* Right, this is something like kfreebsd-amd64, which is implicitly
-		 * gnu-kfreebsd-amd64 */
-		ret.OS = flavors[0]
-		ret.CPU = flavors[1]
-	case 3:
-		/* This is something like bsd-openbsd-amd64 */
-		ret.ABI = flavors[0]
-		ret.OS = flavors[1]
-		ret.CPU = flavors[2]
-	default:
-		return errors.New("Hurm, no idea what happened here")
+		*ret = Arch{
+			ABI:  "base",
+			Libc: "gnu",
+			OS:   parts[0],
+			CPU:  parts[1],
+		}
+	case 1:
+		*ret = Arch{
+			ABI:  "base",
+			Libc: "gnu",
+			OS:   "linux",
+			CPU:  parts[0],
+		}
+	case 0:
+		return fmt.Errorf("parseArchInto: empty string!")
 	}
 
 	return nil
@@ -136,7 +249,7 @@ func (arch *Arch) IsWildcard() bool {
 		return false
 	}
 
-	if arch.ABI == "any" || arch.OS == "any" || arch.CPU == "any" {
+	if arch.ABI == "any" || arch.OS == "any" || arch.CPU == "any" || arch.Libc == "any" {
 		return true
 	}
 	return false
@@ -158,6 +271,7 @@ func (arch *Arch) Is(other *Arch) bool {
 
 	if (arch.CPU == other.CPU || (arch.CPU != "all" && other.CPU == "any")) &&
 		(arch.OS == other.OS || other.OS == "any") &&
+		(arch.Libc == other.Libc || other.Libc == "any") &&
 		(arch.ABI == other.ABI || other.ABI == "any") {
 
 		return true

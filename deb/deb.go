@@ -47,8 +47,8 @@ type Control struct {
 	Version       version.Version `required:"true"`
 	Architecture  dependency.Arch `required:"true"`
 	Maintainer    string
-	InstalledSize int             `control:"Installed-Size"`
-	MultiArch     string          `control:"Multi-Arch"`
+	InstalledSize int    `control:"Installed-Size"`
+	MultiArch     string `control:"Multi-Arch"`
 	Depends       dependency.Dependency
 	Recommends    dependency.Dependency
 	Suggests      dependency.Dependency

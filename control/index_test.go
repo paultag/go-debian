@@ -26,7 +26,7 @@ import (
 	"testing"
 
 	"pault.ag/go/debian/control"
-    "pault.ag/go/debian/dependency"
+	"pault.ag/go/debian/dependency"
 )
 
 func TestSourceIndexParse(t *testing.T) {
@@ -179,20 +179,20 @@ SHA256: fa53e4f50349c5c9b564b8dc1da86c503b0baf56ab95a4ef6e204b6f77bfe70c
 	isok(t, err)
 	assert(t, len(sources) == 3)
 
-    assert(t, sources[2].Package == "androidsdk-ddms")
+	assert(t, sources[2].Package == "androidsdk-ddms")
 	assert(t, sources[2].Source == "androidsdk-tools")
-    assert(t, sources[2].Version.String() == "22.2+git20130830~92d25d6-1")
-    assert(t, sources[2].InstalledSize == 211)
-    assert(t, sources[2].Maintainer == "Debian Java Maintainers <pkg-java-maintainers@lists.alioth.debian.org>")
-    assert(t, sources[2].Architecture == dependency.All)
-    assert(t, sources[2].Description == "Graphical debugging tool for Android")
-    assert(t, sources[2].Homepage == "http://developer.android.com/tools/help/index.html")
-    assert(t, sources[2].Section == "java")
-    assert(t, sources[2].Priority == "extra")
+	assert(t, sources[2].Version.String() == "22.2+git20130830~92d25d6-1")
+	assert(t, sources[2].InstalledSize == 211)
+	assert(t, sources[2].Maintainer == "Debian Java Maintainers <pkg-java-maintainers@lists.alioth.debian.org>")
+	assert(t, sources[2].Architecture == dependency.All)
+	assert(t, sources[2].Description == "Graphical debugging tool for Android")
+	assert(t, sources[2].Homepage == "http://developer.android.com/tools/help/index.html")
+	assert(t, sources[2].Section == "java")
+	assert(t, sources[2].Priority == "extra")
 	assert(t, sources[2].Filename == "pool/main/a/androidsdk-tools/androidsdk-ddms_22.2+git20130830~92d25d6-1_all.deb")
-    assert(t, sources[2].Size == 132048)
-    assert(t, sources[2].MD5sum == "fde05f3552457e91a415c99ab2a2a514")
-    assert(t, sources[2].SHA256 == "fa53e4f50349c5c9b564b8dc1da86c503b0baf56ab95a4ef6e204b6f77bfe70c")
+	assert(t, sources[2].Size == 132048)
+	assert(t, sources[2].MD5sum == "fde05f3552457e91a415c99ab2a2a514")
+	assert(t, sources[2].SHA256 == "fa53e4f50349c5c9b564b8dc1da86c503b0baf56ab95a4ef6e204b6f77bfe70c")
 }
 
 func TestBinaryIndexDependsParse(t *testing.T) {
@@ -255,12 +255,12 @@ Description-md5: d05e72aec9e53ee776fc0735e135889b
 	assert(t, len(sources) == 1)
 
 	pkgconflicts := sources[0].GetConflicts()
-    conflicts := pkgconflicts.GetAllPossibilities()
-    assert(t, len(conflicts) == 1)
+	conflicts := pkgconflicts.GetAllPossibilities()
+	assert(t, len(conflicts) == 1)
 
 	assert(t, conflicts[0].Name == "somepackage")
-    assert(t, conflicts[0].Version.Number == "5.0")
-    assert(t, conflicts[0].Version.Operator == ">=")
+	assert(t, conflicts[0].Version.Number == "5.0")
+	assert(t, conflicts[0].Version.Operator == ">=")
 }
 
 // vim: foldmethod=marker

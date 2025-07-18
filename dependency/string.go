@@ -29,18 +29,7 @@ func (a Arch) MarshalControl() (string, error) {
 }
 
 func (a Arch) String() string {
-	/* ABI-OS-CPU -- gnu-linux-amd64 */
-	els := []string{}
-	if a.ABI != "any" && a.ABI != "all" && a.ABI != "gnu" && a.ABI != "" {
-		els = append(els, a.ABI)
-	}
-
-	if a.OS != "any" && a.OS != "all" && a.OS != "linux" {
-		els = append(els, a.OS)
-	}
-
-	els = append(els, a.CPU)
-	return strings.Join(els, "-")
+	return archToStringWithTupletable(a)
 }
 
 func (set ArchSet) String() string {

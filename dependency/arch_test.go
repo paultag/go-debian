@@ -34,8 +34,15 @@ func TestArchBasics(t *testing.T) {
 	arch, err := dependency.ParseArch("amd64")
 	isok(t, err)
 	assert(t, arch.CPU == "amd64")
-	assert(t, arch.ABI == "gnu")
+	assert(t, arch.ABI == "base")
+	assert(t, arch.Libc == "gnu")
 	assert(t, arch.OS == "linux")
+}
+
+func TestArchCompareX32(t *testing.T) {
+	archX32, _ := dependency.ParseArch("x32")
+	archAnyAmd64, _ := dependency.ParseArch("any-amd64")
+	assert(t, archX32.Is(archAnyAmd64))
 }
 
 /*
@@ -45,11 +52,10 @@ func TestArchCompareBasics(t *testing.T) {
 	isok(t, err)
 
 	equivs := []string{
-		"gnu-linux-amd64",
-		"linux-amd64",
+		"base-gnu-linux-amd64",
 		"linux-any",
 		"any",
-		"gnu-linux-any",
+		"base-gnu-linux-any",
 	}
 
 	for _, el := range equivs {
@@ -60,12 +66,12 @@ func TestArchCompareBasics(t *testing.T) {
 	}
 
 	unequivs := []string{
-		"gnu-linux-all",
+		"base-gnu-linux-all",
 		"all",
 
-		"gnuu-linux-amd64",
-		"gnu-linuxx-amd64",
-		"gnu-linux-amd644",
+		"base-gnuu-linux-amd64",
+		"base-gnu-linuxx-amd64",
+		"base-gnu-linux-amd644",
 	}
 
 	for _, el := range unequivs {
