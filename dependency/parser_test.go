@@ -333,4 +333,20 @@ func TestInsaneRoundTrip(t *testing.T) {
 	assert(t, dep.String() == rtDep.String())
 }
 
+func TestMultilineFieldTrailingNewline(t *testing.T) {
+	// deb822 fields shaped across continuation lines hand the value to
+	// dependency.Parse with the field-terminating newline still attached
+	// after the final possibility (no trailing comma). The newline must
+	// not end up in the last Possibility's Name. Shape mirrors what
+	// control.ParseControlFile yields for bzip2's Build-Depends-Indep.
+	input := "texinfo,\n                     docbook-xml,\n                     docbook2x,\n                     xsltproc\n"
+	dep, err := dependency.Parse(input)
+	isok(t, err)
+	assert(t, len(dep.Relations) == 4)
+	assert(t, dep.Relations[0].Possibilities[0].Name == "texinfo")
+	assert(t, dep.Relations[1].Possibilities[0].Name == "docbook-xml")
+	assert(t, dep.Relations[2].Possibilities[0].Name == "docbook2x")
+	assert(t, dep.Relations[3].Possibilities[0].Name == "xsltproc")
+}
+
 // vim: foldmethod=marker
