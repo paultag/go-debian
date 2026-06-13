@@ -60,8 +60,10 @@ type SourceParagraph struct {
 	Description string
 
 	BuildDepends        dependency.Dependency `control:"Build-Depends"`
+	BuildDependsArch    dependency.Dependency `control:"Build-Depends-Arch"`
 	BuildDependsIndep   dependency.Dependency `control:"Build-Depends-Indep"`
 	BuildConflicts      dependency.Dependency `control:"Build-Conflicts"`
+	BuildConflictsArch  dependency.Dependency `control:"Build-Conflicts-Arch"`
 	BuildConflictsIndep dependency.Dependency `control:"Build-Conflicts-Indep"`
 }
 

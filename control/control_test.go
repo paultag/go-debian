@@ -83,6 +83,45 @@ Description: XDG compliant autostarting app for Fluxbox
 	assert(t, c.Binaries[0].Package == "fbautostart")
 }
 
+func TestSourceBuildDependsArchAndConflictsArch(t *testing.T) {
+	reader := bufio.NewReader(strings.NewReader(`Source: example
+Section: misc
+Priority: optional
+Maintainer: Paul Tagliamonte <paultag@ubuntu.com>
+Build-Depends: debhelper (>= 9)
+Build-Depends-Arch: gcc-multilib
+Build-Depends-Indep: texinfo
+Build-Conflicts: r-base-core
+Build-Conflicts-Arch: clang
+Build-Conflicts-Indep: docbook-xml
+
+Package: example
+Architecture: any
+Description: example
+`))
+	c, err := control.ParseControl(reader, "")
+	isok(t, err)
+	assert(t, c != nil)
+
+	assert(t, len(c.Source.BuildDepends.Relations) == 1)
+	assert(t, c.Source.BuildDepends.Relations[0].Possibilities[0].Name == "debhelper")
+
+	assert(t, len(c.Source.BuildDependsArch.Relations) == 1)
+	assert(t, c.Source.BuildDependsArch.Relations[0].Possibilities[0].Name == "gcc-multilib")
+
+	assert(t, len(c.Source.BuildDependsIndep.Relations) == 1)
+	assert(t, c.Source.BuildDependsIndep.Relations[0].Possibilities[0].Name == "texinfo")
+
+	assert(t, len(c.Source.BuildConflicts.Relations) == 1)
+	assert(t, c.Source.BuildConflicts.Relations[0].Possibilities[0].Name == "r-base-core")
+
+	assert(t, len(c.Source.BuildConflictsArch.Relations) == 1)
+	assert(t, c.Source.BuildConflictsArch.Relations[0].Possibilities[0].Name == "clang")
+
+	assert(t, len(c.Source.BuildConflictsIndep.Relations) == 1)
+	assert(t, c.Source.BuildConflictsIndep.Relations[0].Possibilities[0].Name == "docbook-xml")
+}
+
 func TestMaintainersParse(t *testing.T) {
 	// Test Control {{{
 	reader := bufio.NewReader(strings.NewReader(`Source: fbautostart
