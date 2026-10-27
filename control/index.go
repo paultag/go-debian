@@ -95,6 +95,21 @@ func (index *BinaryIndex) GetBuiltUsing() dependency.Dependency {
 	return index.getOptionalDependencyField("Built-Using")
 }
 
+// Parse the Recommends dependency relation on this package.
+func (index *BinaryIndex) GetRecommends() dependency.Dependency {
+	return index.getOptionalDependencyField("Recommends")
+}
+
+// Parse the Enhances dependency relation on this package.
+func (index *BinaryIndex) GetEnhances() dependency.Dependency {
+	return index.getOptionalDependencyField("Enhances")
+}
+
+// Parse the Provides dependency relation on this package.
+func (index *BinaryIndex) GetProvides() dependency.Dependency {
+	return index.getOptionalDependencyField("Provides")
+}
+
 // SourcePackage returns the Debian source package name from which this binary
 // Package was built, coping with the special cases Source == Package (skipped
 // for efficiency) and binNMUs (Source contains version number).
