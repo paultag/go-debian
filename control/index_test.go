@@ -343,15 +343,15 @@ Package: def
 	assert(t, indices[1].GetBuildConflictsIndep().String() == "")
 }
 
-func TestBinaryIndexParseSource(t *testing.T) {
+func TestBinaryIndexParseSourcePackage(t *testing.T) {
     // Test Binary Index {{{
     reader := bufio.NewReader(strings.NewReader(`Package: source-abc
-Source: abc (= 1.0.0)
+Source: abc
+
+Package: source-def-with-version
+Source: def (= 1.0.0)
 
 Package: no-source
-
-Package: empty-source
-Source: 
 `))
     // }}}
     indices, err := control.ParseBinaryIndex(reader)
@@ -361,11 +361,11 @@ Source:
 	assert(t, indices[0].Package == "source-abc")
 	assert(t, indices[0].SourcePackage() == "abc")
 
-	assert(t, indices[1].Package == "no-source")
-	assert(t, indices[1].SourcePackage() == "")
+	assert(t, indices[1].Package == "source-def-with-version")
+	assert(t, indices[1].SourcePackage() == "def")
 
-	assert(t, indices[2].Package == "empty-source")
-	assert(t, indices[2].SourcePackage() == "")
+	assert(t, indices[2].Package == "no-source")
+	assert(t, indices[2].SourcePackage() == indices[2].Package)
 }
 
 // vim: foldmethod=marker
