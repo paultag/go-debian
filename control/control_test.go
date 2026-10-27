@@ -208,4 +208,84 @@ Description: XDG compliant autostarting app for Fluxbox
 	assert(t, c.Binaries[0].Conffiles[1].Hash == "db44b9cbb80456bc68c1225ee9e38fcb")
 }
 
+func TestBinaryParagraphParse(t *testing.T) {
+	// Test Control {{{
+	reader := bufio.NewReader(strings.NewReader(`Source: abc
+
+Package: libabc
+Architecture: any
+Priority: optional
+Section: libs
+Essential: yes
+Description: abc description
+ test
+ .
+ a:
+  * b
+Depends: d
+Recommends: rec
+Suggests: s
+Enhances: e
+Pre-Depends: pd
+Breaks: b
+Conflicts: c
+Replaces: rep
+Provides: p
+Built-Using: bu
+
+Package: abc
+
+Package: abc-essential-no
+Essential: no
+`))
+	// }}}
+	c, err := control.ParseControl(reader, "")
+	isok(t, err)
+	assert(t, c != nil)
+	assert(t, len(c.Binaries) == 3)
+
+	assert(t, c.Binaries[0].Package == "libabc")
+	assert(t, len(c.Binaries[0].Architectures) == 1)
+	assert(t, c.Binaries[0].Architectures[0].String() == "any")
+	assert(t, c.Binaries[0].Priority == "optional")
+	assert(t, c.Binaries[0].Section == "libs")
+	assert(t, c.Binaries[0].Essential)
+	assert(t, c.Binaries[0].Description == `abc description
+test
+
+a:
+ * b
+`)
+	assert(t, c.Binaries[0].Depends.String() == "d")
+	assert(t, c.Binaries[0].Recommends.String() == "rec")
+	assert(t, c.Binaries[0].Suggests.String() == "s")
+	assert(t, c.Binaries[0].Enhances.String() == "e")
+	assert(t, c.Binaries[0].PreDepends.String() == "pd")
+	assert(t, c.Binaries[0].Breaks.String() == "b")
+	assert(t, c.Binaries[0].Conflicts.String() == "c")
+	assert(t, c.Binaries[0].Replaces.String() == "rep")
+	assert(t, c.Binaries[0].Provides.String() == "p")
+	assert(t, c.Binaries[0].BuiltUsing.String() == "bu")
+
+	assert(t, c.Binaries[1].Package == "abc")
+	assert(t, len(c.Binaries[1].Architectures) == 0)
+	assert(t, c.Binaries[1].Priority == "")
+	assert(t, c.Binaries[1].Section == "")
+	assert(t, !c.Binaries[1].Essential)
+	assert(t, c.Binaries[1].Description == "")
+	assert(t, c.Binaries[1].Depends.String() == "")
+	assert(t, c.Binaries[1].Recommends.String() == "")
+	assert(t, c.Binaries[1].Suggests.String() == "")
+	assert(t, c.Binaries[1].Enhances.String() == "")
+	assert(t, c.Binaries[1].PreDepends.String() == "")
+	assert(t, c.Binaries[1].Breaks.String() == "")
+	assert(t, c.Binaries[1].Conflicts.String() == "")
+	assert(t, c.Binaries[1].Replaces.String() == "")
+	assert(t, c.Binaries[1].Provides.String() == "")
+	assert(t, c.Binaries[1].BuiltUsing.String() == "")
+
+	assert(t, c.Binaries[2].Package == "abc-essential-no")
+	assert(t, !c.Binaries[2].Essential)
+}
+
 // vim: foldmethod=marker
