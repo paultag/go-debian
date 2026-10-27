@@ -97,6 +97,8 @@ type BinaryParagraph struct {
 	Conflicts dependency.Dependency
 	Replaces  dependency.Dependency
 
+	Provides  dependency.Dependency
+
 	BuiltUsing dependency.Dependency `control:"Built-Using"`
 }
 
