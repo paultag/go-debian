@@ -84,6 +84,7 @@ Description: XDG compliant autostarting app for Fluxbox
 }
 
 func TestSourceBuildDependsArchAndConflictsArch(t *testing.T) {
+	// Test Control {{{
 	reader := bufio.NewReader(strings.NewReader(`Source: example
 Section: misc
 Priority: optional
@@ -99,6 +100,7 @@ Package: example
 Architecture: any
 Description: example
 `))
+	// }}}
 	c, err := control.ParseControl(reader, "")
 	isok(t, err)
 	assert(t, c != nil)
