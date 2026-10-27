@@ -263,4 +263,50 @@ Description-md5: d05e72aec9e53ee776fc0735e135889b
 	assert(t, conflicts[0].Version.Operator == ">=")
 }
 
+func TestBinaryIndexParseDependencyFields(t *testing.T) {
+    // Test Binary Index {{{
+    reader := bufio.NewReader(strings.NewReader(`Package: abc
+Depends: da (>= 2.0) | db, dc
+Recommends: ra
+Suggests: sa
+Enhances: ea
+Pre-Depends: pda
+Breaks: ba
+Conflicts: ca
+Replaces: ra
+Built-Using: bua
+Provides: pa
+
+Package: def
+`))
+    // }}}
+    indices, err := control.ParseBinaryIndex(reader)
+    isok(t, err)
+    assert(t, len(indices) == 2)
+
+	assert(t, indices[0].Package == "abc")
+	assert(t, indices[0].GetDepends().String() == "da (>= 2.0) | db, dc")
+	assert(t, indices[0].GetRecommends().String() == "ra")
+	assert(t, indices[0].GetSuggests().String() == "sa")
+	assert(t, indices[0].GetEnhances().String() == "ea")
+	assert(t, indices[0].GetPreDepends().String() == "pda")
+	assert(t, indices[0].GetBreaks().String() == "ba")
+	assert(t, indices[0].GetConflicts().String() == "ca")
+	assert(t, indices[0].GetReplaces().String() == "ra")
+	assert(t, indices[0].GetBuiltUsing().String() == "bua")
+	assert(t, indices[0].GetProvides().String() == "pa")
+
+	assert(t, indices[1].Package == "def")
+	assert(t, indices[1].GetDepends().String() == "")
+	assert(t, indices[1].GetRecommends().String() == "")
+	assert(t, indices[1].GetSuggests().String() == "")
+	assert(t, indices[1].GetEnhances().String() == "")
+	assert(t, indices[1].GetPreDepends().String() == "")
+	assert(t, indices[1].GetBreaks().String() == "")
+	assert(t, indices[1].GetConflicts().String() == "")
+	assert(t, indices[1].GetReplaces().String() == "")
+	assert(t, indices[1].GetBuiltUsing().String() == "")
+	assert(t, indices[1].GetProvides().String() == "")
+}
+
 // vim: foldmethod=marker
