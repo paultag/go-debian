@@ -205,6 +205,21 @@ func (index *SourceIndex) GetBuildDependsIndep() dependency.Dependency {
 	return index.getOptionalDependencyField("Build-Depends-Indep")
 }
 
+// Parse the Build-Conflicts dependency relation on this package.
+func (index *SourceIndex) GetBuildConflicts() dependency.Dependency {
+	return index.getOptionalDependencyField("Build-Conflicts")
+}
+
+// Parse the Build-Conflicts-Arch dependency relation on this package.
+func (index *SourceIndex) GetBuildConflictsArch() dependency.Dependency {
+	return index.getOptionalDependencyField("Build-Conflicts-Arch")
+}
+
+// Parse the Build-Conflicts-Indep dependency relation on this package.
+func (index *SourceIndex) GetBuildConflictsIndep() dependency.Dependency {
+	return index.getOptionalDependencyField("Build-Conflicts-Indep")
+}
+
 // Given a reader, parse out a list of BinaryIndex structs.
 func ParseBinaryIndex(reader *bufio.Reader) (ret []BinaryIndex, err error) {
 	ret = []BinaryIndex{}
