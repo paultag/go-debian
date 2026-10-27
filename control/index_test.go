@@ -309,4 +309,38 @@ Package: def
 	assert(t, indices[1].GetProvides().String() == "")
 }
 
+func TestSourceIndexParseDependencyFields(t *testing.T) {
+	// Test Source Index {{{
+	reader := bufio.NewReader(strings.NewReader(`Package: abc
+Build-Depends: bd
+Build-Depends-Arch: bda
+Build-Depends-Indep: bdi
+Build-Conflicts: bc
+Build-Conflicts-Arch: bca
+Build-Conflicts-Indep: bci
+
+Package: def
+`))
+    // }}}
+    indices, err := control.ParseSourceIndex(reader)
+    isok(t, err)
+	assert(t, len(indices) == 2)
+
+	assert(t, indices[0].Package == "abc")
+	assert(t, indices[0].GetBuildDepends().String() == "bd")
+	assert(t, indices[0].GetBuildDependsArch().String() == "bda")
+	assert(t, indices[0].GetBuildDependsIndep().String() == "bdi")
+	assert(t, indices[0].GetBuildConflicts().String() == "bc")
+	assert(t, indices[0].GetBuildConflictsArch().String() == "bca")
+	assert(t, indices[0].GetBuildConflictsIndep().String() == "bci")
+
+	assert(t, indices[1].Package == "def")
+	assert(t, indices[1].GetBuildDepends().String() == "")
+	assert(t, indices[1].GetBuildDependsArch().String() == "")
+	assert(t, indices[1].GetBuildDependsIndep().String() == "")
+	assert(t, indices[1].GetBuildConflicts().String() == "")
+	assert(t, indices[1].GetBuildConflictsArch().String() == "")
+	assert(t, indices[1].GetBuildConflictsIndep().String() == "")
+}
+
 // vim: foldmethod=marker
