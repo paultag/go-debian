@@ -126,13 +126,6 @@ func TestParseZeroVersions(t *testing.T) {
 		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
 	}
 
-	if a, err = Parse("0:0-"); err != nil {
-		t.Errorf("Parsing %q failed: %v", "0:0-", err)
-	}
-	if Compare(a, b) != 0 {
-		t.Errorf("Compare(%v, %v), got %d, want 0", a, b, Compare(a, b))
-	}
-
 	b = v(0, "0", "0")
 	if a, err = Parse("0:0-0"); err != nil {
 		t.Errorf("Parsing %q failed: %v", "0:0-0", err)
@@ -355,6 +348,12 @@ func TestParseInvalidCharactersInRevision(t *testing.T) {
 		if _, err := Parse(verstr); err == nil {
 			t.Errorf("Expected an error, but %q was parsed without an error", verstr)
 		}
+	}
+}
+
+func TestParseEmptyRevision(t *testing.T) {
+	if _, err := Parse("1-"); err == nil {
+		t.Errorf("Expected an error, but %q was parsed without an error", "1-")
 	}
 }
 
