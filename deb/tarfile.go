@@ -60,12 +60,25 @@ func bzipNewReader(r io.Reader) (io.ReadCloser, error) {
 	return io.NopCloser(bzip2.NewReader(r)), nil
 }
 
+// zstdReadCloser adapts a *zstd.Decoder to io.ReadCloser. A streaming
+// zstd decoder spawns a background goroutine that holds large window and
+// history buffers; those are only released when Close() is called. The
+// previous io.NopCloser wrapper meant the decoder was never closed, so
+// every decompressed member (notably Ubuntu's control.tar.zst /
+// data.tar.zst) leaked a goroutine and its buffers. (*zstd.Decoder).Close
+// returns no error, so Close here always reports success.
+type zstdReadCloser struct{ d *zstd.Decoder }
+
+func (z zstdReadCloser) Read(p []byte) (int, error) { return z.d.Read(p) }
+
+func (z zstdReadCloser) Close() error { z.d.Close(); return nil }
+
 func zstdNewReader(r io.Reader) (io.ReadCloser, error) {
 	reader, err := zstd.NewReader(r)
 	if err != nil {
 		return nil, err
 	}
-	return io.NopCloser(reader), err
+	return zstdReadCloser{reader}, nil
 }
 
 // For the authoritative list of supported file formats, see
