@@ -216,9 +216,19 @@ func parseInto(result *Version, input string) error {
 
 	colon := strings.Index(trimmed, ":")
 	if colon != -1 {
-		epoch, err := strconv.ParseInt(trimmed[:colon], 10, 64)
+		epoch, err := strconv.ParseInt(trimmed[:colon], 10, 32)
 		if err != nil {
-			return fmt.Errorf("epoch: %v", err)
+			numError := err.(*strconv.NumError)
+			if numError.Err == strconv.ErrRange {
+				if len(numError.Num) != 0 && numError.Num[0] == '-' {
+					return fmt.Errorf("epoch in version is negative")
+				}
+				return fmt.Errorf("epoch in version is too big")
+			}
+			if numError.Err == strconv.ErrSyntax {
+				return fmt.Errorf("epoch in version is not number")
+			}
+			return fmt.Errorf("epoch in version is invalid: %v", err)
 		}
 		if epoch < 0 {
 			return fmt.Errorf("epoch in version is negative")
