@@ -233,6 +233,10 @@ func parseInto(result *Version, input string) error {
 	if hyphen := strings.LastIndex(result.Version, "-"); hyphen != -1 {
 		result.Revision = result.Version[hyphen+1:]
 		result.Version = result.Version[:hyphen]
+
+		if len(result.Revision) == 0 {
+			return fmt.Errorf("revision string is empty")
+		}
 	}
 
 	if len(result.Version) > 0 && !unicode.IsDigit(rune(result.Version[0])) {
