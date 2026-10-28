@@ -309,23 +309,39 @@ func TestParseVersionWithEmbeddedSpaces(t *testing.T) {
 }
 
 func TestParseVersionWithNegativeEpoch(t *testing.T) {
-	if _, err := Parse("-1:0-1"); err == nil {
-		t.Errorf("Expected an error, but %q was parsed without an error", "-1:0-1")
+	errExpected := "epoch in version is negative"
+	for _, value := range []string{"-1:0-1", "-2147483649:1"} {
+		if _, err := Parse(value); err == nil {
+			t.Errorf("Expected an error, but %q was parsed without an error", value)
+		} else if err.Error() != errExpected {
+			t.Errorf("Expected error %q, but received error %q when parsing %q", errExpected, err, value)
+		}
 	}
 }
 
 func TestParseVersionWithHugeEpoch(t *testing.T) {
-	if _, err := Parse("999999999999999999999999:0-1"); err == nil {
-		t.Errorf("Expected an error, but %q was parsed without an error", "999999999999999999999999:0-1")
+	errExpected := "epoch in version is too big"
+	for _, value := range []string{"2147483649:0-1", "2147483648:1", "9223372036854775808:0"} {
+		if _, err := Parse(value); err == nil {
+			t.Errorf("Expected an error, but %q was parsed without an error", value)
+		} else if err.Error() != errExpected {
+			t.Errorf("Expected error %q, but received error %q when parsing %q", errExpected, err, value)
+		}
+	}
+	value := "2147483647:0-1"
+	if _, err := Parse(value); err != nil {
+		t.Errorf("Expected no error, but %q was parsed with an error: %s", value, err)
 	}
 }
 
 func TestParseInvalidCharactersInEpoch(t *testing.T) {
-	if _, err := Parse("a:0-0"); err == nil {
-		t.Errorf("Expected an error, but %q was parsed without an error", "a:0-0")
-	}
-	if _, err := Parse("A:0-0"); err == nil {
-		t.Errorf("Expected an error, but %q was parsed without an error", "A:0-0")
+	errExpected := "epoch in version is not number"
+	for _, value := range []string{"a:0-0", "A:0-0", "-:0", "-1x:0"} {
+		if _, err := Parse(value); err == nil {
+			t.Errorf("Expected an error, but %q was parsed without an error", value)
+		} else if err.Error() != errExpected {
+			t.Errorf("Expected error %q, but received error %q when parsing %q", errExpected, err, value)
+		}
 	}
 }
 
