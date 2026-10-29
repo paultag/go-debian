@@ -349,4 +349,26 @@ func TestMultilineFieldTrailingNewline(t *testing.T) {
 	assert(t, dep.Relations[3].Possibilities[0].Name == "xsltproc")
 }
 
+func TestMultilineFieldWhitespaceSeparators(t *testing.T) {
+	dep, err := dependency.Parse("debhelper-compat (= 13),\n               python3:any\n")
+	isok(t, err)
+	assert(t, *dep.Relations[1].Possibilities[0].Arch == dependency.Any)
+
+	for _, ws := range []string{"\t", "\n", "\r"} {
+		dep, err := dependency.Parse("foo:any" + ws + "[amd64" + ws + "i386]" + ws + "<!nocheck" + ws + "!cross>" + ws)
+		isok(t, err)
+		possi := dep.Relations[0].Possibilities[0]
+		assert(t, *possi.Arch == dependency.Any)
+		arches := possi.Architectures.Architectures
+		assert(t, len(arches) == 2)
+		assert(t, arches[0].CPU == "amd64")
+		assert(t, arches[1].CPU == "i386")
+		assert(t, len(possi.StageSets) == 1)
+		stages := possi.StageSets[0].Stages
+		assert(t, len(stages) == 2)
+		assert(t, stages[0].Not && stages[0].Name == "nocheck")
+		assert(t, stages[1].Not && stages[1].Name == "cross")
+	}
+}
+
 // vim: foldmethod=marker
