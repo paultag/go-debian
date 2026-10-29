@@ -216,7 +216,7 @@ func parseMultiarch(input *input, possi *Possibility) error {
 	for {
 		peek := input.Peek()
 		switch peek {
-		case ',', '|', 0, ' ', '(', '[', '<':
+		case ',', '|', 0, ' ', '\t', '\n', '\r', '(', '[', '<':
 			arch, err := ParseArch(name)
 			if err != nil {
 				return err
@@ -391,7 +391,7 @@ func parsePossibilityArch(input *input, possi *Possibility) error {
 			return errors.New("Oh no. Reached EOF before Arch list finished")
 		case '!':
 			return errors.New("You can only negate whole blocks :(")
-		case ']', ' ': /* Let our parent deal with both of these */
+		case ']', ' ', '\t', '\n', '\r': /* Let our parent deal with both of these */
 			archObj, err := ParseArch(arch)
 			if err != nil {
 				return err
@@ -446,7 +446,7 @@ func parsePossibilityStage(input *input, stageSet *StageSet) error {
 				return errors.New("Double-negation (!!) of a single Stage is not permitted :(")
 			}
 			stage.Not = !stage.Not
-		case '>', ' ': /* Let our parent deal with both of these */
+		case '>', ' ', '\t', '\n', '\r': /* Let our parent deal with both of these */
 			stageSet.Stages = append(stageSet.Stages, stage)
 			return nil
 		}
