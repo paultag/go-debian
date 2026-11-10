@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"pault.ag/go/debian/deb"
+	"pault.ag/go/debian/dependency"
 )
 
 /*
@@ -128,4 +129,15 @@ func TestArEmptyFields(t *testing.T) {
 	//firstRereadContent, err := io.ReadAll(firstEntry.Data)
 	//isok(t, err)
 	//assert(t, string(firstContent) == string(firstRereadContent), "")
+}
+
+func TestArLzma(t *testing.T) {
+	file, err := os.Open("testdata/control-lzma.deb")
+	isok(t, err)
+
+	d, err := deb.Load(file, "")
+	isok(t, err)
+	defer d.Close()
+
+	assert(t, d.Control.Architecture == dependency.All)
 }
