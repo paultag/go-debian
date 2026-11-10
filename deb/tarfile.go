@@ -21,19 +21,17 @@
 package deb // import "pault.ag/go/debian/deb"
 
 import (
+	"archive/tar"
+	"compress/bzip2"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"path/filepath"
 	"strings"
 
-	"archive/tar"
-
-	"compress/bzip2"
-	"compress/gzip"
-
 	"github.com/kjk/lzma"
 	"github.com/klauspost/compress/zstd"
-	"github.com/xi2/xz"
+	"github.com/ulikunitz/xz"
 )
 
 // known compression types {{{
@@ -45,7 +43,7 @@ func gzipNewReader(r io.Reader) (io.ReadCloser, error) {
 }
 
 func xzNewReader(r io.Reader) (io.ReadCloser, error) {
-	reader, err := xz.NewReader(r, 0)
+	reader, err := xz.NewReader(r)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +92,7 @@ func DecompressorFor(ext string) DecompressorFunc {
 // used.
 func SetXZMaxDict(maxDict uint32) {
 	knownCompressionAlgorithms[".xz"] = func(r io.Reader) (io.ReadCloser, error) {
-		reader, err := xz.NewReader(r, maxDict)
+		reader, err := xz.ReaderConfig{DictCap: int(maxDict)}.NewReader(r)
 		if err != nil {
 			return nil, err
 		}
