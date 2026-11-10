@@ -21,18 +21,16 @@
 package deb // import "pault.ag/go/debian/deb"
 
 import (
+	"archive/tar"
+	"compress/bzip2"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"path/filepath"
 	"strings"
 
-	"archive/tar"
-
-	"compress/bzip2"
-	"compress/gzip"
-
-	"github.com/kjk/lzma"
 	"github.com/klauspost/compress/zstd"
+	"github.com/ulikunitz/xz/lzma"
 	"github.com/xi2/xz"
 )
 
@@ -53,7 +51,11 @@ func xzNewReader(r io.Reader) (io.ReadCloser, error) {
 }
 
 func lzmaNewReader(r io.Reader) (io.ReadCloser, error) {
-	return lzma.NewReader(r), nil
+	reader, err := lzma.NewReader(r)
+	if err != nil {
+		return nil, err
+	}
+	return io.NopCloser(reader), nil
 }
 
 func bzipNewReader(r io.Reader) (io.ReadCloser, error) {
