@@ -29,9 +29,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kjk/lzma"
 	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"
+	"github.com/ulikunitz/xz/lzma"
 )
 
 // known compression types {{{
@@ -51,7 +51,11 @@ func xzNewReader(r io.Reader) (io.ReadCloser, error) {
 }
 
 func lzmaNewReader(r io.Reader) (io.ReadCloser, error) {
-	return lzma.NewReader(r), nil
+	reader, err := lzma.NewReader(r)
+	if err != nil {
+		return nil, err
+	}
+	return io.NopCloser(reader), nil
 }
 
 func bzipNewReader(r io.Reader) (io.ReadCloser, error) {

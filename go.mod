@@ -4,7 +4,6 @@ go 1.26.0
 
 require (
 	github.com/ProtonMail/go-crypto v1.5.2
-	github.com/kjk/lzma v0.0.0-20161016003348-3fd93898850d
 	github.com/klauspost/compress v1.20.3
 	github.com/ulikunitz/xz v0.5.17
 	pault.ag/go/topsort v0.1.1
