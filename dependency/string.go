@@ -87,6 +87,11 @@ func (possi Possibility) String() string {
 			str += " " + stages
 		}
 	}
+	if possi.Substvar {
+		// A substvar is written as ${name}. The name holds everything
+		// between the braces, including an architecture qualifier.
+		str = "${" + str + "}"
+	}
 	return str
 }
 
