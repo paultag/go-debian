@@ -43,4 +43,51 @@ func TestArchString(t *testing.T) {
 	}
 }
 
+func TestSubstvarString(t *testing.T) {
+	// A substvar is written as ${name}. Writing it out without the braces
+	// turned it into a package name with an architecture qualifier, so a
+	// dependency field read from a control file and written back did not
+	// parse as the same thing.
+	dep, err := dependency.Parse("${misc:Depends}, foo (>= 1.0)")
+	isok(t, err)
+
+	assert(t, dep.String() == "${misc:Depends}, foo (>= 1.0)")
+
+	rtDep, err := dependency.Parse(dep.String())
+	isok(t, err)
+
+	assert(t, len(rtDep.Relations) == 2)
+	assert(t, rtDep.Relations[0].Possibilities[0].Name == "misc:Depends")
+	assert(t, rtDep.Relations[0].Possibilities[0].Substvar)
+	assert(t, !rtDep.Relations[1].Possibilities[0].Substvar)
+}
+
+func TestSubstvarStringRoundTrip(t *testing.T) {
+	for _, input := range []string{
+		"${shlibs:Depends}",
+		"${misc:Depends}, ${shlibs:Depends}",
+		"foo, ${misc:Depends}",
+		"${a} | ${b}",
+		"${misc:Depends}, foo (>= 1.0) | bar",
+	} {
+		dep, err := dependency.Parse(input)
+		isok(t, err)
+
+		assert(t, dep.String() == input)
+
+		rtDep, err := dependency.Parse(dep.String())
+		isok(t, err)
+
+		assert(t, len(rtDep.Relations) == len(dep.Relations))
+		for i, relation := range dep.Relations {
+			assert(t, len(rtDep.Relations[i].Possibilities) == len(relation.Possibilities))
+			for j, possi := range relation.Possibilities {
+				rtPossi := rtDep.Relations[i].Possibilities[j]
+				assert(t, rtPossi.Name == possi.Name)
+				assert(t, rtPossi.Substvar == possi.Substvar)
+			}
+		}
+	}
+}
+
 // vim: foldmethod=marker
